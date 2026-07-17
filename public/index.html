@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal de tiquets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef1f5;
+    --card: #ffffff;
+    --ink: #16233f;
+    --ink-soft: #58698c;
+    --border: #d7dee8;
+    --accent: #e3a008;
+    --accent-ink: #7a5200;
+    --success: #2c7a7b;
+    --success-bg: #e4f2f1;
+    --danger: #c0392b;
+    --danger-bg: #fbeae8;
+    --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+    --sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --radius: 14px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 15% 10%, #e5eaf1 0%, transparent 45%),
+      var(--bg);
+    font-family: var(--sans);
+    color: var(--ink);
+    padding: 48px 20px 80px;
+  }
+
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  header.page-head { margin-bottom: 36px; }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 8px; height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  h1 {
+    font-size: 32px;
+    margin: 10px 0 8px;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle { color: var(--ink-soft); font-size: 15px; max-width: 52ch; line-height: 1.5; }
+
+  /* --- Bitllet / ticket card --- */
+  .ticket {
+    position: relative;
+    display: flex;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 1px 2px rgba(22,35,63,0.04), 0 12px 32px -16px rgba(22,35,63,0.18);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .ticket-main { flex: 1; padding: 32px 32px 28px; min-width: 0; }
+  .ticket-stub {
+    width: 220px;
+    flex-shrink: 0;
+    background: #16233f;
+    color: #f2f5fa;
+    padding: 28px 22px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Perforated seam between main and stub */
+  .ticket-main { border-right: 2px dashed var(--border); }
+  .ticket::before, .ticket::after {
+    content: "";
+    position: absolute;
+    right: 220px;
+    width: 26px; height: 26px;
+    background: var(--bg);
+    border-radius: 50%;
+    transform: translateX(50%);
+    z-index: 2;
+  }
+  .ticket::before { top: -13px; }
+  .ticket::after { bottom: -13px; }
+
+  .stub-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #9fb0d1;
+    margin-bottom: 6px;
+  }
+
+  .stub-number {
+    font-family: var(--mono);
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 22px;
+  }
+
+  .stub-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    margin-bottom: 8px;
+    transition: background 0.15s ease;
+  }
+
+  .stub-priority[data-level="baixa"]   { background: #2c7a7b; }
+  .stub-priority[data-level="mitjana"] { background: #b7791f; }
+  .stub-priority[data-level="alta"]    { background: #c05621; }
+  .stub-priority[data-level="critica"] { background: #c0392b; }
+
+  fieldset { border: none; padding: 0; margin: 0 0 22px; }
+  legend {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+    padding: 0;
+  }
+
+  .row { display: grid; gap: 16px; }
+  .row.cols-2 { grid-template-columns: 1fr 1fr; }
+
+  label.field-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  label.field-label .opt { font-weight: 400; color: var(--ink-soft); }
+
+  input[type="text"], input[type="email"], select, textarea {
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fbfcfe;
+    color: var(--ink);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
+
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(227,160,8,0.18);
+  }
+
+  .field { margin-bottom: 16px; }
+
+  .priority-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .priority-chips input { position: absolute; opacity: 0; pointer-events: none; }
+  .priority-chips label {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    user-select: none;
+    transition: all 0.15s ease;
+  }
+  .priority-chips input:checked + label {
+    border-color: transparent;
+    color: #fff;
+  }
+  .priority-chips input[value="baixa"]:checked + label   { background: #2c7a7b; }
+  .priority-chips input[value="mitjana"]:checked + label { background: #b7791f; }
+  .priority-chips input[value="alta"]:checked + label    { background: #c05621; }
+  .priority-chips input[value="critica"]:checked + label { background: #c0392b; }
+
+  .honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+  button.submit {
+    width: 100%;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 18px;
+    background: var(--ink);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: transform 0.1s ease, background 0.15s ease;
+  }
+  button.submit:hover { background: #223258; }
+  button.submit:active { transform: translateY(1px); }
+  button.submit:disabled { opacity: 0.6; cursor: progress; }
+
+  .form-msg {
+    margin-top: 14px;
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    display: none;
+  }
+  .form-msg.error { display: block; background: var(--danger-bg); color: var(--danger); }
+
+  /* Confirmation state */
+  .confirm { display: none; text-align: center; padding: 10px 4px 4px; }
+  .confirm.visible { display: block; }
+  .confirm-check {
+    width: 46px; height: 46px; margin: 0 auto 16px;
+    border-radius: 50%;
+    background: var(--success-bg);
+    color: var(--success);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .confirm h2 { font-size: 20px; margin: 0 0 6px; }
+  .confirm p { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; }
+  .confirm .issue-link {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    background: #fbfcfe;
+    border: 1px solid var(--border);
+    color: var(--ink);
+    text-decoration: none;
+    margin-bottom: 18px;
+  }
+  .confirm .issue-link:hover { border-color: var(--accent); }
+  .confirm button.again {
+    background: none; border: none; color: var(--ink-soft);
+    font-size: 13px; text-decoration: underline; cursor: pointer;
+    display: block; margin: 0 auto;
+  }
+
+  @media (max-width: 620px) {
+    .ticket { flex-direction: column; }
+    .ticket-main { border-right: none; border-bottom: 2px dashed var(--border); }
+    .ticket-stub { width: auto; flex-direction: row; flex-wrap: wrap; gap: 16px; align-items: center; }
+    .ticket::before, .ticket::after { right: auto; left: 50%; top: auto; }
+    .ticket::before { bottom: calc(220px - 0px); transform: translate(-50%, 0); display:none; }
+    .ticket::after { display: none; }
+    .row.cols-2 { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page-head">
+    <div class="eyebrow">Portal intern d'incidències</div>
+    <h1>Obre un tiquet</h1>
+    <p class="subtitle">Explica'ns el problema o la petició. En enviar el formulari es crea automàticament una incidència a l'equip tècnic — no cal compte de GitHub.</p>
+  </header>
+
+  <div class="ticket">
+    <div class="ticket-main">
+      <form id="ticket-form" novalidate>
+
+        <div class="honeypot" aria-hidden="true">
+          <label for="website">No emplenar aquest camp</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
+        <fieldset>
+          <legend>Qui ho reporta</legend>
+          <div class="row cols-2">
+            <div class="field">
+              <label class="field-label" for="reporterName">Nom</label>
+              <input type="text" id="reporterName" name="reporterName" placeholder="Nom i cognoms" autocomplete="name">
+            </div>
+            <div class="field">
+              <label class="field-label" for="department">Departament <span class="opt">(opcional)</span></label>
+              <input type="text" id="department" name="department" placeholder="p. ex. Vendes">
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="reporterEmail">Correu <span class="opt">(opcional, per rebre novetats)</span></label>
+            <input type="email" id="reporterEmail" name="reporterEmail" placeholder="nom@empresa.com" autocomplete="email">
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Detall de la incidència</legend>
+          <div class="field">
+            <label class="field-label" for="title">Títol</label>
+            <input type="text" id="title" name="title" placeholder="Resum breu del problema" required maxlength="120">
+          </div>
+          <div class="row cols-2">
+            <div class="field">
+              <label class="field-label" for="category">Categoria</label>
+              <select id="category" name="category">
+                <option value="bug">Error / no funciona</option>
+                <option value="funcionalitat">Petició de funcionalitat</option>
+                <option value="suport">Suport tècnic</option>
+                <option value="acces">Accés i permisos</option>
+                <option value="altres">Altres</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">Prioritat</label>
+              <div class="priority-chips" id="priority-chips">
+                <input type="radio" name="priority" id="p-baixa" value="baixa" checked>
+                <label for="p-baixa">Baixa</label>
+                <input type="radio" name="priority" id="p-mitjana" value="mitjana">
+                <label for="p-mitjana">Mitjana</label>
+                <input type="radio" name="priority" id="p-alta" value="alta">
+                <label for="p-alta">Alta</label>
+                <input type="radio" name="priority" id="p-critica" value="critica">
+                <label for="p-critica">Crítica</label>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label" for="description">Descripció</label>
+            <textarea id="description" name="description" placeholder="Què ha passat? Passos per reproduir-ho, missatges d'error, captures..." required></textarea>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="submit" id="submit-btn">Enviar tiquet</button>
+        <div class="form-msg error" id="form-error"></div>
+      </form>
+
+      <div class="confirm" id="confirm-view">
+        <div class="confirm-check">✓</div>
+        <h2>Tiquet enviat</h2>
+        <p id="confirm-text">L'equip tècnic ja té la incidència.</p>
+        <a href="#" target="_blank" rel="noopener" class="issue-link" id="issue-link"></a>
+        <button type="button" class="again" id="again-btn">Enviar un altre tiquet</button>
+      </div>
+    </div>
+
+    <div class="ticket-stub">
+      <div>
+        <div class="stub-label">Nº de tiquet</div>
+        <div class="stub-number" id="stub-number">— — —</div>
+        <div class="stub-label">Categoria</div>
+        <div class="stub-badge" id="stub-category">Error / no funciona</div>
+      </div>
+      <div>
+        <div class="stub-label">Prioritat</div>
+        <div class="stub-badge stub-priority" id="stub-priority" data-level="baixa">Baixa</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const form = document.getElementById('ticket-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const formError = document.getElementById('form-error');
+  const confirmView = document.getElementById('confirm-view');
+  const confirmText = document.getElementById('confirm-text');
+  const issueLink = document.getElementById('issue-link');
+  const againBtn = document.getElementById('again-btn');
+
+  const stubNumber = document.getElementById('stub-number');
+  const stubCategory = document.getElementById('stub-category');
+  const stubPriority = document.getElementById('stub-priority');
+
+  const categorySelect = document.getElementById('category');
+  const priorityChips = document.getElementById('priority-chips');
+
+  const PRIORITY_TEXT = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', critica: 'Crítica' };
+
+  function syncStub() {
+    stubCategory.textContent = categorySelect.options[categorySelect.selectedIndex].text;
+    const checked = priorityChips.querySelector('input:checked');
+    const level = checked ? checked.value : 'baixa';
+    stubPriority.textContent = PRIORITY_TEXT[level];
+    stubPriority.dataset.level = level;
+  }
+  categorySelect.addEventListener('change', syncStub);
+  priorityChips.addEventListener('change', syncStub);
+  syncStub();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    formError.style.display = 'none';
+
+    const payload = {
+      title: form.title.value,
+      description: form.description.value,
+      category: form.category.value,
+      priority: (form.querySelector('input[name="priority"]:checked') || {}).value || 'baixa',
+      reporterName: form.reporterName.value,
+      reporterEmail: form.reporterEmail.value,
+      department: form.department.value,
+      website: form.website.value // honeypot
+    };
+
+    if (!payload.title.trim() || !payload.description.trim()) {
+      formError.textContent = 'Cal omplir el títol i la descripció.';
+      formError.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviant…';
+
+    try {
+      const res = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'No s\'ha pogut enviar el tiquet.');
+      }
+
+      if (data.number) {
+        stubNumber.textContent = '#' + data.number;
+        confirmText.textContent = `L'equip tècnic ja té la incidència número ${data.number}.`;
+        issueLink.href = data.url;
+        issueLink.textContent = 'Veure la incidència a GitHub ↗';
+        issueLink.style.display = 'inline-block';
+      } else {
+        confirmText.textContent = 'L\'equip tècnic ja té la incidència.';
+        issueLink.style.display = 'none';
+      }
+
+      form.style.display = 'none';
+      confirmView.classList.add('visible');
+    } catch (err) {
+      formError.textContent = err.message || 'Alguna cosa ha fallat. Torna-ho a provar.';
+      formError.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Enviar tiquet';
+    }
+  });
+
+  againBtn.addEventListener('click', () => {
+    form.reset();
+    stubNumber.textContent = '— — —';
+    syncStub();
+    confirmView.classList.remove('visible');
+    form.style.display = 'block';
+  });
+</script>
+</body>
+</html>
