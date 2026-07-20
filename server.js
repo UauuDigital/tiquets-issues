@@ -8,8 +8,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const REPOS = require('./repos.config');
-const REPOS_BY_ID = new Map(REPOS.map((r) => [r.id, r]));
+const reposStore = require('./repos.store');
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
 if (!GITHUB_TOKEN) {
   console.warn(
@@ -17,8 +17,25 @@ if (!GITHUB_TOKEN) {
     'Copia .env.example a .env i emplena-la abans de rebre tiquets reals.'
   );
 }
-if (REPOS.length === 0) {
-  console.warn('AVIS: repos.config.js no té cap repositori definit.');
+if (!ADMIN_TOKEN) {
+  console.warn(
+    "AVIS: falta la variable d'entorn ADMIN_TOKEN. " +
+    "La gestió de repositoris (/admin.html) estarà desactivada fins que la configuris."
+  );
+}
+if (reposStore.list().length === 0) {
+  console.warn('AVIS: no hi ha cap repositori configurat. Afegeix-ne des de /admin.html.');
+}
+
+function requireAdmin(req, res, next) {
+  if (!ADMIN_TOKEN) {
+    return res.status(503).json({ error: "El servidor no té ADMIN_TOKEN configurat." });
+  }
+  const provided = req.get('x-admin-token');
+  if (provided !== ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'Token d\'administració invàlid.' });
+  }
+  next();
 }
 
 const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, NOTIFY_EMAIL } = process.env;
@@ -83,7 +100,76 @@ const PRIORITY_LABELS = {
 };
 
 app.get('/api/repos', (_req, res) => {
-  res.json(REPOS.map(({ id, label }) => ({ id, label })));
+  res.json(reposStore.list().map(({ id, label }) => ({ id, label })));
+});
+
+// Comprova que owner/repo existeix a GitHub i que GITHUB_TOKEN hi té accés
+// (permís per llegir el repositori; és el mínim necessari per crear-hi issues).
+async function verifyGithubRepo(owner, repo) {
+  if (!GITHUB_TOKEN) {
+    return { ok: false, error: 'El servidor no té GITHUB_TOKEN configurat (revisa .env).' };
+  }
+  try {
+    const ghResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    });
+    if (ghResponse.status === 404) {
+      return { ok: false, error: `No s'ha trobat el repositori ${owner}/${repo} (o el token no hi té accés).` };
+    }
+    if (!ghResponse.ok) {
+      const errText = await ghResponse.text();
+      console.error('Error verificant repositori a GitHub:', ghResponse.status, errText);
+      return { ok: false, error: 'No s\'ha pogut verificar el repositori a GitHub.' };
+    }
+    const data = await ghResponse.json();
+    if (data.has_issues === false) {
+      return { ok: false, error: `El repositori ${owner}/${repo} té les issues desactivades a GitHub.` };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error('Error connectant amb GitHub:', err);
+    return { ok: false, error: 'No s\'ha pogut connectar amb GitHub.' };
+  }
+}
+
+// --- Gestió (CRUD) de repositoris connectats, protegida per ADMIN_TOKEN ---
+app.get('/api/admin/repos', requireAdmin, (_req, res) => {
+  res.json(reposStore.list());
+});
+
+app.post('/api/admin/repos', requireAdmin, async (req, res) => {
+  const { label, owner, repo } = req.body || {};
+  if (!label?.trim() || !owner?.trim() || !repo?.trim()) {
+    return res.status(400).json({ error: 'Cal indicar label, owner i repo.' });
+  }
+  const check = await verifyGithubRepo(owner.trim(), repo.trim());
+  if (!check.ok) return res.status(400).json({ error: check.error });
+
+  const entry = reposStore.create({ label: label.trim(), owner: owner.trim(), repo: repo.trim() });
+  res.status(201).json(entry);
+});
+
+app.put('/api/admin/repos/:id', requireAdmin, async (req, res) => {
+  const { label, owner, repo } = req.body || {};
+  if (!label?.trim() || !owner?.trim() || !repo?.trim()) {
+    return res.status(400).json({ error: 'Cal indicar label, owner i repo.' });
+  }
+  const check = await verifyGithubRepo(owner.trim(), repo.trim());
+  if (!check.ok) return res.status(400).json({ error: check.error });
+
+  const updated = reposStore.update(req.params.id, { label: label.trim(), owner: owner.trim(), repo: repo.trim() });
+  if (!updated) return res.status(404).json({ error: 'Repositori no trobat.' });
+  res.json(updated);
+});
+
+app.delete('/api/admin/repos/:id', requireAdmin, (req, res) => {
+  const ok = reposStore.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Repositori no trobat.' });
+  res.status(204).end();
 });
 
 app.post('/api/tickets', ticketLimiter, async (req, res) => {
@@ -108,7 +194,7 @@ app.post('/api/tickets', ticketLimiter, async (req, res) => {
     return res.status(400).json({ error: 'El títol i la descripció són obligatoris.' });
   }
 
-  const targetRepo = REPOS_BY_ID.get(repoId);
+  const targetRepo = reposStore.list().find((r) => r.id === repoId);
   if (!targetRepo) {
     return res.status(400).json({ error: 'Cal triar un repositori vàlid.' });
   }
