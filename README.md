@@ -23,7 +23,7 @@ cp .env.example .env
 
 Recomanat: un token **fine-grained** (accés mínim, només al repo de tiquets):
 
-1. Ves a <https://github.com/settings/personal-access-tokens/new>
+1. Ves a [https://github.com/settings/personal-access-tokens/new](https://github.com/settings/personal-access-tokens/new)
 2. **Resource owner**: la teva organització (o el teu usuari)
 3. **Repository access**: "Only select repositories" → tria el repo on vols
    que apareguin els tiquets
@@ -36,6 +36,7 @@ fine-grained, també pots fer servir un token clàssic amb l'scope `repo`
 dels estrictament necessaris.
 
 Emplena també a `.env`:
+
 - `GITHUB_OWNER`: usuari o organització (p. ex. `la-meva-empresa`)
 - `GITHUB_REPO`: nom del repositori (p. ex. `tiquets-interns`)
 
@@ -45,7 +46,7 @@ Emplena també a `.env`:
 npm start
 ```
 
-Obre <http://localhost:3000>. Cada tiquet enviat crea un issue nou al
+Obre [http://localhost:3000](http://localhost:3000). Cada tiquet enviat crea un issue nou al
 repositori configurat, amb etiquetes de categoria i prioritat.
 
 ## 4. Publicar-ho perquè hi accedeixin els treballadors

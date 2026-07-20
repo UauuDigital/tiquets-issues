@@ -283,7 +283,7 @@
   <header class="page-head">
     <div class="eyebrow">Portal intern d'incidències</div>
     <h1>Obre un tiquet</h1>
-    <p class="subtitle">Explica'ns el problema o la petició. En enviar el formulari es crea automàticament una incidència a l'equip tècnic — no cal compte de GitHub.</p>
+    <p class="subtitle">Explica'ns el problema o la petició. En enviar el formulari es crea automàticament una incidència a l'equip tècnic.</p>
   </header>
 
   <div class="ticket">
@@ -315,6 +315,12 @@
 
         <fieldset>
           <legend>Detall de la incidència</legend>
+          <div class="field">
+            <label class="field-label" for="repoId">Projecte</label>
+            <select id="repoId" name="repoId" required>
+              <option value="" disabled selected>Carregant projectes…</option>
+            </select>
+          </div>
           <div class="field">
             <label class="field-label" for="title">Títol</label>
             <input type="text" id="title" name="title" placeholder="Resum breu del problema" required maxlength="120">
@@ -393,6 +399,25 @@
 
   const categorySelect = document.getElementById('category');
   const priorityChips = document.getElementById('priority-chips');
+  const repoSelect = document.getElementById('repoId');
+
+  async function loadRepos() {
+    try {
+      const res = await fetch('/api/repos');
+      const repos = await res.json();
+      repoSelect.innerHTML = '';
+      if (!repos.length) {
+        repoSelect.innerHTML = '<option value="" disabled selected>No hi ha projectes configurats</option>';
+        return;
+      }
+      repoSelect.innerHTML = repos
+        .map((r) => `<option value="${r.id}">${r.label}</option>`)
+        .join('');
+    } catch (err) {
+      repoSelect.innerHTML = '<option value="" disabled selected>Error carregant projectes</option>';
+    }
+  }
+  loadRepos();
 
   const PRIORITY_TEXT = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', critica: 'Crítica' };
 
@@ -415,12 +440,19 @@
       title: form.title.value,
       description: form.description.value,
       category: form.category.value,
+      repoId: form.repoId.value,
       priority: (form.querySelector('input[name="priority"]:checked') || {}).value || 'baixa',
       reporterName: form.reporterName.value,
       reporterEmail: form.reporterEmail.value,
       department: form.department.value,
       website: form.website.value // honeypot
     };
+
+    if (!payload.repoId) {
+      formError.textContent = 'Cal triar un projecte.';
+      formError.style.display = 'block';
+      return;
+    }
 
     if (!payload.title.trim() || !payload.description.trim()) {
       formError.textContent = 'Cal omplir el títol i la descripció.';
