@@ -47,6 +47,7 @@ function renderRepos(repos) {
       <td>${escapeHtml(r.label)}</td>
       <td>${escapeHtml(r.owner)}</td>
       <td>${escapeHtml(r.repo)}</td>
+      <td>${escapeHtml(r.description || '')}</td>
       <td class="actions">
         <button type="button" class="secondary" data-edit="${r.id}">Editar</button>
         <button type="button" class="danger" data-del="${r.id}">Eliminar</button>
@@ -73,6 +74,7 @@ function startEdit(repo) {
   document.getElementById('label').value = repo.label;
   document.getElementById('owner').value = repo.owner;
   document.getElementById('repo').value = repo.repo;
+  document.getElementById('description').value = repo.description || '';
   submitBtn.textContent = 'Desar canvis';
   cancelEditBtn.style.display = 'inline-block';
 }
@@ -90,7 +92,8 @@ form.addEventListener('submit', async (e) => {
   const payload = {
     label: document.getElementById('label').value.trim(),
     owner: document.getElementById('owner').value.trim(),
-    repo: document.getElementById('repo').value.trim()
+    repo: document.getElementById('repo').value.trim(),
+    description: document.getElementById('description').value.trim()
   };
   const id = editingIdInput.value;
   const url = id ? `/api/admin/repos/${id}` : '/api/admin/repos';

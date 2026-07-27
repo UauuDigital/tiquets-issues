@@ -99,7 +99,7 @@ const PRIORITY_LABELS = {
 };
 
 app.get('/api/repos', (_req, res) => {
-  res.json(reposStore.list().map(({ id, label }) => ({ id, label })));
+  res.json(reposStore.list().map(({ id, label, description }) => ({ id, label, description: description || '' })));
 });
 
 // Comprova que owner/repo existeix a GitHub i que GITHUB_TOKEN hi té accés
@@ -141,26 +141,36 @@ app.get('/api/admin/repos', requireAdmin, (_req, res) => {
 });
 
 app.post('/api/admin/repos', requireAdmin, async (req, res) => {
-  const { label, owner, repo } = req.body || {};
+  const { label, owner, repo, description } = req.body || {};
   if (!label?.trim() || !owner?.trim() || !repo?.trim()) {
     return res.status(400).json({ error: 'Cal indicar label, owner i repo.' });
   }
   const check = await verifyGithubRepo(owner.trim(), repo.trim());
   if (!check.ok) return res.status(400).json({ error: check.error });
 
-  const entry = reposStore.create({ label: label.trim(), owner: owner.trim(), repo: repo.trim() });
+  const entry = reposStore.create({
+    label: label.trim(),
+    owner: owner.trim(),
+    repo: repo.trim(),
+    description: description?.trim() || ''
+  });
   res.status(201).json(entry);
 });
 
 app.put('/api/admin/repos/:id', requireAdmin, async (req, res) => {
-  const { label, owner, repo } = req.body || {};
+  const { label, owner, repo, description } = req.body || {};
   if (!label?.trim() || !owner?.trim() || !repo?.trim()) {
     return res.status(400).json({ error: 'Cal indicar label, owner i repo.' });
   }
   const check = await verifyGithubRepo(owner.trim(), repo.trim());
   if (!check.ok) return res.status(400).json({ error: check.error });
 
-  const updated = reposStore.update(req.params.id, { label: label.trim(), owner: owner.trim(), repo: repo.trim() });
+  const updated = reposStore.update(req.params.id, {
+    label: label.trim(),
+    owner: owner.trim(),
+    repo: repo.trim(),
+    description: description?.trim() || ''
+  });
   if (!updated) return res.status(404).json({ error: 'Repositori no trobat.' });
   res.json(updated);
 });

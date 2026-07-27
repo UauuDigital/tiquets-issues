@@ -1,6 +1,46 @@
-.wrap { max-width: 760px; margin: 0 auto; }
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wrap { max-width: 1240px; margin: 0 auto; width: 100%; }
 
 header.page-head { margin-bottom: 36px; }
+
+@media (min-width: 860px) {
+  .wrap {
+    display: grid;
+    grid-template-columns: 20% 30% 35% 15%;
+    gap: 48px;
+    align-items: center;
+    max-width: none;
+  }
+  header.page-head { grid-column: 2; margin-bottom: 0; }
+  .ticket { grid-column: 3; }
+}
+
+.admin-link {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--ink-soft);
+  opacity: 0.35;
+  text-decoration: none;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+.admin-link:hover, .admin-link:focus-visible {
+  opacity: 1;
+  background: rgba(22,35,63,0.06);
+  outline: none;
+}
+.admin-link svg { width: 16px; height: 16px; }
 
 .eyebrow {
   font-family: var(--mono);
@@ -13,12 +53,15 @@ header.page-head { margin-bottom: 36px; }
   gap: 10px;
 }
 
-.eyebrow::before {
-  content: "";
-  width: 8px; height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  display: inline-block;
+.eyebrow-brand {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: var(--ink);
+  padding: 3px 7px;
+  border-radius: 5px;
 }
 
 h1 {
@@ -28,3 +71,16 @@ h1 {
 }
 
 .subtitle { color: var(--ink-soft); font-size: 15px; max-width: 52ch; line-height: 1.5; }
+
+.project-description {
+  display: none;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  max-width: 52ch;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink);
+  background: rgba(22,35,63,0.05);
+  border-radius: 8px;
+}
+.project-description.visible { display: block; }

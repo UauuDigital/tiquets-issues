@@ -19,7 +19,7 @@
   mask-composite: exclude, exclude;
 }
 
-.ticket-main { flex: 1; padding: 32px 32px 28px; min-width: 0; }
+.ticket-main { flex: 1; padding: 32px 32px 28px; min-width: 0; container-type: inline-size; }
 .ticket-stub {
   width: 220px;
   flex-shrink: 0;

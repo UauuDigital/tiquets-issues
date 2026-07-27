@@ -16,8 +16,26 @@ const priorityRange = document.getElementById('priority-range');
 const priorityBubble = document.getElementById('priority-bubble');
 const priorityTicks = document.querySelectorAll('#priority-ticks span');
 const repoSelect = document.getElementById('repoId');
+const projectDescription = document.getElementById('project-description');
 
 const PRIORITY_LEVELS = ['baixa', 'mitjana', 'alta', 'critica'];
+
+const repoCustomSelect = enhanceSelect(repoSelect);
+const categoryCustomSelect = enhanceSelect(categorySelect);
+
+let repoDescriptions = {};
+
+function syncProjectDescription() {
+  const description = repoDescriptions[repoSelect.value];
+  if (description) {
+    projectDescription.textContent = description;
+    projectDescription.classList.add('visible');
+  } else {
+    projectDescription.textContent = '';
+    projectDescription.classList.remove('visible');
+  }
+}
+repoSelect.addEventListener('change', syncProjectDescription);
 
 async function loadRepos() {
   try {
@@ -28,11 +46,15 @@ async function loadRepos() {
       repoSelect.innerHTML = '<option value="" disabled selected>No hi ha projectes configurats</option>';
       return;
     }
+    repoDescriptions = Object.fromEntries(repos.map((r) => [r.id, r.description || '']));
     repoSelect.innerHTML = repos
       .map((r) => `<option value="${r.id}">${r.label}</option>`)
       .join('');
   } catch (err) {
     repoSelect.innerHTML = '<option value="" disabled selected>Error carregant projectes</option>';
+  } finally {
+    repoCustomSelect.refresh();
+    syncProjectDescription();
   }
 }
 loadRepos();

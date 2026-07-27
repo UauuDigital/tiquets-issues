@@ -22,12 +22,15 @@ body {
   gap: 10px;
   margin-bottom: 8px;
 }
-.eyebrow::before {
-  content: "";
-  width: 8px; height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  display: inline-block;
+.eyebrow-brand {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: var(--ink);
+  padding: 3px 7px;
+  border-radius: 5px;
 }
 
 h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
@@ -40,14 +43,16 @@ h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
   margin-bottom: 1.5rem;
 }
 label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
-input {
+input, textarea {
   width: 100%;
   padding: 0.5rem 0.6rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 0.95rem;
   margin-bottom: 0.9rem;
+  font-family: var(--font-ui);
 }
+textarea { resize: vertical; }
 .row { display: flex; gap: 0.75rem; }
 .row > div { flex: 1; }
 button {

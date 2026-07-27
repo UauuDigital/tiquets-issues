@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow">UAUU · Administració</div>
+  <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · Administració</div>
   <h1>Gestió de repositoris</h1>
   <p class="subtitle">Afegeix, edita o elimina els repositoris de GitHub connectats al portal de tiquets.</p>
 
@@ -40,6 +40,8 @@
           <input type="text" id="repo" placeholder="Ex: web-corporativa" required>
         </div>
       </div>
+      <label for="description">Descripció <span class="muted">(opcional, es mostra al portal)</span></label>
+      <textarea id="description" rows="2" placeholder="Breu descripció del projecte per als usuaris del portal"></textarea>
       <input type="hidden" id="editingId">
       <div class="actions">
         <button type="submit" id="submitBtn">Afegir</button>
@@ -53,7 +55,7 @@
     <p class="error" id="listError"></p>
     <table>
       <thead>
-        <tr><th>Nom</th><th>Owner</th><th>Repo</th><th></th></tr>
+        <tr><th>Nom</th><th>Owner</th><th>Repo</th><th>Descripció</th><th></th></tr>
       </thead>
       <tbody id="reposBody"></tbody>
     </table>
