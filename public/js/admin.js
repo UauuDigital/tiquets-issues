@@ -50,6 +50,7 @@ function renderRepos(repos) {
       <td>${escapeHtml(r.description || '')}</td>
       <td class="actions">
         <button type="button" class="secondary" data-edit="${r.id}">Editar</button>
+        <button type="button" class="secondary" data-copy="${r.id}">Copiar enllaç</button>
         <button type="button" class="danger" data-del="${r.id}">Eliminar</button>
       </td>`;
     reposBody.appendChild(tr);
@@ -60,6 +61,21 @@ function renderRepos(repos) {
   reposBody.querySelectorAll('[data-del]').forEach((btn) => {
     btn.addEventListener('click', () => deleteRepo(btn.dataset.del));
   });
+  reposBody.querySelectorAll('[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', () => copyTicketLink(btn.dataset.copy, btn));
+  });
+}
+
+async function copyTicketLink(repoId, btn) {
+  const url = `${window.location.origin}/?repo=${encodeURIComponent(repoId)}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    const original = btn.textContent;
+    btn.textContent = 'Copiat!';
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  } catch (err) {
+    prompt('Copia aquest enllaç:', url);
+  }
 }
 
 function escapeHtml(str) {

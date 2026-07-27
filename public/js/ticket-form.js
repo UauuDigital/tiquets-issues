@@ -50,6 +50,11 @@ async function loadRepos() {
     repoSelect.innerHTML = repos
       .map((r) => `<option value="${r.id}">${r.label}</option>`)
       .join('');
+
+    const requestedRepo = new URLSearchParams(window.location.search).get('repo');
+    if (requestedRepo && repos.some((r) => r.id === requestedRepo)) {
+      repoSelect.value = requestedRepo;
+    }
   } catch (err) {
     repoSelect.innerHTML = '<option value="" disabled selected>Error carregant projectes</option>';
   } finally {
