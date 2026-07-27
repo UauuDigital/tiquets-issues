@@ -1,0 +1,30 @@
+.wrap { max-width: 760px; margin: 0 auto; }
+
+header.page-head { margin-bottom: 36px; }
+
+.eyebrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+h1 {
+  font-size: 32px;
+  margin: 10px 0 8px;
+  letter-spacing: -0.01em;
+}
+
+.subtitle { color: var(--ink-soft); font-size: 15px; max-width: 52ch; line-height: 1.5; }

@@ -87,7 +87,6 @@ const ticketLimiter = rateLimit({
 const CATEGORY_LABELS = {
   bug: 'tipus: error',
   funcionalitat: 'tipus: petició',
-  suport: 'tipus: suport tècnic',
   acces: 'tipus: accés i permisos',
   altres: 'tipus: altres'
 };
