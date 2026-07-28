@@ -7,6 +7,17 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+function formatDateCa(date) {
+  return new Intl.DateTimeFormat('ca-ES', {
+    timeZone: 'Europe/Madrid',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+}
+
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const reposStore = require('./repos.store');
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
@@ -140,6 +151,42 @@ app.get('/api/admin/repos', requireAdmin, (_req, res) => {
   res.json(reposStore.list());
 });
 
+// Llista els repositoris de GitHub als quals el GITHUB_TOKEN té accés
+// (propis, com a col·laborador, o d'organitzacions), perquè l'admin
+// pugui triar-los d'un desplegable en lloc d'escriure'ls a mà.
+app.get('/api/admin/github-repos', requireAdmin, async (_req, res) => {
+  if (!GITHUB_TOKEN) {
+    return res.status(500).json({ error: 'El servidor no té GITHUB_TOKEN configurat (revisa .env).' });
+  }
+  try {
+    const repos = [];
+    for (let page = 1; page <= 5; page++) {
+      const ghResponse = await fetch(
+        `https://api.github.com/user/repos?per_page=100&page=${page}&affiliation=owner,collaborator,organization_member&sort=full_name`,
+        {
+          headers: {
+            Authorization: `Bearer ${GITHUB_TOKEN}`,
+            Accept: 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+          }
+        }
+      );
+      if (!ghResponse.ok) {
+        const errText = await ghResponse.text();
+        console.error('Error llistant repositoris de GitHub:', ghResponse.status, errText);
+        return res.status(502).json({ error: 'No s\'han pogut llistar els repositoris de GitHub.' });
+      }
+      const data = await ghResponse.json();
+      repos.push(...data.map((r) => ({ owner: r.owner.login, repo: r.name, fullName: r.full_name })));
+      if (data.length < 100) break;
+    }
+    res.json(repos);
+  } catch (err) {
+    console.error('Error connectant amb GitHub:', err);
+    res.status(500).json({ error: 'No s\'ha pogut connectar amb GitHub.' });
+  }
+});
+
 app.post('/api/admin/repos', requireAdmin, async (req, res) => {
   const { label, owner, repo, description } = req.body || {};
   if (!label?.trim() || !owner?.trim() || !repo?.trim()) {
@@ -217,10 +264,11 @@ app.post('/api/tickets', ticketLimiter, async (req, res) => {
   if (PRIORITY_LABELS[priority]) labels.push(PRIORITY_LABELS[priority]);
 
   const issueBody = [
+    `**Projecte:** ${targetRepo.label}`,
     `**Reportat per:** ${reporterName?.trim() || 'Anònim'}${reporterEmail?.trim() ? ` (${reporterEmail.trim()})` : ''}`,
     department?.trim() ? `**Departament:** ${department.trim()}` : null,
     `**Prioritat:** ${priority || 'no especificada'}`,
-    `**Enviat des del portal de tiquets:** ${new Date().toISOString()}`,
+    `**Enviat des del portal de tiquets:** ${formatDateCa(new Date())}`,
     '',
     '---',
     '',

@@ -34,6 +34,8 @@ input[type="text"], input[type="email"], select, textarea {
 }
 textarea { resize: vertical; min-height: 110px; line-height: 1.5; }
 
+input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: 1; }
+
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--ink-soft);
@@ -123,6 +125,10 @@ input:focus, select:focus, textarea:focus {
 
 button.submit {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   font-family: var(--font-ui);
   font-weight: 600;
   font-size: 14px;
@@ -135,8 +141,17 @@ button.submit {
   transition: transform 0.1s ease, background 0.15s ease;
 }
 button.submit:hover { background: #223258; }
+button.submit:hover .submit-icon { transform: translateX(3px); }
 button.submit:active { transform: translateY(1px); }
 button.submit:disabled { opacity: 0.6; cursor: progress; }
+button.submit:disabled .submit-icon { display: none; }
+
+.submit-icon { width: 16px; height: 16px; flex-shrink: 0; transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  button.submit:hover .submit-icon { transform: none; }
+  .submit-icon { transition: none; }
+}
 
 .form-msg {
   margin-top: 14px;

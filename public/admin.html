@@ -11,7 +11,7 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · Administració</div>
+  <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · <a href="index.html" class="eyebrow-link">Portal de tiquets</a> / Administració</div>
   <h1>Gestió de repositoris</h1>
   <p class="subtitle">Afegeix, edita o elimina els repositoris de GitHub connectats al portal de tiquets.</p>
 
@@ -33,17 +33,19 @@
       <div class="row">
         <div>
           <label for="owner">Owner (usuari/organització)</label>
-          <input type="text" id="owner" placeholder="Ex: UauuDigital" required>
+          <input type="text" id="owner" list="ownersList" placeholder="Ex: UauuDigital" autocomplete="off" required>
+          <datalist id="ownersList"></datalist>
         </div>
         <div>
           <label for="repo">Repositori</label>
-          <input type="text" id="repo" placeholder="Ex: web-corporativa" required>
+          <input type="text" id="repo" list="reposList" placeholder="Ex: web-corporativa" autocomplete="off" required>
+          <datalist id="reposList"></datalist>
         </div>
       </div>
       <label for="description">Descripció <span class="muted">(opcional, es mostra al portal)</span></label>
       <textarea id="description" rows="2" placeholder="Breu descripció del projecte per als usuaris del portal"></textarea>
       <input type="hidden" id="editingId">
-      <div class="actions">
+      <div class="form-actions">
         <button type="submit" id="submitBtn">Afegir</button>
         <button type="button" class="secondary" id="cancelEdit" style="display:none;">Cancel·lar edició</button>
       </div>
@@ -53,13 +55,23 @@
   <div class="card">
     <h2 style="font-size:1rem;margin-top:0;">Repositoris connectats</h2>
     <p class="error" id="listError"></p>
-    <table>
-      <thead>
-        <tr><th>Nom</th><th>Owner</th><th>Repo</th><th>Descripció</th><th></th></tr>
-      </thead>
-      <tbody id="reposBody"></tbody>
-    </table>
+    <input type="search" id="repoSearch" placeholder="Cerca per nom, owner, repo o descripció...">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="label">Nom<span class="sort-arrow"></span></th>
+            <th data-sort="owner">Owner<span class="sort-arrow"></span></th>
+            <th data-sort="repo">Repo<span class="sort-arrow"></span></th>
+            <th data-sort="description">Descripció<span class="sort-arrow"></span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="reposBody"></tbody>
+      </table>
+    </div>
     <p class="empty" id="emptyMsg" style="display:none;">No hi ha cap repositori configurat.</p>
+    <p class="empty" id="noResultsMsg" style="display:none;">Cap repositori coincideix amb la cerca.</p>
   </div>
 </div>
 
