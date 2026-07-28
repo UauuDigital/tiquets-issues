@@ -220,6 +220,9 @@ againBtn.addEventListener('click', () => {
   syncTitle();
   syncReporter();
   departmentCustomSelect.refresh();
+  categoryCustomSelect.refresh();
+  repoCustomSelect.refresh();
+  syncProjectDescription();
   confirmView.classList.remove('visible');
   form.style.display = 'block';
 });

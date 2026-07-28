@@ -84,3 +84,13 @@ h1 {
   border-radius: 8px;
 }
 .project-description.visible { display: block; }
+
+.tickets-link {
+  display: inline-block;
+  margin-top: 16px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.tickets-link:hover { color: var(--ink); text-decoration: underline; }

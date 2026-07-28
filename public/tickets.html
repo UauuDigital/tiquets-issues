@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tiquets oberts — Portal de tiquets</title>
+<link rel="icon" href="assets/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/tickets.css">
+</head>
+<body>
+<main class="wrap tickets-page">
+  <header class="page-head">
+    <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · <a href="index.html" class="eyebrow-link">Portal de tiquets</a> / Tiquets oberts</div>
+    <h1>Tiquets oberts</h1>
+    <p class="subtitle">Incidències i peticions que encara estan en curs, per tenir-ne una visió ràpida sense duplicar-les.</p>
+  </header>
+
+  <div class="card">
+    <p class="error" id="ticketsError"></p>
+    <div class="filters-row">
+      <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta...">
+      <select id="ticketStatusFilter">
+        <option value="">Tots els estats oberts</option>
+        <option value="no_comencat">No començat</option>
+        <option value="comencat">Començat</option>
+        <option value="en_espera">En espera</option>
+      </select>
+      <select id="ticketPriorityFilter">
+        <option value="">Totes les prioritats</option>
+        <option value="baixa">Baixa</option>
+        <option value="mitjana">Mitjana</option>
+        <option value="alta">Alta</option>
+        <option value="critica">Crítica</option>
+      </select>
+    </div>
+    <div class="table-scroll">
+      <table id="ticketsTable">
+        <thead>
+          <tr>
+            <th data-sort="createdAt">Data<span class="sort-arrow"></span></th>
+            <th data-sort="title">Títol<span class="sort-arrow"></span></th>
+            <th data-sort="repoLabel">Projecte<span class="sort-arrow"></span></th>
+            <th data-sort="priority">Prioritat<span class="sort-arrow"></span></th>
+            <th data-sort="reporterName">Reportat per<span class="sort-arrow"></span></th>
+            <th data-sort="status">Estat<span class="sort-arrow"></span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ticketsBody"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="ticketsEmptyMsg" style="display:none;">No hi ha cap tiquet obert ara mateix.</p>
+    <p class="empty" id="ticketsNoResultsMsg" style="display:none;">Cap tiquet coincideix amb els filtres.</p>
+  </div>
+</main>
+
+<script src="js/tickets-view.js" defer></script>
+</body>
+</html>

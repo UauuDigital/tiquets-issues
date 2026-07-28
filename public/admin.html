@@ -57,7 +57,7 @@
     <p class="error" id="listError"></p>
     <input type="search" id="repoSearch" placeholder="Cerca per nom, owner, repo o descripció...">
     <div class="table-scroll">
-      <table>
+      <table id="reposTable">
         <thead>
           <tr>
             <th data-sort="label">Nom<span class="sort-arrow"></span></th>
@@ -72,6 +72,47 @@
     </div>
     <p class="empty" id="emptyMsg" style="display:none;">No hi ha cap repositori configurat.</p>
     <p class="empty" id="noResultsMsg" style="display:none;">Cap repositori coincideix amb la cerca.</p>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:1rem;margin-top:0;">Historial de tiquets creats</h2>
+    <p class="error" id="ticketsError"></p>
+    <div class="filters-row">
+      <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta...">
+      <select id="ticketStatusFilter">
+        <option value="">Tots els estats</option>
+        <option value="no_comencat">No començat</option>
+        <option value="comencat">Començat</option>
+        <option value="en_espera">En espera</option>
+        <option value="acabat">Acabat</option>
+        <option value="cancelat">Cancel·lat</option>
+      </select>
+      <select id="ticketPriorityFilter">
+        <option value="">Totes les prioritats</option>
+        <option value="baixa">Baixa</option>
+        <option value="mitjana">Mitjana</option>
+        <option value="alta">Alta</option>
+        <option value="critica">Crítica</option>
+      </select>
+    </div>
+    <div class="table-scroll">
+      <table id="ticketsTable">
+        <thead>
+          <tr>
+            <th data-sort="createdAt">Data<span class="sort-arrow"></span></th>
+            <th data-sort="title">Títol<span class="sort-arrow"></span></th>
+            <th data-sort="repoLabel">Projecte<span class="sort-arrow"></span></th>
+            <th data-sort="priority">Prioritat<span class="sort-arrow"></span></th>
+            <th data-sort="reporterName">Reportat per<span class="sort-arrow"></span></th>
+            <th data-sort="status">Estat<span class="sort-arrow"></span></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ticketsBody"></tbody>
+      </table>
+    </div>
+    <p class="empty" id="ticketsNoResultsMsg" style="display:none;">Cap tiquet coincideix amb els filtres.</p>
+    <p class="empty" id="ticketsEmptyMsg" style="display:none;">Encara no s'ha creat cap tiquet.</p>
   </div>
 </div>
 

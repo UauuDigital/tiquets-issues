@@ -46,7 +46,7 @@ h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
   margin-bottom: 1.5rem;
 }
 label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
-input, textarea {
+input, textarea, select {
   width: 100%;
   padding: 0.5rem 0.6rem;
   border: 1px solid #ccc;
@@ -54,6 +54,7 @@ input, textarea {
   font-size: 0.95rem;
   margin-bottom: 0.9rem;
   font-family: var(--font-ui);
+  background: #fff;
 }
 textarea { resize: vertical; }
 input::placeholder, textarea::placeholder { color: #6b7280; opacity: 1; }
@@ -85,6 +86,10 @@ th[data-sort]:hover { color: #333; }
 .sort-arrow { display: inline-block; width: 1em; font-size: 0.75em; opacity: 0.6; }
 #repoSearch { max-width: 340px; }
 
+.filters-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.filters-row input, .filters-row select { width: auto; margin-bottom: 0.9rem; }
+#ticketSearch { max-width: 340px; flex: 1 1 220px; }
+
 .actions-inner { display: flex; align-items: center; gap: 0.35rem; white-space: nowrap; }
 
 .form-actions { display: flex; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
@@ -107,6 +112,31 @@ th[data-sort]:hover { color: #333; }
 .icon-btn:hover { background: rgba(22,35,63,0.08); color: var(--ink); }
 .icon-btn.danger { color: var(--danger); }
 .icon-btn.danger:hover { background: var(--danger-bg); }
+.status-select {
+  width: auto;
+  margin-bottom: 0;
+  padding: 0.35rem 1.6rem 0.35rem 0.7rem;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 12px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.status-select[data-status="no_comencat"] { background-color: #6b7280; }
+.status-select[data-status="comencat"]    { background-color: #2563eb; }
+.status-select[data-status="en_espera"]   { background-color: #d97706; }
+.status-select[data-status="acabat"]      { background-color: #16a34a; }
+.status-select[data-status="cancelat"]    { background-color: #dc2626; }
+.status-select:disabled { opacity: 0.6; cursor: progress; }
+.status-select option { color: #1c1e21; background: #fff; font-weight: 400; }
+
 .error { color: #dc2626; font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
 .empty { color: #888; font-size: 0.9rem; padding: 0.5rem 0; }
 .token-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }

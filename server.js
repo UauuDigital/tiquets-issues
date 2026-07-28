@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
+const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const nodemailer = require('nodemailer');
 
@@ -20,6 +21,7 @@ function formatDateCa(date) {
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const reposStore = require('./repos.store');
+const ticketsStore = require('./tickets.store');
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
 if (!GITHUB_TOKEN) {
@@ -109,8 +111,40 @@ const PRIORITY_LABELS = {
   critica: 'prioritat: crítica'
 };
 
+// Etiquetes llegibles pel desplegable de Departament del portal (public/index.html).
+const DEPARTMENT_LABELS = {
+  comercial: 'Comercial',
+  coordinacio: 'Coordinació',
+  cuina: 'Cuina',
+  administracio: 'Administració',
+  digital: 'Digital'
+};
+
+// Etiquetes llegibles per al lliscador de Prioritat del portal.
+const PRIORITY_TEXT = {
+  baixa: 'Baixa',
+  mitjana: 'Mitjana',
+  alta: 'Alta',
+  critica: 'Crítica'
+};
+
+// Estats possibles d'un tiquet a l'historial de l'admin.
+const TICKET_STATUSES = ['no_comencat', 'comencat', 'acabat', 'cancelat', 'en_espera'];
+
 app.get('/api/repos', (_req, res) => {
   res.json(reposStore.list().map(({ id, label, description }) => ({ id, label, description: description || '' })));
+});
+
+// Llista pública (sense token) dels tiquets encara oberts, perquè qualsevol
+// usuari del portal pugui veure què hi ha en curs sense accedir a l'admin.
+app.get('/api/tickets', (_req, res) => {
+  const open = ticketsStore.list().filter((t) => {
+    const status = t.status || 'no_comencat';
+    return status !== 'acabat' && status !== 'cancelat';
+  });
+  res.json(open.map(({ number, url, title, repoLabel, priority, status, reporterName, createdAt }) => ({
+    number, url, title, repoLabel, priority, status: status || 'no_comencat', reporterName, createdAt
+  })));
 });
 
 // Comprova que owner/repo existeix a GitHub i que GITHUB_TOKEN hi té accés
@@ -149,6 +183,22 @@ async function verifyGithubRepo(owner, repo) {
 // --- Gestió (CRUD) de repositoris connectats, protegida per ADMIN_TOKEN ---
 app.get('/api/admin/repos', requireAdmin, (_req, res) => {
   res.json(reposStore.list());
+});
+
+// Historial de tiquets creats (només lectura), per accedir-hi ràpidament des de l'admin.
+app.get('/api/admin/tickets', requireAdmin, (_req, res) => {
+  res.json(ticketsStore.list());
+});
+
+// Canvia l'estat d'un tiquet de l'historial.
+app.patch('/api/admin/tickets/:id', requireAdmin, (req, res) => {
+  const { status } = req.body || {};
+  if (!TICKET_STATUSES.includes(status)) {
+    return res.status(400).json({ error: 'Estat no vàlid.' });
+  }
+  const updated = ticketsStore.updateStatus(req.params.id, status);
+  if (!updated) return res.status(404).json({ error: 'Tiquet no trobat.' });
+  res.json(updated);
 });
 
 // Llista els repositoris de GitHub als quals el GITHUB_TOKEN té accés
@@ -266,8 +316,8 @@ app.post('/api/tickets', ticketLimiter, async (req, res) => {
   const issueBody = [
     `**Projecte:** ${targetRepo.label}`,
     `**Reportat per:** ${reporterName?.trim() || 'Anònim'}${reporterEmail?.trim() ? ` (${reporterEmail.trim()})` : ''}`,
-    department?.trim() ? `**Departament:** ${department.trim()}` : null,
-    `**Prioritat:** ${priority || 'no especificada'}`,
+    department?.trim() ? `**Departament:** ${DEPARTMENT_LABELS[department.trim()] || department.trim()}` : null,
+    `**Prioritat:** ${PRIORITY_TEXT[priority] || 'no especificada'}`,
     `**Enviat des del portal de tiquets:** ${formatDateCa(new Date())}`,
     '',
     '---',
@@ -298,6 +348,17 @@ app.post('/api/tickets', ticketLimiter, async (req, res) => {
 
     const issue = await ghResponse.json();
     notifyByEmail({ title: title.trim(), url: issue.html_url, number: issue.number, repoLabel: targetRepo.label });
+    ticketsStore.add({
+      id: crypto.randomUUID(),
+      number: issue.number,
+      url: issue.html_url,
+      title: title.trim(),
+      repoLabel: targetRepo.label,
+      priority: priority || null,
+      reporterName: reporterName?.trim() || null,
+      status: 'no_comencat',
+      createdAt: new Date().toISOString()
+    });
     return res.status(201).json({ ok: true, number: issue.number, url: issue.html_url });
   } catch (err) {
     console.error('Error inesperat:', err);
