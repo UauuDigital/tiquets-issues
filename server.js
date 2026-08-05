@@ -4,6 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -130,6 +131,55 @@ const PRIORITY_TEXT = {
 
 // Estats possibles d'un tiquet a l'historial de l'admin.
 const TICKET_STATUSES = ['no_comencat', 'comencat', 'acabat', 'cancelat', 'en_espera'];
+
+// --- Captures de pantalla adjuntes al formulari de tiquets ---
+const MAX_SCREENSHOTS = 3;
+const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024; // 5 MB
+const ALLOWED_SCREENSHOT_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+
+const screenshotUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_SCREENSHOT_SIZE, files: MAX_SCREENSHOTS },
+  fileFilter: (_req, file, cb) => {
+    if (!ALLOWED_SCREENSHOT_TYPES.includes(file.mimetype)) {
+      return cb(new Error('INVALID_FILE_TYPE'));
+    }
+    cb(null, true);
+  }
+});
+
+function sanitizeFilename(name) {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-80);
+}
+
+// Puja una captura de pantalla al repositori del tiquet via la Contents API de GitHub
+// (a la carpeta .ticket-uploads/) i retorna la URL pública de descàrrega de la imatge.
+async function uploadScreenshotToGithub(owner, repo, file) {
+  const path = `.ticket-uploads/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${sanitizeFilename(file.originalname)}`;
+  const ghResponse = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: `Adjunt de tiquet: ${file.originalname}`,
+        content: file.buffer.toString('base64')
+      })
+    }
+  );
+  if (!ghResponse.ok) {
+    const errText = await ghResponse.text();
+    console.error('Error pujant captura a GitHub:', ghResponse.status, errText);
+    return null;
+  }
+  const data = await ghResponse.json();
+  return data.content?.download_url || null;
+}
 
 app.get('/api/repos', (_req, res) => {
   res.json(reposStore.list().map(({ id, label, description }) => ({ id, label, description: description || '' })));
@@ -278,7 +328,7 @@ app.delete('/api/admin/repos/:id', requireAdmin, (req, res) => {
   res.status(204).end();
 });
 
-app.post('/api/tickets', ticketLimiter, async (req, res) => {
+app.post('/api/tickets', ticketLimiter, screenshotUpload.array('screenshots', MAX_SCREENSHOTS), async (req, res) => {
   const {
     title,
     description,
@@ -313,6 +363,13 @@ app.post('/api/tickets', ticketLimiter, async (req, res) => {
   if (CATEGORY_LABELS[category]) labels.push(CATEGORY_LABELS[category]);
   if (PRIORITY_LABELS[priority]) labels.push(PRIORITY_LABELS[priority]);
 
+  const files = req.files || [];
+  const uploadResults = await Promise.all(
+    files.map((file) => uploadScreenshotToGithub(targetRepo.owner, targetRepo.repo, file))
+  );
+  const screenshotUrls = uploadResults.filter(Boolean);
+  const failedUploads = files.length - screenshotUrls.length;
+
   const issueBody = [
     `**Projecte:** ${targetRepo.label}`,
     `**Reportat per:** ${reporterName?.trim() || 'Anònim'}${reporterEmail?.trim() ? ` (${reporterEmail.trim()})` : ''}`,
@@ -322,7 +379,10 @@ app.post('/api/tickets', ticketLimiter, async (req, res) => {
     '',
     '---',
     '',
-    description.trim()
+    description.trim(),
+    screenshotUrls.length ? '\n---\n\n**Captures adjuntades:**\n' : null,
+    ...screenshotUrls.map((url) => `![captura](${url})`),
+    failedUploads > 0 ? `\n_${failedUploads} captura(es) no s'han pogut pujar._` : null
   ].filter(Boolean).join('\n');
 
   try {
@@ -364,6 +424,23 @@ app.post('/api/tickets', ticketLimiter, async (req, res) => {
     console.error('Error inesperat:', err);
     return res.status(500).json({ error: 'Error intern del servidor.' });
   }
+});
+
+// Tradueix els errors de multer (captures adjuntades) a missatges en català.
+app.use((err, _req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: `Cada captura ha de pesar com a màxim ${MAX_SCREENSHOT_SIZE / (1024 * 1024)} MB.` });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT' || err.code === 'LIMIT_UNEXPECTED_FILE') {
+      return res.status(400).json({ error: `Com a màxim es poden adjuntar ${MAX_SCREENSHOTS} captures.` });
+    }
+    return res.status(400).json({ error: 'No s\'han pogut processar els fitxers adjunts.' });
+  }
+  if (err && err.message === 'INVALID_FILE_TYPE') {
+    return res.status(400).json({ error: 'Només es poden adjuntar imatges (PNG, JPG, WEBP o GIF).' });
+  }
+  next(err);
 });
 
 app.get('/health', (_req, res) => res.json({ ok: true }));

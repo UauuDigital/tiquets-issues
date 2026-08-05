@@ -44,6 +44,79 @@ input:focus, select:focus, textarea:focus {
 
 .field { margin-bottom: 16px; }
 
+.field-error {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  color: var(--danger);
+  display: none;
+}
+.field-error:not(:empty) { display: block; }
+
+.field-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.field-footer .field-error { flex: 1; }
+
+.char-counter {
+  flex-shrink: 0;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+.char-counter.near-limit { color: var(--accent-ink); }
+.char-counter.at-limit { color: var(--danger); }
+
+input[type="file"] {
+  width: 100%;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+input[type="file"]::file-selector-button {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  margin-right: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fbfcfe;
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+input[type="file"]::file-selector-button:hover { border-color: #c3cede; }
+
+.file-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.file-list li {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  font-family: var(--mono);
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"],
+.select-trigger.invalid {
+  border-color: var(--danger);
+}
+input[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus,
+.select-trigger.invalid:focus-visible {
+  box-shadow: 0 0 0 3px rgba(192,57,43,0.14);
+}
+
 /* --- Custom select (replaces native <select> for repoId / category) --- */
 .select-trigger {
   display: flex;

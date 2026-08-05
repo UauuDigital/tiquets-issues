@@ -11,7 +11,7 @@ header.page-head { margin-bottom: 36px; }
 @media (min-width: 860px) {
   .wrap {
     display: grid;
-    grid-template-columns: 20% 30% 35% 15%;
+    grid-template-columns: 17.5% 30% 35% 17.5%;
     gap: 48px;
     align-items: center;
     max-width: none;

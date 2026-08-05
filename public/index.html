@@ -49,8 +49,9 @@
           </div>
           <div class="field">
             <label class="field-label" for="reporterEmail">Correu <span class="opt">(opcional, per rebre novetats)</span></label>
-            <input type="email" id="reporterEmail" name="reporterEmail" placeholder="nom@empresa.com" autocomplete="email" list="emailSuggest">
+            <input type="email" id="reporterEmail" name="reporterEmail" placeholder="nom@empresa.com" autocomplete="email" list="emailSuggest" aria-describedby="reporterEmail-error">
             <datalist id="emailSuggest"></datalist>
+            <p class="field-error" id="reporterEmail-error" role="alert"></p>
           </div>
         </fieldset>
 
@@ -61,10 +62,15 @@
             <select id="repoId" name="repoId" required>
               <option value="" disabled selected>Carregant projectes…</option>
             </select>
+            <p class="field-error" id="repoId-error" role="alert"></p>
           </div>
           <div class="field">
             <label class="field-label" for="title">Títol</label>
-            <input type="text" id="title" name="title" placeholder="Resum breu del problema" required maxlength="120">
+            <input type="text" id="title" name="title" placeholder="Resum breu del problema" required maxlength="120" aria-describedby="title-error title-counter">
+            <div class="field-footer">
+              <p class="field-error" id="title-error" role="alert"></p>
+              <span class="char-counter" id="title-counter">0/120</span>
+            </div>
           </div>
           <div class="row cols-2">
             <div class="field">
@@ -92,7 +98,14 @@
           </div>
           <div class="field">
             <label class="field-label" for="description">Descripció</label>
-            <textarea id="description" name="description" placeholder="Què ha passat? Passos per reproduir-ho, missatges d'error, captures..." required></textarea>
+            <textarea id="description" name="description" placeholder="Què ha passat? Passos per reproduir-ho, missatges d'error, captures..." required aria-describedby="description-error"></textarea>
+            <p class="field-error" id="description-error" role="alert"></p>
+          </div>
+          <div class="field">
+            <label class="field-label" for="screenshots">Captures de pantalla <span class="opt">(opcional, màxim 3, 5 MB cada una)</span></label>
+            <input type="file" id="screenshots" name="screenshots" accept="image/png,image/jpeg,image/webp,image/gif" multiple aria-describedby="screenshots-error">
+            <ul class="file-list" id="screenshots-list"></ul>
+            <p class="field-error" id="screenshots-error" role="alert"></p>
           </div>
         </fieldset>
 
@@ -102,7 +115,7 @@
             <path d="M3 10h13M10 4l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </button>
-        <div class="form-msg" id="form-error"></div>
+        <div class="form-msg" id="form-error" role="alert" aria-live="polite"></div>
       </form>
 
       <div class="confirm" id="confirm-view">
@@ -143,6 +156,7 @@
   </a>
 </main>
 
+<script src="js/error-messages.js" defer></script>
 <script src="js/custom-select.js" defer></script>
 <script src="js/ticket-form.js" defer></script>
 </body>

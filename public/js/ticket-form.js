@@ -16,9 +16,91 @@ const stubTitle = document.getElementById('stub-title');
 const stubReporter = document.getElementById('stub-reporter');
 
 const titleInput = document.getElementById('title');
+const descriptionInput = document.getElementById('description');
+const titleCounter = document.getElementById('title-counter');
 const reporterNameInput = document.getElementById('reporterName');
 const reporterEmailInput = document.getElementById('reporterEmail');
 const emailSuggestDatalist = document.getElementById('emailSuggest');
+
+const screenshotsInput = document.getElementById('screenshots');
+const screenshotsList = document.getElementById('screenshots-list');
+
+const fieldErrors = {
+  repoId: document.getElementById('repoId-error'),
+  title: document.getElementById('title-error'),
+  description: document.getElementById('description-error'),
+  reporterEmail: document.getElementById('reporterEmail-error'),
+  screenshots: document.getElementById('screenshots-error')
+};
+
+const MAX_SCREENSHOTS = 3;
+const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024;
+const ALLOWED_SCREENSHOT_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
+
+function renderScreenshotsList() {
+  screenshotsList.innerHTML = Array.from(screenshotsInput.files)
+    .map((file) => `<li>${file.name}</li>`)
+    .join('');
+}
+
+function validateScreenshots() {
+  const files = Array.from(screenshotsInput.files);
+  if (files.length > MAX_SCREENSHOTS) {
+    fieldErrors.screenshots.textContent = ERROR_MESSAGES.tooManyScreenshots;
+    return false;
+  }
+  if (files.some((file) => !ALLOWED_SCREENSHOT_TYPES.includes(file.type))) {
+    fieldErrors.screenshots.textContent = ERROR_MESSAGES.screenshotInvalidType;
+    return false;
+  }
+  if (files.some((file) => file.size > MAX_SCREENSHOT_SIZE)) {
+    fieldErrors.screenshots.textContent = ERROR_MESSAGES.screenshotTooLarge;
+    return false;
+  }
+  fieldErrors.screenshots.textContent = '';
+  return true;
+}
+screenshotsInput.addEventListener('change', () => {
+  renderScreenshotsList();
+  validateScreenshots();
+});
+
+const TITLE_MAX = 120;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function setFieldError(fieldEl, errorEl, message) {
+  errorEl.textContent = message || '';
+  fieldEl.setAttribute('aria-invalid', message ? 'true' : 'false');
+}
+
+function clearAllFieldErrors() {
+  setFieldError(titleInput, fieldErrors.title, '');
+  setFieldError(descriptionInput, fieldErrors.description, '');
+  setFieldError(reporterEmailInput, fieldErrors.reporterEmail, '');
+  fieldErrors.repoId.textContent = '';
+  fieldErrors.screenshots.textContent = '';
+  repoCustomSelect.setInvalid(false);
+}
+
+function syncTitleCounter() {
+  const len = titleInput.value.length;
+  titleCounter.textContent = `${len}/${TITLE_MAX}`;
+  titleCounter.classList.toggle('near-limit', len >= TITLE_MAX - 10 && len < TITLE_MAX);
+  titleCounter.classList.toggle('at-limit', len >= TITLE_MAX);
+}
+titleInput.addEventListener('input', syncTitleCounter);
+syncTitleCounter();
+
+function validateEmailField() {
+  const value = reporterEmailInput.value.trim();
+  if (value && !EMAIL_RE.test(value)) {
+    setFieldError(reporterEmailInput, fieldErrors.reporterEmail, ERROR_MESSAGES.emailInvalid);
+    return false;
+  }
+  setFieldError(reporterEmailInput, fieldErrors.reporterEmail, '');
+  return true;
+}
+reporterEmailInput.addEventListener('blur', validateEmailField);
 
 const EMAIL_DOMAIN = '@uauu.cat';
 reporterEmailInput.addEventListener('input', () => {
@@ -44,6 +126,7 @@ const PRIORITY_LEVELS = ['baixa', 'mitjana', 'alta', 'critica'];
 const repoCustomSelect = enhanceSelect(repoSelect);
 const categoryCustomSelect = enhanceSelect(categorySelect);
 const departmentCustomSelect = enhanceSelect(departmentSelect);
+repoCustomSelect.describeWith('repoId-error');
 
 let repoDescriptions = {};
 
@@ -149,45 +232,67 @@ syncPriority();
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
+  formError.textContent = '';
   formError.classList.remove('error');
+  clearAllFieldErrors();
 
   const payload = {
     title: form.title.value,
     description: form.description.value,
-    category: form.category.value,
-    repoId: form.repoId.value,
-    priority: PRIORITY_LEVELS[Number(priorityRange.value)] || 'baixa',
-    reporterName: form.reporterName.value,
-    reporterEmail: form.reporterEmail.value,
-    department: form.department.value,
-    website: form.website.value // honeypot
+    repoId: form.repoId.value
   };
 
+  let firstInvalid = null;
+
   if (!payload.repoId) {
-    formError.textContent = 'Cal triar un projecte.';
-    formError.classList.add('error');
-    return;
+    fieldErrors.repoId.textContent = ERROR_MESSAGES.repoRequired;
+    repoCustomSelect.setInvalid(true);
+    firstInvalid = firstInvalid || repoCustomSelect.trigger;
+  }
+  if (!payload.title.trim()) {
+    setFieldError(titleInput, fieldErrors.title, ERROR_MESSAGES.titleRequired);
+    firstInvalid = firstInvalid || titleInput;
+  }
+  if (!payload.description.trim()) {
+    setFieldError(descriptionInput, fieldErrors.description, ERROR_MESSAGES.descriptionRequired);
+    firstInvalid = firstInvalid || descriptionInput;
+  }
+  if (!validateEmailField()) {
+    firstInvalid = firstInvalid || reporterEmailInput;
+  }
+  if (!validateScreenshots()) {
+    firstInvalid = firstInvalid || screenshotsInput;
   }
 
-  if (!payload.title.trim() || !payload.description.trim()) {
-    formError.textContent = 'Cal omplir el títol i la descripció.';
-    formError.classList.add('error');
+  if (firstInvalid) {
+    firstInvalid.focus();
     return;
   }
 
   submitBtn.disabled = true;
   submitBtnText.textContent = 'Enviant…';
 
+  const formData = new FormData();
+  formData.append('title', form.title.value);
+  formData.append('description', form.description.value);
+  formData.append('category', form.category.value);
+  formData.append('repoId', form.repoId.value);
+  formData.append('priority', PRIORITY_LEVELS[Number(priorityRange.value)] || 'baixa');
+  formData.append('reporterName', form.reporterName.value);
+  formData.append('reporterEmail', form.reporterEmail.value);
+  formData.append('department', form.department.value);
+  formData.append('website', form.website.value); // honeypot
+  Array.from(screenshotsInput.files).forEach((file) => formData.append('screenshots', file));
+
   try {
     const res = await fetch('/api/tickets', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: formData
     });
     const data = await res.json();
 
     if (!res.ok) {
-      throw new Error(data.error || 'No s\'ha pogut enviar el tiquet.');
+      throw new Error(data.error || ERROR_MESSAGES.submitFailed);
     }
 
     if (data.number) {
@@ -204,7 +309,7 @@ form.addEventListener('submit', async (e) => {
     form.style.display = 'none';
     confirmView.classList.add('visible');
   } catch (err) {
-    formError.textContent = err.message || 'Alguna cosa ha fallat. Torna-ho a provar.';
+    formError.textContent = err.message || ERROR_MESSAGES.submitFailed;
     formError.classList.add('error');
   } finally {
     submitBtn.disabled = false;
@@ -218,7 +323,12 @@ againBtn.addEventListener('click', () => {
   syncStub();
   syncPriority();
   syncTitle();
+  syncTitleCounter();
   syncReporter();
+  clearAllFieldErrors();
+  screenshotsList.innerHTML = '';
+  formError.textContent = '';
+  formError.classList.remove('error');
   departmentCustomSelect.refresh();
   categoryCustomSelect.refresh();
   repoCustomSelect.refresh();

@@ -163,9 +163,21 @@ function enhanceSelect(selectEl) {
   updateTrigger();
 
   return {
+    trigger,
     refresh() {
       updateTrigger();
       if (isOpen()) renderOptions();
+    },
+    focus() {
+      trigger.focus();
+    },
+    setInvalid(isInvalid) {
+      trigger.classList.toggle('invalid', isInvalid);
+      trigger.setAttribute('aria-invalid', isInvalid ? 'true' : 'false');
+    },
+    describeWith(errorId) {
+      if (errorId) trigger.setAttribute('aria-describedby', errorId);
+      else trigger.removeAttribute('aria-describedby');
     }
   };
 }

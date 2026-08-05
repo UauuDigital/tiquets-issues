@@ -35,6 +35,8 @@ header.page-head { margin-bottom: 28px; }
 }
 .eyebrow-link { color: inherit; text-decoration: none; }
 .eyebrow-link:hover { color: var(--ink); text-decoration: underline; }
+.eyebrow-back { color: var(--ink); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.eyebrow-back:hover { color: var(--ink-soft); }
 
 h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 .subtitle { color: var(--ink-soft); font-size: 15px; max-width: 62ch; line-height: 1.5; margin: 0; }
@@ -87,14 +89,13 @@ th[data-sort]:hover { color: var(--ink); }
   font-weight: 600;
   padding: 4px 10px;
   border-radius: 999px;
-  color: #fff;
   white-space: nowrap;
 }
-.status-badge[data-status="no_comencat"] { background: #6b7280; }
-.status-badge[data-status="comencat"]    { background: #2563eb; }
-.status-badge[data-status="en_espera"]   { background: #d97706; }
-.status-badge[data-status="acabat"]      { background: #16a34a; }
-.status-badge[data-status="cancelat"]    { background: #dc2626; }
+.status-badge[data-status="no_comencat"] { background: #eef0f3; color: #4b5563; }
+.status-badge[data-status="comencat"]    { background: #e3edfd; color: #1d4ed8; }
+.status-badge[data-status="en_espera"]   { background: #fbedd6; color: #b45309; }
+.status-badge[data-status="acabat"]      { background: #e0f5e6; color: #15803d; }
+.status-badge[data-status="cancelat"]    { background: #fbe4e4; color: #b91c1c; }
 
 .icon-link {
   display: inline-flex;
