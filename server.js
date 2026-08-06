@@ -21,6 +21,7 @@ function formatDateCa(date) {
 }
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_ADMIN_TOKEN = process.env.GITHUB_ADMIN_TOKEN;
 const reposStore = require('./repos.store');
 const ticketsStore = require('./tickets.store');
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
@@ -29,6 +30,12 @@ if (!GITHUB_TOKEN) {
   console.warn(
     "AVIS: falta la variable d'entorn GITHUB_TOKEN. " +
     'Copia .env.example a .env i emplena-la abans de rebre tiquets reals.'
+  );
+}
+if (!GITHUB_ADMIN_TOKEN) {
+  console.warn(
+    "AVIS: falta la variable d'entorn GITHUB_ADMIN_TOKEN. " +
+    'Canviar estat/prioritat o eliminar tiquets des de /tickets-admin.html estarà desactivat.'
   );
 }
 if (!ADMIN_TOKEN) {
@@ -181,6 +188,104 @@ async function uploadScreenshotToGithub(owner, repo, file) {
   return data.content?.download_url || null;
 }
 
+// Fa servir el token del propietari real dels repos (no el d'UauuBot), ja que
+// accions com eliminar una issue només les permet GitHub al propietari.
+function ghHeaders() {
+  return {
+    Authorization: `Bearer ${GITHUB_ADMIN_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+}
+
+// Extreu owner/repo/número d'issue de la URL desada al tiquet.
+function parseGithubIssueUrl(url) {
+  const match = (url || '').match(/github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/);
+  if (!match) return null;
+  return { owner: match[1], repo: match[2], issueNumber: match[3] };
+}
+
+// Reflecteix a GitHub el canvi d'estat (tanca/reobre la issue) i/o de prioritat
+// (actualitza l'etiqueta "prioritat: X") fet des de l'admin del portal.
+async function syncTicketToGithub({ owner, repo, issueNumber }, { status, priority }) {
+  const body = {};
+
+  if (status !== undefined) {
+    if (status === 'acabat') {
+      body.state = 'closed';
+      body.state_reason = 'completed';
+    } else if (status === 'cancelat') {
+      body.state = 'closed';
+      body.state_reason = 'not_planned';
+    } else {
+      body.state = 'open';
+    }
+  }
+
+  if (priority !== undefined) {
+    const getRes = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`,
+      { headers: ghHeaders() }
+    );
+    if (!getRes.ok) {
+      throw new Error('No s\'ha pogut llegir la incidència a GitHub.');
+    }
+    const issue = await getRes.json();
+    const otherLabels = (issue.labels || [])
+      .map((l) => (typeof l === 'string' ? l : l.name))
+      .filter((name) => !name.startsWith('prioritat: '));
+    body.labels = [...otherLabels, PRIORITY_LABELS[priority]];
+  }
+
+  const patchRes = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`,
+    {
+      method: 'PATCH',
+      headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    }
+  );
+  if (!patchRes.ok) {
+    const errText = await patchRes.text();
+    console.error('Error actualitzant issue a GitHub:', patchRes.status, errText);
+    throw new Error('No s\'ha pogut actualitzar la incidència a GitHub.');
+  }
+}
+
+// Elimina definitivament una issue de GitHub via l'API GraphQL (l'API REST no
+// permet eliminar issues). Requereix que el token pertanyi a un compte amb
+// permisos d'administrador del repositori; si no, GitHub retorna un error.
+async function deleteGithubIssue({ owner, repo, issueNumber }) {
+  const getRes = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`,
+    { headers: ghHeaders() }
+  );
+  if (!getRes.ok) {
+    throw new Error('No s\'ha pogut llegir la incidència a GitHub.');
+  }
+  const issue = await getRes.json();
+
+  const gqlRes = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      query: 'mutation($id: ID!) { deleteIssue(input: { issueId: $id }) { clientMutationId } }',
+      variables: { id: issue.node_id }
+    })
+  });
+  const gqlData = await gqlRes.json().catch(() => ({}));
+  if (!gqlRes.ok || gqlData.errors) {
+    const message = gqlData.errors?.[0]?.message || `Error ${gqlRes.status}`;
+    console.error('Error eliminant issue a GitHub:', message);
+    const lower = message.toLowerCase();
+    throw new Error(
+      lower.includes('permission') || lower.includes('admin') || lower.includes('resource not accessible')
+        ? 'El token de GitHub no té permisos d\'administrador del repositori per eliminar issues.'
+        : 'No s\'ha pogut eliminar la incidència a GitHub.'
+    );
+  }
+}
+
 app.get('/api/repos', (_req, res) => {
   res.json(reposStore.list().map(({ id, label, description }) => ({ id, label, description: description || '' })));
 });
@@ -230,6 +335,12 @@ async function verifyGithubRepo(owner, repo) {
   }
 }
 
+// Verifica si el token d'administració desat al navegador encara és vàlid,
+// per poder mostrar una pantalla d'inici de sessió abans de carregar l'admin.
+app.get('/api/admin/verify', requireAdmin, (_req, res) => {
+  res.json({ ok: true });
+});
+
 // --- Gestió (CRUD) de repositoris connectats, protegida per ADMIN_TOKEN ---
 app.get('/api/admin/repos', requireAdmin, (_req, res) => {
   res.json(reposStore.list());
@@ -240,15 +351,72 @@ app.get('/api/admin/tickets', requireAdmin, (_req, res) => {
   res.json(ticketsStore.list());
 });
 
-// Canvia l'estat d'un tiquet de l'historial.
-app.patch('/api/admin/tickets/:id', requireAdmin, (req, res) => {
-  const { status } = req.body || {};
-  if (!TICKET_STATUSES.includes(status)) {
-    return res.status(400).json({ error: 'Estat no vàlid.' });
+// Canvia l'estat i/o la prioritat d'un tiquet, sincronitzant-ho primer amb la
+// incidència de GitHub (tanca/reobre segons l'estat, actualitza l'etiqueta de
+// prioritat). Si la sincronització amb GitHub falla, no es desa el canvi local.
+app.patch('/api/admin/tickets/:id', requireAdmin, async (req, res) => {
+  const { status, priority } = req.body || {};
+  const patch = {};
+  if (status !== undefined) {
+    if (!TICKET_STATUSES.includes(status)) {
+      return res.status(400).json({ error: 'Estat no vàlid.' });
+    }
+    patch.status = status;
   }
-  const updated = ticketsStore.updateStatus(req.params.id, status);
-  if (!updated) return res.status(404).json({ error: 'Tiquet no trobat.' });
+  if (priority !== undefined) {
+    if (!PRIORITY_LABELS[priority]) {
+      return res.status(400).json({ error: 'Prioritat no vàlida.' });
+    }
+    patch.priority = priority;
+  }
+  if (!Object.keys(patch).length) {
+    return res.status(400).json({ error: 'Cal indicar status o priority.' });
+  }
+  if (!GITHUB_ADMIN_TOKEN) {
+    return res.status(500).json({ error: 'El servidor no té configurat GITHUB_ADMIN_TOKEN (revisa .env).' });
+  }
+
+  const ticket = ticketsStore.list().find((t) => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Tiquet no trobat.' });
+
+  const ghIssue = parseGithubIssueUrl(ticket.url);
+  if (!ghIssue) {
+    return res.status(502).json({ error: 'Aquest tiquet no està enllaçat amb cap incidència de GitHub.' });
+  }
+
+  try {
+    await syncTicketToGithub(ghIssue, patch);
+  } catch (err) {
+    console.error('Error sincronitzant tiquet amb GitHub:', err);
+    return res.status(502).json({ error: err.message || 'No s\'ha pogut sincronitzar amb GitHub.' });
+  }
+
+  const updated = ticketsStore.update(req.params.id, patch);
   res.json(updated);
+});
+
+// Elimina un tiquet: primer intenta eliminar la incidència de GitHub (requereix
+// que el token tingui permisos d'administrador del repositori); si GitHub ho
+// rebutja, no s'elimina res (ni GitHub ni l'historial local).
+app.delete('/api/admin/tickets/:id', requireAdmin, async (req, res) => {
+  const ticket = ticketsStore.list().find((t) => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Tiquet no trobat.' });
+
+  const ghIssue = parseGithubIssueUrl(ticket.url);
+  if (ghIssue) {
+    if (!GITHUB_ADMIN_TOKEN) {
+      return res.status(500).json({ error: 'El servidor no té configurat GITHUB_ADMIN_TOKEN (revisa .env).' });
+    }
+    try {
+      await deleteGithubIssue(ghIssue);
+    } catch (err) {
+      return res.status(502).json({ error: err.message || 'No s\'ha pogut eliminar la incidència a GitHub.' });
+    }
+  }
+
+  const ok = ticketsStore.remove(req.params.id);
+  if (!ok) return res.status(404).json({ error: 'Tiquet no trobat.' });
+  res.status(204).end();
 });
 
 // Llista els repositoris de GitHub als quals el GITHUB_TOKEN té accés
@@ -413,9 +581,11 @@ app.post('/api/tickets', ticketLimiter, screenshotUpload.array('screenshots', MA
       number: issue.number,
       url: issue.html_url,
       title: title.trim(),
+      description: description.trim(),
       repoLabel: targetRepo.label,
       priority: priority || null,
       reporterName: reporterName?.trim() || null,
+      reporterEmail: reporterEmail?.trim() || null,
       status: 'no_comencat',
       createdAt: new Date().toISOString()
     });

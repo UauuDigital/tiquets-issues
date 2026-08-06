@@ -33,13 +33,22 @@ function add(entry) {
   save(tickets);
 }
 
-function updateStatus(id, status) {
+function update(id, patch) {
   const tickets = load();
   const idx = tickets.findIndex((t) => t.id === id);
   if (idx === -1) return null;
-  tickets[idx] = { ...tickets[idx], status };
+  tickets[idx] = { ...tickets[idx], ...patch };
   save(tickets);
   return tickets[idx];
 }
 
-module.exports = { list, add, updateStatus };
+function remove(id) {
+  const tickets = load();
+  const idx = tickets.findIndex((t) => t.id === id);
+  if (idx === -1) return false;
+  tickets.splice(idx, 1);
+  save(tickets);
+  return true;
+}
+
+module.exports = { list, add, update, remove };

@@ -11,18 +11,16 @@
 </head>
 <body>
 <div class="wrap">
-  <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · <a href="index.html" class="eyebrow-link">Portal de tiquets</a> / Administració</div>
+  <div id="loginScreen" class="login-screen" hidden></div>
+
+  <div id="adminApp" hidden>
+  <div class="eyebrow">
+    <span class="eyebrow-brand">UAUU</span> · <a href="index.html" class="eyebrow-link">Portal de tiquets</a> / Administració
+    <button type="button" class="logout-link" data-logout style="margin-left:auto;">Tancar sessió</button>
+  </div>
   <h1>Gestió de repositoris</h1>
   <p class="subtitle">Afegeix, edita o elimina els repositoris de GitHub connectats al portal de tiquets.</p>
-
-  <div class="card">
-    <label for="adminToken">Token d'administració</label>
-    <div class="token-bar">
-      <input type="password" id="adminToken" placeholder="ADMIN_TOKEN">
-      <button id="saveToken">Desar</button>
-    </div>
-    <p class="muted">Es guarda només en aquest navegador (localStorage), no s'envia enlloc excepte a l'API d'aquest servidor.</p>
-  </div>
+  <a href="tickets-admin.html" class="tickets-admin-link">Gestionar tiquets →</a>
 
   <div class="card">
     <h2 style="font-size:1rem;margin-top:0;">Afegir repositori</h2>
@@ -74,48 +72,10 @@
     <p class="empty" id="noResultsMsg" style="display:none;">Cap repositori coincideix amb la cerca.</p>
   </div>
 
-  <div class="card">
-    <h2 style="font-size:1rem;margin-top:0;">Historial de tiquets creats</h2>
-    <p class="error" id="ticketsError"></p>
-    <div class="filters-row">
-      <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta...">
-      <select id="ticketStatusFilter">
-        <option value="">Tots els estats</option>
-        <option value="no_comencat">No començat</option>
-        <option value="comencat">Començat</option>
-        <option value="en_espera">En espera</option>
-        <option value="acabat">Acabat</option>
-        <option value="cancelat">Cancel·lat</option>
-      </select>
-      <select id="ticketPriorityFilter">
-        <option value="">Totes les prioritats</option>
-        <option value="baixa">Baixa</option>
-        <option value="mitjana">Mitjana</option>
-        <option value="alta">Alta</option>
-        <option value="critica">Crítica</option>
-      </select>
-    </div>
-    <div class="table-scroll">
-      <table id="ticketsTable">
-        <thead>
-          <tr>
-            <th data-sort="createdAt">Data<span class="sort-arrow"></span></th>
-            <th data-sort="title">Títol<span class="sort-arrow"></span></th>
-            <th data-sort="repoLabel">Projecte<span class="sort-arrow"></span></th>
-            <th data-sort="priority">Prioritat<span class="sort-arrow"></span></th>
-            <th data-sort="reporterName">Reportat per<span class="sort-arrow"></span></th>
-            <th data-sort="status">Estat<span class="sort-arrow"></span></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="ticketsBody"></tbody>
-      </table>
-    </div>
-    <p class="empty" id="ticketsNoResultsMsg" style="display:none;">Cap tiquet coincideix amb els filtres.</p>
-    <p class="empty" id="ticketsEmptyMsg" style="display:none;">Encara no s'ha creat cap tiquet.</p>
   </div>
 </div>
 
+<script src="js/admin-auth.js" defer></script>
 <script src="js/admin.js" defer></script>
 </body>
 </html>

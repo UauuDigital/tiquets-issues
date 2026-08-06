@@ -11,9 +11,9 @@
   --danger: #c0392b;
   --danger-bg: #fbeae8;
   --priority-baixa: var(--success);
-  --priority-mitjana: #b7791f;
-  --priority-alta: #c05621;
-  --priority-critica: var(--danger);
+  --priority-mitjana: #ca8a04;
+  --priority-alta: #ea580c;
+  --priority-critica: #b91c1c;
   --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
   --font-ui: 'Inter', system-ui, 'Segoe UI', sans-serif;
   --radius: 14px;
