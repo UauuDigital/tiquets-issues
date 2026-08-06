@@ -419,6 +419,85 @@ app.delete('/api/admin/tickets/:id', requireAdmin, async (req, res) => {
   res.status(204).end();
 });
 
+// Retorna en directe els comentaris de la issue de GitHub, perquè es puguin
+// veure des del modal de detall del tiquet sense sortir del portal.
+app.get('/api/admin/tickets/:id/comments', requireAdmin, async (req, res) => {
+  const ticket = ticketsStore.list().find((t) => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Tiquet no trobat.' });
+
+  const ghIssue = parseGithubIssueUrl(ticket.url);
+  if (!ghIssue) return res.json([]);
+  if (!GITHUB_ADMIN_TOKEN) {
+    return res.status(500).json({ error: 'El servidor no té configurat GITHUB_ADMIN_TOKEN (revisa .env).' });
+  }
+
+  try {
+    const ghResponse = await fetch(
+      `https://api.github.com/repos/${ghIssue.owner}/${ghIssue.repo}/issues/${ghIssue.issueNumber}/comments`,
+      { headers: ghHeaders() }
+    );
+    if (!ghResponse.ok) {
+      throw new Error(`Error ${ghResponse.status}`);
+    }
+    const comments = await ghResponse.json();
+    res.json(comments.map((c) => ({
+      author: c.user?.login || 'Desconegut',
+      avatarUrl: c.user?.avatar_url || null,
+      body: c.body || '',
+      url: c.html_url,
+      createdAt: c.created_at
+    })));
+  } catch (err) {
+    console.error('Error llegint comentaris de GitHub:', err);
+    res.status(502).json({ error: 'No s\'han pogut carregar els comentaris de GitHub.' });
+  }
+});
+
+// Afegeix un comentari a la issue de GitHub des del modal de detall del tiquet.
+app.post('/api/admin/tickets/:id/comments', requireAdmin, async (req, res) => {
+  const { body } = req.body || {};
+  if (!body || !body.trim()) {
+    return res.status(400).json({ error: 'Cal escriure un comentari.' });
+  }
+
+  const ticket = ticketsStore.list().find((t) => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Tiquet no trobat.' });
+
+  const ghIssue = parseGithubIssueUrl(ticket.url);
+  if (!ghIssue) {
+    return res.status(502).json({ error: 'Aquest tiquet no està enllaçat amb cap incidència de GitHub.' });
+  }
+  if (!GITHUB_ADMIN_TOKEN) {
+    return res.status(500).json({ error: 'El servidor no té configurat GITHUB_ADMIN_TOKEN (revisa .env).' });
+  }
+
+  try {
+    const ghResponse = await fetch(
+      `https://api.github.com/repos/${ghIssue.owner}/${ghIssue.repo}/issues/${ghIssue.issueNumber}/comments`,
+      {
+        method: 'POST',
+        headers: { ...ghHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: body.trim() })
+      }
+    );
+    if (!ghResponse.ok) {
+      const errText = await ghResponse.text();
+      console.error('Error creant comentari a GitHub:', ghResponse.status, errText);
+      throw new Error();
+    }
+    const comment = await ghResponse.json();
+    res.status(201).json({
+      author: comment.user?.login || 'Desconegut',
+      avatarUrl: comment.user?.avatar_url || null,
+      body: comment.body || '',
+      url: comment.html_url,
+      createdAt: comment.created_at
+    });
+  } catch (err) {
+    res.status(502).json({ error: 'No s\'ha pogut publicar el comentari a GitHub.' });
+  }
+});
+
 // Llista els repositoris de GitHub als quals el GITHUB_TOKEN té accés
 // (propis, com a col·laborador, o d'organitzacions), perquè l'admin
 // pugui triar-los d'un desplegable en lloc d'escriure'ls a mà.
@@ -498,7 +577,6 @@ app.delete('/api/admin/repos/:id', requireAdmin, (req, res) => {
 
 app.post('/api/tickets', ticketLimiter, screenshotUpload.array('screenshots', MAX_SCREENSHOTS), async (req, res) => {
   const {
-    title,
     description,
     category,
     priority,
@@ -514,9 +592,17 @@ app.post('/api/tickets', ticketLimiter, screenshotUpload.array('screenshots', MA
     return res.status(201).json({ ok: true, number: null, url: null });
   }
 
-  if (!title || !title.trim() || !description || !description.trim()) {
-    return res.status(400).json({ error: 'El títol i la descripció són obligatoris.' });
+  if (!description || !description.trim()) {
+    return res.status(400).json({ error: 'Cal explicar la incidència.' });
   }
+
+  // El formulari no demana un títol; se'n genera un a partir de la primera
+  // línia de la descripció (GitHub requereix un títol per crear la issue).
+  const TITLE_MAX_LENGTH = 80;
+  const firstLine = description.trim().split('\n')[0].trim();
+  const title = firstLine.length > TITLE_MAX_LENGTH
+    ? firstLine.slice(0, TITLE_MAX_LENGTH - 1).trim() + '…'
+    : firstLine;
 
   const targetRepo = reposStore.list().find((r) => r.id === repoId);
   if (!targetRepo) {
@@ -584,8 +670,11 @@ app.post('/api/tickets', ticketLimiter, screenshotUpload.array('screenshots', MA
       description: description.trim(),
       repoLabel: targetRepo.label,
       priority: priority || null,
+      category: category || null,
+      department: department?.trim() || null,
       reporterName: reporterName?.trim() || null,
       reporterEmail: reporterEmail?.trim() || null,
+      screenshotUrls,
       status: 'no_comencat',
       createdAt: new Date().toISOString()
     });

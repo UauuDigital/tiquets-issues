@@ -348,6 +348,15 @@ th[data-sort]:hover { color: #333; }
 .login-card h1 { font-size: 1.2rem; margin: 0.5rem 0 0.25rem; }
 .login-card .subtitle { margin-bottom: 1.25rem; }
 .login-card button { width: 100%; }
+.login-back-link {
+  display: block;
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+.login-back-link:hover { color: var(--ink); text-decoration: underline; }
 
 #ticketsTable tbody tr { cursor: pointer; }
 
@@ -358,7 +367,7 @@ th[data-sort]:hover { color: #333; }
   border-radius: 14px;
   padding: 1.75rem;
   width: 90%;
-  max-width: 480px;
+  max-width: 680px;
   box-shadow: 0 24px 64px -12px rgba(22,35,63,0.35);
 }
 .ticket-modal::backdrop { background: rgba(22,35,63,0.45); }
@@ -398,17 +407,64 @@ th[data-sort]:hover { color: #333; }
   margin: 0 0 1.25rem;
 }
 
+.modal-section { margin: 0 0 1.25rem; }
+.modal-section h3 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #888;
+  margin: 0 0 0.4rem;
+  font-weight: 700;
+}
+.modal-description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fafbfc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+}
+
+.modal-screenshots { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.modal-screenshots a { display: block; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.modal-screenshots img { display: block; width: 96px; height: 96px; object-fit: cover; }
+
+.modal-comments { display: flex; flex-direction: column; gap: 0.75rem; max-height: 150px; overflow-y: auto; }
+.modal-comments-status { margin: 0; font-size: 0.85rem; color: #888; }
+.modal-comment {
+  background: #fafbfc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+.modal-comment-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; }
+.modal-comment-avatar { width: 20px; height: 20px; border-radius: 50%; }
+.modal-comment-author { font-size: 0.82rem; font-weight: 700; color: var(--ink); text-decoration: none; }
+.modal-comment-author:hover { text-decoration: underline; }
+.modal-comment-date { font-size: 0.75rem; color: #888; margin-left: auto; }
+.modal-comment-body { font-size: 0.85rem; color: var(--ink); line-height: 1.45; white-space: pre-wrap; }
+
+.modal-comment-form { margin-top: 0.75rem; }
+.modal-comment-form textarea { resize: vertical; min-height: 4.5rem; }
+.modal-comment-form button { width: 100%; }
+
 .modal-meta {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem 1.5rem;
   margin: 0 0 1.25rem;
 }
 .modal-meta dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 0.3rem; }
 .modal-meta dd { margin: 0; font-size: 0.9rem; color: var(--ink); }
+.modal-meta dd a { color: var(--ink); text-decoration: underline; }
 
-.modal-note { font-size: 0.82rem; color: #888; margin: 0 0 1rem; line-height: 1.4; }
-.modal-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+.modal-actions { display: flex; gap: 0.6rem; }
+.modal-actions .modal-github-link, .modal-actions .modal-delete { flex: 1; }
 .modal-github-link {
   display: inline-block;
   width: 100%;
@@ -437,6 +493,10 @@ th[data-sort]:hover { color: #333; }
 }
 .modal-delete:hover { background: var(--danger-bg); }
 
+@media (max-width: 560px) {
+  .modal-meta { grid-template-columns: 1fr 1fr; }
+}
 @media (max-width: 480px) {
   .modal-meta { grid-template-columns: 1fr; }
+  .modal-actions { flex-direction: column; }
 }

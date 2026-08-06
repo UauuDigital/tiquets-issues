@@ -13,13 +13,25 @@ const ticketModalClose = document.getElementById('ticketModalClose');
 const modalUrgency = document.getElementById('modalUrgency');
 const modalTitle = document.getElementById('modalTitle');
 const modalRepo = document.getElementById('modalRepo');
+const modalDescription = document.getElementById('modalDescription');
 const modalStatusWrap = document.getElementById('modalStatusWrap');
 const modalPriority = document.getElementById('modalPriority');
+const modalCategory = document.getElementById('modalCategory');
+const modalDepartment = document.getElementById('modalDepartment');
 const modalReporter = document.getElementById('modalReporter');
+const modalEmail = document.getElementById('modalEmail');
 const modalDate = document.getElementById('modalDate');
 const modalUrgencyValue = document.getElementById('modalUrgencyValue');
 const modalGithubLink = document.getElementById('modalGithubLink');
 const modalDelete = document.getElementById('modalDelete');
+const modalScreenshotsSection = document.getElementById('modalScreenshotsSection');
+const modalScreenshots = document.getElementById('modalScreenshots');
+const modalComments = document.getElementById('modalComments');
+const modalCommentsStatus = document.getElementById('modalCommentsStatus');
+const modalCommentForm = document.getElementById('modalCommentForm');
+const modalCommentInput = document.getElementById('modalCommentInput');
+const modalCommentError = document.getElementById('modalCommentError');
+const modalCommentSubmit = document.getElementById('modalCommentSubmit');
 
 let allTickets = [];
 let ticketSearchQuery = '';
@@ -35,6 +47,8 @@ function authHeaders() {
 }
 
 const PRIORITY_LABELS_CA = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', critica: 'Crítica' };
+const CATEGORY_LABELS_CA = { bug: 'Error / no funciona', funcionalitat: 'Petició de funcionalitat', acces: 'Accés i permisos', altres: 'Altres' };
+const DEPARTMENT_LABELS_CA = { comercial: 'Comercial', coordinacio: 'Coordinació', cuina: 'Cuina', administracio: 'Administració', digital: 'Digital' };
 const PRIORITY_ORDER = { critica: 4, alta: 3, mitjana: 2, baixa: 1 };
 
 // Setmanes fins arribar a 100 (saturació) segons prioritat.
@@ -90,6 +104,14 @@ function urgencyLevelKey(score) {
   if (score < 100) return 'high';
   return 'max';
 }
+
+const URGENCY_LEVEL_LABELS_CA = {
+  none: 'Cap urgència',
+  low: 'Urgència baixa',
+  medium: 'Urgència mitjana',
+  high: 'Urgència alta',
+  max: 'Urgència màxima'
+};
 
 // Una icona diferent per nivell (no nomes color), perquè es distingeixin
 // encara que algú no percebi bé el color.
@@ -379,22 +401,103 @@ let currentModalTicketId = null;
 
 function populateModal(t) {
   modalUrgency.innerHTML = urgencyIconHtml(t.urgencyScore);
-  modalTitle.textContent = t.title;
+  modalTitle.textContent = t.number ? `Tiquet núm. ${t.number}` : 'Tiquet';
   modalRepo.textContent = t.repoLabel;
+  modalDescription.textContent = t.description || t.title || '—';
   modalStatusWrap.innerHTML = statusSelectHtml(t);
   modalStatusWrap.querySelector('.status-select').addEventListener('change', (e) => updateTicketStatus(e.target));
   modalPriority.innerHTML = prioritySelectHtml(t);
   modalPriority.querySelector('.priority-select').addEventListener('change', (e) => updateTicketPriority(e.target));
+  modalCategory.textContent = CATEGORY_LABELS_CA[t.category] || '—';
+  modalDepartment.textContent = DEPARTMENT_LABELS_CA[t.department] || '—';
   modalReporter.textContent = t.reporterName || 'Anònim';
+  modalEmail.innerHTML = t.reporterEmail ? `<a href="mailto:${escapeHtml(t.reporterEmail)}">${escapeHtml(t.reporterEmail)}</a>` : '—';
   modalDate.textContent = `${formatRelativeTime(t.createdAt)} (${formatTicketDate(t.createdAt)})`;
-  modalUrgencyValue.textContent = t.urgencyScore;
+  modalUrgencyValue.textContent = URGENCY_LEVEL_LABELS_CA[urgencyLevelKey(t.urgencyScore)];
+  modalUrgencyValue.title = `Puntuació: ${t.urgencyScore}`;
   modalGithubLink.href = t.url || '#';
+
+  if (t.screenshotUrls && t.screenshotUrls.length) {
+    modalScreenshotsSection.hidden = false;
+    modalScreenshots.innerHTML = t.screenshotUrls.map((url) => `
+      <a href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="Captura de pantalla" loading="lazy"></a>
+    `).join('');
+  } else {
+    modalScreenshotsSection.hidden = true;
+    modalScreenshots.innerHTML = '';
+  }
 }
+
+function renderCommentEl(c) {
+  const div = document.createElement('div');
+  div.className = 'modal-comment';
+  div.innerHTML = `
+    <div class="modal-comment-head">
+      ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="" class="modal-comment-avatar">` : ''}
+      <a href="${c.url}" target="_blank" rel="noopener" class="modal-comment-author">${escapeHtml(c.author)}</a>
+      <span class="modal-comment-date">${escapeHtml(formatRelativeTime(c.createdAt))}</span>
+    </div>
+    <div class="modal-comment-body">${escapeHtml(c.body)}</div>
+  `;
+  return div;
+}
+
+async function loadModalComments(id) {
+  modalComments.querySelectorAll('.modal-comment').forEach((el) => el.remove());
+  modalCommentsStatus.hidden = false;
+  modalCommentsStatus.textContent = 'Carregant…';
+  try {
+    const res = await fetch(`/api/admin/tickets/${id}/comments`, { headers: authHeaders() });
+    if (!res.ok) throw new Error();
+    const comments = await res.json();
+    if (currentModalTicketId !== id) return;
+    if (!comments.length) {
+      modalCommentsStatus.textContent = 'Encara no hi ha cap comentari.';
+      return;
+    }
+    modalCommentsStatus.hidden = true;
+    comments.forEach((c) => modalComments.appendChild(renderCommentEl(c)));
+  } catch (err) {
+    if (currentModalTicketId !== id) return;
+    modalCommentsStatus.hidden = false;
+    modalCommentsStatus.textContent = 'No s\'han pogut carregar els comentaris.';
+  }
+}
+
+modalCommentForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  modalCommentError.style.display = 'none';
+  const body = modalCommentInput.value.trim();
+  if (!body || !currentModalTicketId) return;
+
+  modalCommentSubmit.disabled = true;
+  modalCommentSubmit.textContent = 'Publicant…';
+  try {
+    const res = await fetch(`/api/admin/tickets/${currentModalTicketId}/comments`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ body })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+
+    modalCommentsStatus.hidden = true;
+    modalComments.appendChild(renderCommentEl(data));
+    modalCommentInput.value = '';
+  } catch (err) {
+    modalCommentError.textContent = err.message;
+    modalCommentError.style.display = 'block';
+  } finally {
+    modalCommentSubmit.disabled = false;
+    modalCommentSubmit.textContent = 'Publicar comentari';
+  }
+});
 
 function openTicketModal(t) {
   currentModalTicketId = t.id;
   populateModal(t);
   ticketModal.showModal();
+  loadModalComments(t.id);
 }
 
 ticketModalClose.addEventListener('click', () => ticketModal.close());
@@ -403,7 +506,11 @@ ticketModal.addEventListener('click', (e) => {
   const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
   if (!inside) ticketModal.close();
 });
-ticketModal.addEventListener('close', () => { currentModalTicketId = null; });
+ticketModal.addEventListener('close', () => {
+  currentModalTicketId = null;
+  modalCommentForm.reset();
+  modalCommentError.style.display = 'none';
+});
 modalDelete.addEventListener('click', () => {
   if (currentModalTicketId) deleteTicket(currentModalTicketId);
 });

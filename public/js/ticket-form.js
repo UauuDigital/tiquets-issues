@@ -15,9 +15,7 @@ const stubPriorityIcon = document.getElementById('stub-priority-icon');
 const stubTitle = document.getElementById('stub-title');
 const stubReporter = document.getElementById('stub-reporter');
 
-const titleInput = document.getElementById('title');
 const descriptionInput = document.getElementById('description');
-const titleCounter = document.getElementById('title-counter');
 const reporterNameInput = document.getElementById('reporterName');
 const reporterEmailInput = document.getElementById('reporterEmail');
 const emailSuggestDatalist = document.getElementById('emailSuggest');
@@ -27,7 +25,6 @@ const screenshotsList = document.getElementById('screenshots-list');
 
 const fieldErrors = {
   repoId: document.getElementById('repoId-error'),
-  title: document.getElementById('title-error'),
   description: document.getElementById('description-error'),
   reporterEmail: document.getElementById('reporterEmail-error'),
   screenshots: document.getElementById('screenshots-error')
@@ -65,7 +62,6 @@ screenshotsInput.addEventListener('change', () => {
   validateScreenshots();
 });
 
-const TITLE_MAX = 120;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function setFieldError(fieldEl, errorEl, message) {
@@ -74,22 +70,12 @@ function setFieldError(fieldEl, errorEl, message) {
 }
 
 function clearAllFieldErrors() {
-  setFieldError(titleInput, fieldErrors.title, '');
   setFieldError(descriptionInput, fieldErrors.description, '');
   setFieldError(reporterEmailInput, fieldErrors.reporterEmail, '');
   fieldErrors.repoId.textContent = '';
   fieldErrors.screenshots.textContent = '';
   repoCustomSelect.setInvalid(false);
 }
-
-function syncTitleCounter() {
-  const len = titleInput.value.length;
-  titleCounter.textContent = `${len}/${TITLE_MAX}`;
-  titleCounter.classList.toggle('near-limit', len >= TITLE_MAX - 10 && len < TITLE_MAX);
-  titleCounter.classList.toggle('at-limit', len >= TITLE_MAX);
-}
-titleInput.addEventListener('input', syncTitleCounter);
-syncTitleCounter();
 
 function validateEmailField() {
   const value = reporterEmailInput.value.trim();
@@ -194,11 +180,11 @@ function syncStubField(el, sourceValue, placeholder) {
   }
 }
 
-function syncTitle() {
-  syncStubField(stubTitle, titleInput.value, '—');
+function syncDescriptionStub() {
+  syncStubField(stubTitle, descriptionInput.value, '—');
 }
-titleInput.addEventListener('input', syncTitle);
-syncTitle();
+descriptionInput.addEventListener('input', syncDescriptionStub);
+syncDescriptionStub();
 
 function syncReporter() {
   syncStubField(stubReporter, reporterNameInput.value, 'Anònim');
@@ -237,7 +223,6 @@ form.addEventListener('submit', async (e) => {
   clearAllFieldErrors();
 
   const payload = {
-    title: form.title.value,
     description: form.description.value,
     repoId: form.repoId.value
   };
@@ -248,10 +233,6 @@ form.addEventListener('submit', async (e) => {
     fieldErrors.repoId.textContent = ERROR_MESSAGES.repoRequired;
     repoCustomSelect.setInvalid(true);
     firstInvalid = firstInvalid || repoCustomSelect.trigger;
-  }
-  if (!payload.title.trim()) {
-    setFieldError(titleInput, fieldErrors.title, ERROR_MESSAGES.titleRequired);
-    firstInvalid = firstInvalid || titleInput;
   }
   if (!payload.description.trim()) {
     setFieldError(descriptionInput, fieldErrors.description, ERROR_MESSAGES.descriptionRequired);
@@ -273,7 +254,6 @@ form.addEventListener('submit', async (e) => {
   submitBtnText.textContent = 'Enviant…';
 
   const formData = new FormData();
-  formData.append('title', form.title.value);
   formData.append('description', form.description.value);
   formData.append('category', form.category.value);
   formData.append('repoId', form.repoId.value);
@@ -322,8 +302,7 @@ againBtn.addEventListener('click', () => {
   stubNumber.textContent = '— — —';
   syncStub();
   syncPriority();
-  syncTitle();
-  syncTitleCounter();
+  syncDescriptionStub();
   syncReporter();
   clearAllFieldErrors();
   screenshotsList.innerHTML = '';

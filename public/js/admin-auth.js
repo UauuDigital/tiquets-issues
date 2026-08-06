@@ -24,6 +24,7 @@
         <input type="password" id="loginToken" placeholder="ADMIN_TOKEN" autocomplete="off" required>
         <button type="submit" id="loginSubmit">Entrar</button>
       </form>
+      <a href="index.html" class="login-back-link">← Tornar al portal</a>
     </div>
   `;
 

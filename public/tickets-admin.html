@@ -84,6 +84,11 @@
     <h2 class="modal-title" id="modalTitle"></h2>
     <p class="modal-repo" id="modalRepo"></p>
 
+    <div class="modal-section">
+      <h3>Descripció</h3>
+      <p class="modal-description" id="modalDescription"></p>
+    </div>
+
     <dl class="modal-meta">
       <div>
         <dt>Estat</dt>
@@ -94,8 +99,20 @@
         <dd id="modalPriority"></dd>
       </div>
       <div>
+        <dt>Categoria</dt>
+        <dd id="modalCategory"></dd>
+      </div>
+      <div>
+        <dt>Departament</dt>
+        <dd id="modalDepartment"></dd>
+      </div>
+      <div>
         <dt>Reportat per</dt>
         <dd id="modalReporter"></dd>
+      </div>
+      <div>
+        <dt>Correu</dt>
+        <dd id="modalEmail"></dd>
       </div>
       <div>
         <dt>Data de creació</dt>
@@ -107,7 +124,23 @@
       </div>
     </dl>
 
-    <p class="modal-note">La descripció completa, les captures adjuntes i els comentaris es gestionen a GitHub.</p>
+    <div class="modal-section" id="modalScreenshotsSection" hidden>
+      <h3>Captures adjuntades</h3>
+      <div class="modal-screenshots" id="modalScreenshots"></div>
+    </div>
+
+    <div class="modal-section">
+      <h3>Comentaris</h3>
+      <div class="modal-comments" id="modalComments">
+        <p class="modal-comments-status" id="modalCommentsStatus">Carregant…</p>
+      </div>
+      <form class="modal-comment-form" id="modalCommentForm">
+        <textarea id="modalCommentInput" placeholder="Escriu un comentari..." rows="2" required></textarea>
+        <p class="error" id="modalCommentError"></p>
+        <button type="submit" id="modalCommentSubmit">Publicar comentari</button>
+      </form>
+    </div>
+
     <div class="modal-actions">
       <a href="#" target="_blank" rel="noopener" class="modal-github-link" id="modalGithubLink">Obrir la incidència a GitHub ↗</a>
       <button type="button" class="modal-delete" id="modalDelete">Eliminar tiquet (i la incidència de GitHub)</button>

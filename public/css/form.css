@@ -52,24 +52,6 @@ input:focus, select:focus, textarea:focus {
 }
 .field-error:not(:empty) { display: block; }
 
-.field-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-}
-.field-footer .field-error { flex: 1; }
-
-.char-counter {
-  flex-shrink: 0;
-  margin-top: 6px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--ink-soft);
-}
-.char-counter.near-limit { color: var(--accent-ink); }
-.char-counter.at-limit { color: var(--danger); }
-
 input[type="file"] {
   width: 100%;
   font-family: var(--font-ui);
