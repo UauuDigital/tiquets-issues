@@ -302,6 +302,14 @@ app.get('/api/tickets', (_req, res) => {
   })));
 });
 
+// Número orientatiu que tindria el següent tiquet, perquè el formulari el
+// pugui mostrar mentre s'omple (el número real l'assigna GitHub en crear-lo).
+app.get('/api/tickets/next-number', (_req, res) => {
+  const numbers = ticketsStore.list().map((t) => t.number).filter((n) => typeof n === 'number');
+  const next = numbers.length ? Math.max(...numbers) + 1 : 1;
+  res.json({ next });
+});
+
 // Comprova que owner/repo existeix a GitHub i que GITHUB_TOKEN hi té accés
 // (permís per llegir el repositori; és el mínim necessari per crear-hi issues).
 async function verifyGithubRepo(owner, repo) {

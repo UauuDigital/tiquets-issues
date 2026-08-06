@@ -155,6 +155,20 @@ async function loadRepos() {
 }
 loadRepos();
 
+async function loadNextTicketNumber() {
+  try {
+    const res = await fetch('/api/tickets/next-number');
+    const data = await res.json();
+    if (data.next) {
+      stubNumber.textContent = '#' + data.next;
+      stubNumber.title = 'Número orientatiu: GitHub assignarà el número definitiu en crear el tiquet.';
+    }
+  } catch (err) {
+    // Si falla, es queda el placeholder per defecte ("— — —").
+  }
+}
+loadNextTicketNumber();
+
 const PRIORITY_TEXT = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', critica: 'Crítica' };
 const PRIORITY_ICONS = {
   baixa: '<path d="M10 4v11M6 11l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
@@ -299,7 +313,7 @@ form.addEventListener('submit', async (e) => {
 
 againBtn.addEventListener('click', () => {
   form.reset();
-  stubNumber.textContent = '— — —';
+  loadNextTicketNumber();
   syncStub();
   syncPriority();
   syncDescriptionStub();
