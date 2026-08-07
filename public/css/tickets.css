@@ -268,8 +268,8 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   background: #f5f6f8;
 }
 .priority-tag[data-priority="baixa"]   { color: var(--priority-baixa); }
-.priority-tag[data-priority="mitjana"] { color: var(--priority-mitjana); }
-.priority-tag[data-priority="alta"]    { color: var(--priority-alta); }
+.priority-tag[data-priority="mitjana"] { color: #8a6004; }
+.priority-tag[data-priority="alta"]    { color: #b8430a; }
 .priority-tag[data-priority="critica"] { color: var(--priority-critica); }
 
 .status-badge {
@@ -282,8 +282,8 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 }
 .status-badge[data-status="no_comencat"] { background: #eef0f3; color: #4b5563; }
 .status-badge[data-status="comencat"]    { background: #e3edfd; color: #1d4ed8; }
-.status-badge[data-status="en_espera"]   { background: #fbedd6; color: #b45309; }
-.status-badge[data-status="acabat"]      { background: #e0f5e6; color: #15803d; }
+.status-badge[data-status="en_espera"]   { background: #fbedd6; color: #96450a; }
+.status-badge[data-status="acabat"]      { background: #e0f5e6; color: #136934; }
 .status-badge[data-status="cancelat"]    { background: #fbe4e4; color: #b91c1c; }
 
 
