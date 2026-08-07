@@ -61,7 +61,6 @@ const STATUS_COLORS = {
   cancelat: '#b91c1c'
 };
 
-const ICON_LINK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.5 11.5l3-3M7 13.5H5.5A3.5 3.5 0 012 10a3.5 3.5 0 013.5-3.5H7M13 6.5h1.5A3.5 3.5 0 0118 10a3.5 3.5 0 01-3.5 3.5H13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 
 // Setmanes fins arribar a 100 (saturació) segons prioritat.
 const PRIORITY_URGENCY_WEEKS_TO_MAX = { baixa: 4, mitjana: 2, alta: 1 };
@@ -291,9 +290,6 @@ function ticketCardHtml(t) {
       <div class="ticket-card-main">
         <div class="ticket-card-top">
           <p class="ticket-card-desc" title="${escapeHtml(t.title)}">${escapeHtml(t.title)}</p>
-          <div class="ticket-card-actions">
-            <a class="icon-link" href="${t.url}" target="_blank" rel="noopener" title="Obrir a GitHub" aria-label="Obrir a GitHub">${ICON_LINK}</a>
-          </div>
         </div>
         <div class="ticket-card-field"><span class="ticket-repo">${escapeHtml(t.repoLabel)}</span></div>
         <div class="ticket-card-field"><span class="priority-tag" data-priority="${t.priority || ''}">${escapeHtml(PRIORITY_LABELS_CA[t.priority] || t.priority || '—')}</span></div>
@@ -354,10 +350,6 @@ function renderFilteredTickets() {
     ? `${tickets.length} de ${allTickets.length} tiquet${allTickets.length === 1 ? '' : 's'}`
     : '';
 }
-
-document.querySelectorAll('.info-icon').forEach((btn) => {
-  btn.addEventListener('click', (e) => e.stopPropagation());
-});
 
 ticketSearchInput.addEventListener('input', () => {
   ticketSearchQuery = ticketSearchInput.value;
