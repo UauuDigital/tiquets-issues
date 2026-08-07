@@ -159,33 +159,28 @@ async function loadTickets() {
   }
 }
 
-function getFilteredSortedTickets() {
+// Comprova si un tiquet compleix els filtres actius. skipStatus/skipPriority
+// permeten ignorar aquell filtre concret, per calcular els comptadors dels
+// xips (el comptador d'un xip no s'ha de veure afectat pel propi xip actiu).
+function ticketMatchesFilters(t, { skipStatus = false, skipPriority = false } = {}) {
   const query = ticketSearchQuery.trim().toLowerCase();
-  let result = allTickets;
-  if (query) {
-    result = result.filter((t) =>
-      [t.title, t.repoLabel, t.reporterName].some((field) => (field || '').toLowerCase().includes(query))
-    );
-  }
+  if (query && ![t.title, t.repoLabel, t.reporterName]
+    .some((field) => (field || '').toLowerCase().includes(query))) return false;
   const authorQuery = ticketAuthorQuery.trim().toLowerCase();
-  if (authorQuery) {
-    result = result.filter((t) => (t.reporterName || '').toLowerCase().includes(authorQuery));
-  }
-  if (ticketStatusQuery) {
-    result = result.filter((t) => (t.status || 'no_comencat') === ticketStatusQuery);
-  }
-  if (ticketPriorityQuery) {
-    result = result.filter((t) => t.priority === ticketPriorityQuery);
-  }
-  if (ticketProjectQuery) {
-    result = result.filter((t) => t.repoLabel === ticketProjectQuery);
-  }
-  result = [...result].sort((a, b) => {
+  if (authorQuery && !(t.reporterName || '').toLowerCase().includes(authorQuery)) return false;
+  if (ticketProjectQuery && t.repoLabel !== ticketProjectQuery) return false;
+  if (!skipStatus && ticketStatusQuery && (t.status || 'no_comencat') !== ticketStatusQuery) return false;
+  if (!skipPriority && ticketPriorityQuery && t.priority !== ticketPriorityQuery) return false;
+  return true;
+}
+
+function getFilteredSortedTickets() {
+  const result = allTickets.filter((t) => ticketMatchesFilters(t));
+  return [...result].sort((a, b) => {
     const statusDiff = (STATUS_ORDER[b.status || 'no_comencat'] || 0) - (STATUS_ORDER[a.status || 'no_comencat'] || 0);
     if (statusDiff !== 0) return statusDiff;
     return (PRIORITY_ORDER[b.priority] || 0) - (PRIORITY_ORDER[a.priority] || 0);
   });
-  return result;
 }
 
 function renderProjectFilterOptions() {
@@ -197,9 +192,10 @@ function renderProjectFilterOptions() {
 }
 
 function renderStatusChips() {
-  const counts = { '': allTickets.length };
+  const matching = allTickets.filter((t) => ticketMatchesFilters(t, { skipStatus: true }));
+  const counts = { '': matching.length };
   for (const key of Object.keys(STATUS_LABELS)) counts[key] = 0;
-  allTickets.forEach((t) => {
+  matching.forEach((t) => {
     const status = t.status || 'no_comencat';
     counts[status] = (counts[status] || 0) + 1;
   });
@@ -220,9 +216,10 @@ function renderStatusChips() {
 }
 
 function renderPriorityChips() {
-  const counts = { '': allTickets.length };
+  const matching = allTickets.filter((t) => ticketMatchesFilters(t, { skipPriority: true }));
+  const counts = { '': matching.length };
   for (const key of Object.keys(PRIORITY_LABELS_CA)) counts[key] = 0;
-  allTickets.forEach((t) => {
+  matching.forEach((t) => {
     if (t.priority) counts[t.priority] = (counts[t.priority] || 0) + 1;
   });
 
