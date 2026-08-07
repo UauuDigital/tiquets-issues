@@ -3,6 +3,7 @@ const ticketsError = document.getElementById('ticketsError');
 const ticketsEmptyMsg = document.getElementById('ticketsEmptyMsg');
 const ticketsNoResultsMsg = document.getElementById('ticketsNoResultsMsg');
 const ticketSearchInput = document.getElementById('ticketSearch');
+const ticketAuthorSearchInput = document.getElementById('ticketAuthorSearch');
 const ticketProjectFilter = document.getElementById('ticketProjectFilter');
 const statusChips = document.getElementById('statusChips');
 const priorityChips = document.getElementById('priorityChips');
@@ -23,6 +24,7 @@ const modalEmail = document.getElementById('modalEmail');
 const modalDate = document.getElementById('modalDate');
 const modalUrgencyValue = document.getElementById('modalUrgencyValue');
 const modalGithubLink = document.getElementById('modalGithubLink');
+const modalAutoDelete = document.getElementById('modalAutoDelete');
 const modalDelete = document.getElementById('modalDelete');
 const modalScreenshotsSection = document.getElementById('modalScreenshotsSection');
 const modalScreenshots = document.getElementById('modalScreenshots');
@@ -38,6 +40,7 @@ let ticketSearchQuery = '';
 let ticketStatusQuery = '';
 let ticketPriorityQuery = '';
 let ticketProjectQuery = '';
+let ticketAuthorQuery = '';
 
 const ICON_LINK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.5 11.5l3-3M7 13.5H5.5A3.5 3.5 0 012 10a3.5 3.5 0 013.5-3.5H7M13 6.5h1.5A3.5 3.5 0 0118 10a3.5 3.5 0 01-3.5 3.5H13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 const ICON_TRASH = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 6h12M8 6V4.5h4V6M8.5 9v5M11.5 9v5M5.5 6l.6 9a1 1 0 001 .9h5.8a1 1 0 001-.9l.6-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -50,6 +53,7 @@ const PRIORITY_LABELS_CA = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', c
 const CATEGORY_LABELS_CA = { bug: 'Error / no funciona', funcionalitat: 'Petició de funcionalitat', acces: 'Accés i permisos', altres: 'Altres' };
 const DEPARTMENT_LABELS_CA = { comercial: 'Comercial', coordinacio: 'Coordinació', cuina: 'Cuina', administracio: 'Administració', digital: 'Digital' };
 const PRIORITY_ORDER = { critica: 4, alta: 3, mitjana: 2, baixa: 1 };
+const STATUS_ORDER = { comencat: 3, en_espera: 2, no_comencat: 1, acabat: 0, cancelat: 0 };
 
 // Setmanes fins arribar a 100 (saturació) segons prioritat.
 const PRIORITY_URGENCY_WEEKS_TO_MAX = { baixa: 4, mitjana: 2, alta: 1 };
@@ -64,6 +68,19 @@ function computeUrgencyScore(t) {
   const weeksOpen = Math.max(0, (Date.now() - new Date(t.createdAt).getTime()) / MS_PER_WEEK);
   const weeksToMax = PRIORITY_URGENCY_WEEKS_TO_MAX[t.priority] || PRIORITY_URGENCY_WEEKS_TO_MAX.baixa;
   return Math.min(100, Math.round((weeksOpen / weeksToMax) * 100));
+}
+
+// Un tiquet acabat o cancel·lat s'elimina sol (GitHub inclòs) al cap d'aquest temps.
+const AUTO_DELETE_DAYS = 14;
+const AUTO_DELETE_MS = AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000;
+
+function autoDeleteText(t) {
+  if ((t.status !== 'acabat' && t.status !== 'cancelat') || !t.closedAt) return '';
+  const msLeft = new Date(t.closedAt).getTime() + AUTO_DELETE_MS - Date.now();
+  const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+  if (daysLeft <= 0) return "S'eliminarà molt aviat";
+  if (daysLeft === 1) return "S'eliminarà d'aquí 1 dia";
+  return `S'eliminarà d'aquí ${daysLeft} dies`;
 }
 
 // Gradient continu gris molt clar -> vermell -> negre, segons la urgència.
@@ -215,9 +232,15 @@ function getFilteredSortedTickets() {
   if (ticketProjectQuery) {
     result = result.filter((t) => t.repoLabel === ticketProjectQuery);
   }
-  // Dins de cada zona, de més a menys urgència; a igual urgència, primer la prioritat més alta.
+  const authorQuery = ticketAuthorQuery.trim().toLowerCase();
+  if (authorQuery) {
+    result = result.filter((t) => (t.reporterName || '').toLowerCase().includes(authorQuery));
+  }
+  // Dins de cada zona d'urgència, primer per estat (Començat > En espera > No començat),
+  // i a igual estat, la prioritat més alta primer.
   result = [...result].sort((a, b) => {
-    if (a.urgencyScore !== b.urgencyScore) return b.urgencyScore - a.urgencyScore;
+    const statusDiff = (STATUS_ORDER[b.status || 'no_comencat'] || 0) - (STATUS_ORDER[a.status || 'no_comencat'] || 0);
+    if (statusDiff !== 0) return statusDiff;
     return (PRIORITY_ORDER[b.priority] || 0) - (PRIORITY_ORDER[a.priority] || 0);
   });
   return result;
@@ -258,12 +281,25 @@ ticketSearchInput.addEventListener('input', () => {
   renderFilteredTickets();
 });
 
+ticketAuthorSearchInput.addEventListener('input', () => {
+  ticketAuthorQuery = ticketAuthorSearchInput.value;
+  renderFilteredTickets();
+});
+
 const STATUS_LABELS = {
   no_comencat: 'No començat',
   comencat: 'Començat',
   en_espera: 'En espera',
   acabat: 'Acabat',
   cancelat: 'Cancel·lat'
+};
+
+const STATUS_COLORS = {
+  no_comencat: '#4b5563',
+  comencat: '#1d4ed8',
+  en_espera: '#b45309',
+  acabat: '#15803d',
+  cancelat: '#b91c1c'
 };
 
 function renderStatusChips() {
@@ -333,7 +369,8 @@ function prioritySelectHtml(t) {
 
 function ticketCardHtml(t) {
   return `
-    <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" style="--card-color:${urgencyColor(t.urgencyScore)}">
+    <div class="ticket-card-frame">
+    <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
       <div class="ticket-card-urgency" title="Urgència: ${t.urgencyScore} (dies oberts × pes de prioritat)">
         ${urgencyIconHtml(t)}
         <span class="ticket-card-number">${t.number ? '#' + t.number : ''}</span>
@@ -346,17 +383,17 @@ function ticketCardHtml(t) {
             <button type="button" class="icon-btn danger" data-delete="${t.id}" title="Eliminar tiquet (i la incidència de GitHub)" aria-label="Eliminar tiquet (i la incidència de GitHub)">${ICON_TRASH}</button>
           </div>
         </div>
-        <div class="ticket-card-tags">
-          <span class="ticket-repo">${escapeHtml(t.repoLabel)}</span>
-          ${prioritySelectHtml(t)}
-          ${statusSelectHtml(t)}
-        </div>
+        <div class="ticket-card-field"><span class="ticket-repo">${escapeHtml(t.repoLabel)}</span></div>
+        <div class="ticket-card-field">${prioritySelectHtml(t)}</div>
+        <div class="ticket-card-field">${statusSelectHtml(t)}</div>
         <div class="ticket-card-foot">
           <span>${escapeHtml(t.reporterName || 'Anònim')}</span>
           <span title="${escapeHtml(formatTicketDate(t.createdAt))}">${escapeHtml(formatRelativeTime(t.createdAt))}</span>
         </div>
+        ${autoDeleteText(t) ? `<p class="ticket-card-autodelete">${escapeHtml(autoDeleteText(t))}</p>` : ''}
       </div>
-    </article>`;
+    </article>
+    </div>`;
 }
 
 function renderZones(tickets) {
@@ -439,6 +476,9 @@ function populateModal(t) {
   modalUrgencyValue.textContent = URGENCY_LEVEL_LABELS_CA[urgencyLevelKey(t.urgencyScore)];
   modalUrgencyValue.title = `Puntuació: ${t.urgencyScore}`;
   modalGithubLink.href = t.url || '#';
+  const autoDeleteMsg = autoDeleteText(t);
+  modalAutoDelete.textContent = autoDeleteMsg;
+  modalAutoDelete.hidden = !autoDeleteMsg;
 
   if (t.screenshotUrls && t.screenshotUrls.length) {
     modalScreenshotsSection.hidden = false;

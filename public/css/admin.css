@@ -168,6 +168,7 @@ th[data-sort]:hover { color: #333; }
 .priority-chip.active[data-priority="critica"] { background: var(--priority-critica); border-color: var(--priority-critica); color: #fff; }
 
 .search-field { position: relative; flex: 1 1 240px; max-width: 340px; display: flex; align-items: center; }
+.search-field.author-field { flex: 1 1 180px; max-width: 240px; }
 .search-field svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--ink-soft); pointer-events: none; }
 .search-field input { padding-left: 32px; margin-bottom: 0; width: 100%; }
 
@@ -211,18 +212,48 @@ th[data-sort]:hover { color: #333; }
 .urgency-zone-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.75rem; }
 .urgency-zone-empty-msg { margin: 0; font-size: 0.82rem; color: #999; padding: 0.4rem 0.1rem; }
 
-.ticket-card {
-  display: flex;
+/* L'ombra viu al frame (no a .ticket-card, que té mask): un filter/box-shadow
+   sobre un element amb mask multi-capa provoca una costura visible en
+   repintar (p. ex. en hover), just a la vora on el mask talla. */
+.ticket-card-frame {
+  position: relative;
   width: 100%;
   max-width: 320px;
   flex: 0 1 260px;
-  background: #fff;
-  border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 1px 2px rgba(22,35,63,0.05);
+  transition: box-shadow 0.15s ease;
+}
+.ticket-card-frame:hover { box-shadow: 0 8px 20px -8px rgba(22,35,63,0.25); }
+/* Repassa amb una línia la mossegada semicircular que el mask retalla a .ticket-card,
+   dibuixant només el mig cercle que cau DINS de la targeta (no cap enfora). */
+.ticket-card-frame::before, .ticket-card-frame::after {
+  content: '';
+  position: absolute;
+  left: 60px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 50%, var(--border) 50%);
+  background: transparent;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+.ticket-card-frame::before { top: 0; clip-path: inset(50% 0 0 0); }
+.ticket-card-frame::after { top: 100%; clip-path: inset(0 0 50% 0); }
+
+.ticket-card {
+  display: flex;
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  background: #fff;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 50%, var(--border) 50%);
+  border-radius: 10px;
   cursor: pointer;
   overflow: hidden;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
   -webkit-mask-image:
     linear-gradient(#000 0 0),
     radial-gradient(circle 6px at 60px 0%, #000 99%, transparent 100%),
@@ -234,7 +265,6 @@ th[data-sort]:hover { color: #333; }
     radial-gradient(circle 6px at 60px 100%, #000 99%, transparent 100%);
   mask-composite: exclude, exclude;
 }
-.ticket-card:hover { box-shadow: 0 8px 20px -8px rgba(22,35,63,0.25); transform: translateY(-1px); }
 
 .ticket-card-urgency {
   flex-shrink: 0;
@@ -245,13 +275,21 @@ th[data-sort]:hover { color: #333; }
   justify-content: center;
   gap: 0.3rem;
   padding: 0.75rem 0.25rem;
-  background: color-mix(in srgb, var(--card-color) 10%, #fff);
-  border-right: 2px dashed var(--border);
+  background: #fff;
+  border-right: 2px dashed color-mix(in srgb, var(--ink) 50%, var(--border) 50%);
 }
 .ticket-card-urgency .urgency-icon svg { width: 20px; height: 20px; }
 .ticket-card-number { font-family: var(--mono); font-size: 0.72rem; font-weight: 700; color: var(--ink-soft); }
 
-.ticket-card-main { flex: 1; min-width: 0; padding: 0.7rem 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.ticket-card-main {
+  flex: 1;
+  min-width: 0;
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: color-mix(in srgb, var(--status-color, #fff) 16%, #fff);
+}
 .ticket-card-top { display: flex; align-items: flex-start; gap: 0.5rem; }
 .ticket-card-desc {
   flex: 1;
@@ -269,10 +307,20 @@ th[data-sort]:hover { color: #333; }
 .ticket-card-actions .icon-btn { width: 28px; height: 28px; }
 .ticket-card-actions .icon-btn svg { width: 14px; height: 14px; }
 
-.ticket-card-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
-.ticket-card-tags .priority-select, .ticket-card-tags .status-select { font-size: 0.72rem; padding-top: 0.2rem; padding-bottom: 0.2rem; }
+.ticket-card-field { display: flex; align-items: center; }
+.ticket-card-field .priority-select, .ticket-card-field .status-select { font-size: 0.72rem; padding-top: 0.2rem; padding-bottom: 0.2rem; }
 
 .ticket-card-foot { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.75rem; color: #999; }
+.ticket-card-autodelete {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  text-align: center;
+}
 
 .priority-select {
   appearance: none;
@@ -479,6 +527,11 @@ th[data-sort]:hover { color: #333; }
   background: #eef1f5;
   border-radius: 5px;
   padding: 0.1rem 0.45rem;
+  margin: 0 0.5rem 1.25rem 0;
+}
+#modalAutoDelete {
+  display: inline-block;
+  width: auto;
   margin: 0 0 1.25rem;
 }
 

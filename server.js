@@ -139,6 +139,10 @@ const PRIORITY_TEXT = {
 // Estats possibles d'un tiquet a l'historial de l'admin.
 const TICKET_STATUSES = ['no_comencat', 'comencat', 'acabat', 'cancelat', 'en_espera'];
 
+// Un tiquet acabat o cancel·lat s'elimina sol (GitHub inclòs) al cap d'aquest temps.
+const AUTO_DELETE_DAYS = 14;
+const AUTO_DELETE_MS = AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000;
+
 // --- Captures de pantalla adjuntes al formulari de tiquets ---
 const MAX_SCREENSHOTS = 3;
 const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -286,18 +290,42 @@ async function deleteGithubIssue({ owner, repo, issueNumber }) {
   }
 }
 
+// Elimina sols (GitHub inclòs) els tiquets que fa AUTO_DELETE_DAYS que estan
+// acabats o cancel·lats. Si l'eliminació a GitHub falla, es reintenta a la
+// següent passada (el tiquet no es toca fins que GitHub confirma l'eliminació).
+async function cleanupExpiredTickets() {
+  const expired = ticketsStore.list().filter((t) => {
+    if (t.status !== 'acabat' && t.status !== 'cancelat') return false;
+    if (!t.closedAt) return false;
+    return Date.now() - new Date(t.closedAt).getTime() >= AUTO_DELETE_MS;
+  });
+
+  for (const t of expired) {
+    try {
+      const ghIssue = parseGithubIssueUrl(t.url);
+      if (ghIssue && GITHUB_ADMIN_TOKEN) {
+        await deleteGithubIssue(ghIssue);
+      }
+      ticketsStore.remove(t.id);
+      console.log(`Tiquet #${t.number} eliminat automàticament (${AUTO_DELETE_DAYS} dies com a ${t.status}).`);
+    } catch (err) {
+      console.error(`No s'ha pogut eliminar automàticament el tiquet #${t.number}:`, err.message);
+    }
+  }
+}
+
+const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // comprova cada hora
+setInterval(cleanupExpiredTickets, CLEANUP_INTERVAL_MS);
+cleanupExpiredTickets();
+
 app.get('/api/repos', (_req, res) => {
   res.json(reposStore.list().map(({ id, label, description }) => ({ id, label, description: description || '' })));
 });
 
-// Llista pública (sense token) dels tiquets encara oberts, perquè qualsevol
-// usuari del portal pugui veure què hi ha en curs sense accedir a l'admin.
+// Llista pública (sense token) de tots els tiquets, perquè qualsevol
+// usuari del portal en tingui una visió ràpida sense accedir a l'admin.
 app.get('/api/tickets', (_req, res) => {
-  const open = ticketsStore.list().filter((t) => {
-    const status = t.status || 'no_comencat';
-    return status !== 'acabat' && status !== 'cancelat';
-  });
-  res.json(open.map(({ number, url, title, repoLabel, priority, status, reporterName, createdAt }) => ({
+  res.json(ticketsStore.list().map(({ number, url, title, repoLabel, priority, status, reporterName, createdAt }) => ({
     number, url, title, repoLabel, priority, status: status || 'no_comencat', reporterName, createdAt
   })));
 });
@@ -397,6 +425,13 @@ app.patch('/api/admin/tickets/:id', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error('Error sincronitzant tiquet amb GitHub:', err);
     return res.status(502).json({ error: err.message || 'No s\'ha pogut sincronitzar amb GitHub.' });
+  }
+
+  // Marca quan el tiquet ha entrat (o ha sortit) de l'estat acabat/cancel·lat,
+  // per poder-lo eliminar sol al cap de AUTO_DELETE_DAYS.
+  if (patch.status !== undefined) {
+    const isClosed = patch.status === 'acabat' || patch.status === 'cancelat';
+    patch.closedAt = isClosed ? new Date().toISOString() : null;
   }
 
   const updated = ticketsStore.update(req.params.id, patch);

@@ -48,6 +48,10 @@
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M17 17l-4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta..." aria-label="Cerca tiquets">
       </div>
+      <div class="search-field author-field">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="7.2" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 16c0-2.9 2.5-5 5.5-5s5.5 2.1 5.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input type="search" id="ticketAuthorSearch" placeholder="Cerca per autor..." aria-label="Cerca per autor">
+      </div>
       <select id="ticketProjectFilter" aria-label="Filtra per projecte">
         <option value="">Tots els projectes</option>
       </select>
@@ -72,6 +76,7 @@
     <div class="modal-urgency" id="modalUrgency"></div>
     <h2 class="modal-title" id="modalTitle"></h2>
     <p class="modal-repo" id="modalRepo"></p>
+    <p class="ticket-card-autodelete" id="modalAutoDelete" hidden></p>
 
     <div class="modal-section">
       <h3>Descripció</h3>
