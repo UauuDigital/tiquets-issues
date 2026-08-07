@@ -15,47 +15,107 @@
   <header class="page-head">
     <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · <a href="index.html" class="eyebrow-link eyebrow-back">← Portal de tiquets</a> / Tiquets oberts</div>
     <h1>Tiquets oberts</h1>
-    <p class="subtitle">Incidències i peticions que encara estan en curs, per tenir-ne una visió ràpida sense duplicar-les.</p>
+    <p class="subtitle">Totes les incidències i peticions creades des del portal, per tenir-ne una visió ràpida sense duplicar-les.</p>
   </header>
 
   <div class="card">
+    <div class="tickets-card-head">
+      <h2>Tiquets en curs</h2>
+      <span class="tickets-count" id="ticketsCount"></span>
+    </div>
     <p class="error" id="ticketsError"></p>
+
     <div class="filters-row">
-      <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta...">
-      <select id="ticketStatusFilter">
-        <option value="">Tots els estats oberts</option>
-        <option value="no_comencat">No començat</option>
-        <option value="comencat">Començat</option>
-        <option value="en_espera">En espera</option>
-      </select>
-      <select id="ticketPriorityFilter">
-        <option value="">Totes les prioritats</option>
-        <option value="baixa">Baixa</option>
-        <option value="mitjana">Mitjana</option>
-        <option value="alta">Alta</option>
-        <option value="critica">Crítica</option>
+      <div class="search-field">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M17 17l-4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input type="search" id="ticketSearch" placeholder="Cerca per títol o projecte..." aria-label="Cerca tiquets">
+      </div>
+      <div class="search-field author-field">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="7.2" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 16c0-2.9 2.5-5 5.5-5s5.5 2.1 5.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input type="search" id="ticketAuthorSearch" placeholder="Cerca per autor..." aria-label="Cerca per autor">
+      </div>
+      <select id="ticketProjectFilter" aria-label="Filtra per projecte">
+        <option value="">Tots els projectes</option>
       </select>
     </div>
-    <div class="table-scroll">
-      <table id="ticketsTable">
-        <thead>
-          <tr>
-            <th data-sort="createdAt">Data<span class="sort-arrow"></span></th>
-            <th data-sort="title">Títol<span class="sort-arrow"></span></th>
-            <th data-sort="repoLabel">Projecte<span class="sort-arrow"></span></th>
-            <th data-sort="priority">Prioritat<span class="sort-arrow"></span></th>
-            <th data-sort="reporterName">Reportat per<span class="sort-arrow"></span></th>
-            <th data-sort="status">Estat<span class="sort-arrow"></span></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="ticketsBody"></tbody>
-      </table>
+
+    <div class="chips-row">
+      <div class="status-chips" id="statusChips"></div>
+      <span class="chips-divider"></span>
+      <div class="priority-chips" id="priorityChips"></div>
     </div>
-    <p class="empty" id="ticketsEmptyMsg" style="display:none;">No hi ha cap tiquet obert ara mateix.</p>
+
+    <div class="zones-board" id="zonesBoard"></div>
+
+    <p class="empty" id="ticketsEmptyMsg" style="display:none;">Encara no s'ha creat cap tiquet.</p>
     <p class="empty" id="ticketsNoResultsMsg" style="display:none;">Cap tiquet coincideix amb els filtres.</p>
   </div>
 </main>
+
+<dialog id="ticketModal" class="ticket-modal">
+  <button type="button" class="modal-close" id="ticketModalClose" aria-label="Tancar">&times;</button>
+  <div class="modal-urgency" id="modalUrgency"></div>
+  <h2 class="modal-title" id="modalTitle"></h2>
+  <p class="modal-repo" id="modalRepo"></p>
+
+  <div class="modal-section">
+    <h3>Descripció</h3>
+    <p class="modal-description" id="modalDescription"></p>
+  </div>
+
+  <dl class="modal-meta">
+    <div>
+      <dt>Estat</dt>
+      <dd><span class="status-badge" id="modalStatus"></span></dd>
+    </div>
+    <div>
+      <dt>Prioritat</dt>
+      <dd><span class="priority-tag" id="modalPriority"></span></dd>
+    </div>
+    <div>
+      <dt>Categoria</dt>
+      <dd id="modalCategory"></dd>
+    </div>
+    <div>
+      <dt>Departament</dt>
+      <dd id="modalDepartment"></dd>
+    </div>
+    <div>
+      <dt>Reportat per</dt>
+      <dd id="modalReporter"></dd>
+    </div>
+    <div>
+      <dt>Data de creació</dt>
+      <dd id="modalDate"></dd>
+    </div>
+    <div>
+      <dt>Urgència</dt>
+      <dd id="modalUrgencyValue"></dd>
+    </div>
+  </dl>
+
+  <div class="modal-section" id="modalScreenshotsSection" hidden>
+    <h3>Captures adjuntades</h3>
+    <div class="modal-screenshots" id="modalScreenshots"></div>
+  </div>
+
+  <div class="modal-section">
+    <h3>Comentaris</h3>
+    <div class="modal-comments" id="modalComments">
+      <p class="modal-comments-status" id="modalCommentsStatus">Carregant…</p>
+    </div>
+    <form class="modal-comment-form" id="modalCommentForm">
+      <div class="modal-comment-form-row">
+        <input type="text" id="modalCommentAuthor" placeholder="El teu nom" maxlength="80" required aria-label="El teu nom">
+        <input type="email" id="modalCommentAuthorEmail" placeholder="El teu correu (opcional)" maxlength="120" aria-label="El teu correu (opcional)">
+      </div>
+      <textarea id="modalCommentInput" placeholder="Escriu un comentari..." rows="2" required></textarea>
+      <p class="error" id="modalCommentError"></p>
+      <button type="submit" id="modalCommentSubmit">Publicar comentari</button>
+    </form>
+  </div>
+
+</dialog>
 
 <script src="js/tickets-view.js" defer></script>
 </body>

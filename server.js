@@ -103,6 +103,15 @@ const ticketLimiter = rateLimit({
   message: { error: 'Massa tiquets enviats des d\'aquesta connexió. Torna-ho a provar més tard.' }
 });
 
+// Evita abús dels comentaris públics: màxim 20 per IP cada 15 minuts
+const commentLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Massa comentaris enviats des d\'aquesta connexió. Torna-ho a provar més tard.' }
+});
+
 // Edita aquests mapes per adaptar les categories/prioritats de la teva empresa.
 // Si una etiqueta no existeix al repositori, GitHub la crea automàticament (sense color personalitzat).
 const CATEGORY_LABELS = {
@@ -138,6 +147,10 @@ const PRIORITY_TEXT = {
 
 // Estats possibles d'un tiquet a l'historial de l'admin.
 const TICKET_STATUSES = ['no_comencat', 'comencat', 'acabat', 'cancelat', 'en_espera'];
+
+// Un tiquet acabat o cancel·lat s'elimina sol (GitHub inclòs) al cap d'aquest temps.
+const AUTO_DELETE_DAYS = 14;
+const AUTO_DELETE_MS = AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000;
 
 // --- Captures de pantalla adjuntes al formulari de tiquets ---
 const MAX_SCREENSHOTS = 3;
@@ -196,6 +209,31 @@ function ghHeaders() {
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28'
   };
+}
+
+// Token d'UauuBot (el mateix que crea els tiquets), per a lectures/escriptures
+// de comentaris fetes des de zones públiques sense token d'administració.
+function ghPublicHeaders() {
+  return {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28'
+  };
+}
+
+// Els comentaris públics es publiquen amb el compte del bot, així que el nom
+// de qui l'escriu es guarda com a primera línia del propi cos del comentari,
+// amb aquest format exacte: "_Comentari de NOM:_" seguit d'una línia en blanc.
+function publicCommentAuthorLine(name, email) {
+  return `_Comentari de ${name}${email ? ` — ${email}` : ''}:_`;
+}
+const PUBLIC_COMMENT_AUTHOR_RE = /^_Comentari de (.+?):_\n/;
+function extractPublicCommentAuthor(body) {
+  const match = (body || '').match(PUBLIC_COMMENT_AUTHOR_RE);
+  return match ? match[1].trim() : null;
+}
+function stripPublicCommentAuthor(body) {
+  return (body || '').replace(PUBLIC_COMMENT_AUTHOR_RE, '').trim();
 }
 
 // Extreu owner/repo/número d'issue de la URL desada al tiquet.
@@ -286,20 +324,132 @@ async function deleteGithubIssue({ owner, repo, issueNumber }) {
   }
 }
 
+// Elimina sols (GitHub inclòs) els tiquets que fa AUTO_DELETE_DAYS que estan
+// acabats o cancel·lats. Si l'eliminació a GitHub falla, es reintenta a la
+// següent passada (el tiquet no es toca fins que GitHub confirma l'eliminació).
+async function cleanupExpiredTickets() {
+  const expired = ticketsStore.list().filter((t) => {
+    if (t.status !== 'acabat' && t.status !== 'cancelat') return false;
+    if (!t.closedAt) return false;
+    return Date.now() - new Date(t.closedAt).getTime() >= AUTO_DELETE_MS;
+  });
+
+  for (const t of expired) {
+    try {
+      const ghIssue = parseGithubIssueUrl(t.url);
+      if (ghIssue && GITHUB_ADMIN_TOKEN) {
+        await deleteGithubIssue(ghIssue);
+      }
+      ticketsStore.remove(t.id);
+      console.log(`Tiquet #${t.number} eliminat automàticament (${AUTO_DELETE_DAYS} dies com a ${t.status}).`);
+    } catch (err) {
+      console.error(`No s'ha pogut eliminar automàticament el tiquet #${t.number}:`, err.message);
+    }
+  }
+}
+
+const CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // comprova cada hora
+setInterval(cleanupExpiredTickets, CLEANUP_INTERVAL_MS);
+cleanupExpiredTickets();
+
 app.get('/api/repos', (_req, res) => {
   res.json(reposStore.list().map(({ id, label, description }) => ({ id, label, description: description || '' })));
 });
 
-// Llista pública (sense token) dels tiquets encara oberts, perquè qualsevol
-// usuari del portal pugui veure què hi ha en curs sense accedir a l'admin.
+// Llista pública (sense token) de tots els tiquets, perquè qualsevol
+// usuari del portal en tingui una visió ràpida sense accedir a l'admin.
+// No s'hi inclou el correu de qui reporta (reporterEmail), per privacitat.
 app.get('/api/tickets', (_req, res) => {
-  const open = ticketsStore.list().filter((t) => {
-    const status = t.status || 'no_comencat';
-    return status !== 'acabat' && status !== 'cancelat';
-  });
-  res.json(open.map(({ number, url, title, repoLabel, priority, status, reporterName, createdAt }) => ({
-    number, url, title, repoLabel, priority, status: status || 'no_comencat', reporterName, createdAt
+  res.json(ticketsStore.list().map(({
+    id, number, url, title, description, repoLabel, priority, status, category, department, reporterName, screenshotUrls, createdAt
+  }) => ({
+    id, number, url, title, description, repoLabel, priority, status: status || 'no_comencat', category, department, reporterName, screenshotUrls: screenshotUrls || [], createdAt
   })));
+});
+
+// Comentaris d'un tiquet, visibles a qualsevol usuari del portal (sense token).
+// Fa servir GITHUB_TOKEN (no l'admin) perquè és una lectura pública.
+app.get('/api/tickets/:id/comments', async (req, res) => {
+  const ticket = ticketsStore.list().find((t) => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Tiquet no trobat.' });
+
+  const ghIssue = parseGithubIssueUrl(ticket.url);
+  if (!ghIssue) return res.json([]);
+  if (!GITHUB_TOKEN) {
+    return res.status(500).json({ error: 'El servidor no té configurat GITHUB_TOKEN (revisa .env).' });
+  }
+
+  try {
+    const ghResponse = await fetch(
+      `https://api.github.com/repos/${ghIssue.owner}/${ghIssue.repo}/issues/${ghIssue.issueNumber}/comments`,
+      { headers: ghPublicHeaders() }
+    );
+    if (!ghResponse.ok) {
+      throw new Error(`Error ${ghResponse.status}`);
+    }
+    const comments = await ghResponse.json();
+    res.json(comments.map((c) => ({
+      author: extractPublicCommentAuthor(c.body) || c.user?.login || 'Desconegut',
+      avatarUrl: c.user?.avatar_url || null,
+      body: stripPublicCommentAuthor(c.body),
+      url: c.html_url,
+      createdAt: c.created_at
+    })));
+  } catch (err) {
+    console.error('Error llegint comentaris de GitHub:', err);
+    res.status(502).json({ error: 'No s\'han pogut carregar els comentaris de GitHub.' });
+  }
+});
+
+// Deixa un comentari des del portal públic (sense token). Com que es publica
+// amb el compte del bot, el nom de qui l'escriu es desa dins el propi text
+// del comentari perquè es pugui mostrar igualment a la llista.
+app.post('/api/tickets/:id/comments', commentLimiter, async (req, res) => {
+  const { body, authorName, authorEmail } = req.body || {};
+  if (!body || !body.trim()) {
+    return res.status(400).json({ error: 'Cal escriure un comentari.' });
+  }
+
+  const ticket = ticketsStore.list().find((t) => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Tiquet no trobat.' });
+
+  const ghIssue = parseGithubIssueUrl(ticket.url);
+  if (!ghIssue) {
+    return res.status(502).json({ error: 'Aquest tiquet no està enllaçat amb cap incidència de GitHub.' });
+  }
+  if (!GITHUB_TOKEN) {
+    return res.status(500).json({ error: 'El servidor no té configurat GITHUB_TOKEN (revisa .env).' });
+  }
+
+  const cleanAuthor = (authorName || '').trim().slice(0, 80) || 'Anònim';
+  const cleanEmail = (authorEmail || '').trim().slice(0, 120);
+  const taggedBody = `${publicCommentAuthorLine(cleanAuthor, cleanEmail)}\n\n${body.trim()}`;
+
+  try {
+    const ghResponse = await fetch(
+      `https://api.github.com/repos/${ghIssue.owner}/${ghIssue.repo}/issues/${ghIssue.issueNumber}/comments`,
+      {
+        method: 'POST',
+        headers: { ...ghPublicHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: taggedBody })
+      }
+    );
+    if (!ghResponse.ok) {
+      const errText = await ghResponse.text();
+      console.error('Error creant comentari públic a GitHub:', ghResponse.status, errText);
+      throw new Error();
+    }
+    const comment = await ghResponse.json();
+    res.status(201).json({
+      author: cleanAuthor + (cleanEmail ? ` — ${cleanEmail}` : ''),
+      avatarUrl: comment.user?.avatar_url || null,
+      body: body.trim(),
+      url: comment.html_url,
+      createdAt: comment.created_at
+    });
+  } catch (err) {
+    res.status(502).json({ error: 'No s\'ha pogut publicar el comentari a GitHub.' });
+  }
 });
 
 // Número orientatiu que tindria el següent tiquet, perquè el formulari el
@@ -399,6 +549,13 @@ app.patch('/api/admin/tickets/:id', requireAdmin, async (req, res) => {
     return res.status(502).json({ error: err.message || 'No s\'ha pogut sincronitzar amb GitHub.' });
   }
 
+  // Marca quan el tiquet ha entrat (o ha sortit) de l'estat acabat/cancel·lat,
+  // per poder-lo eliminar sol al cap de AUTO_DELETE_DAYS.
+  if (patch.status !== undefined) {
+    const isClosed = patch.status === 'acabat' || patch.status === 'cancelat';
+    patch.closedAt = isClosed ? new Date().toISOString() : null;
+  }
+
   const updated = ticketsStore.update(req.params.id, patch);
   res.json(updated);
 });
@@ -449,9 +606,9 @@ app.get('/api/admin/tickets/:id/comments', requireAdmin, async (req, res) => {
     }
     const comments = await ghResponse.json();
     res.json(comments.map((c) => ({
-      author: c.user?.login || 'Desconegut',
+      author: extractPublicCommentAuthor(c.body) || c.user?.login || 'Desconegut',
       avatarUrl: c.user?.avatar_url || null,
-      body: c.body || '',
+      body: stripPublicCommentAuthor(c.body),
       url: c.html_url,
       createdAt: c.created_at
     })));

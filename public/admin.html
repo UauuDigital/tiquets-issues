@@ -53,15 +53,15 @@
   <div class="card">
     <h2 style="font-size:1rem;margin-top:0;">Repositoris connectats</h2>
     <p class="error" id="listError"></p>
-    <input type="search" id="repoSearch" placeholder="Cerca per nom, owner, repo o descripció...">
+    <input type="search" id="repoSearch" placeholder="Cerca per nom, owner, repo o descripció..." aria-label="Cerca repositoris">
     <div class="table-scroll">
       <table id="reposTable">
         <thead>
           <tr>
-            <th data-sort="label">Nom<span class="sort-arrow"></span></th>
-            <th data-sort="owner">Owner<span class="sort-arrow"></span></th>
-            <th data-sort="repo">Repo<span class="sort-arrow"></span></th>
-            <th data-sort="description">Descripció<span class="sort-arrow"></span></th>
+            <th data-sort="label" role="button" tabindex="0">Nom<span class="sort-arrow"></span></th>
+            <th data-sort="owner" role="button" tabindex="0">Owner<span class="sort-arrow"></span></th>
+            <th data-sort="repo" role="button" tabindex="0">Repo<span class="sort-arrow"></span></th>
+            <th data-sort="description" role="button" tabindex="0">Descripció<span class="sort-arrow"></span></th>
             <th></th>
           </tr>
         </thead>

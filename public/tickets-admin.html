@@ -23,7 +23,22 @@
 
   <div class="card tickets-card">
     <div class="tickets-card-head">
-      <h2>Historial de tiquets creats</h2>
+      <h2>
+        Historial de tiquets creats
+        <span class="info-tip">
+          <button type="button" class="info-icon" aria-label="Com es calcula la urgència">?</button>
+          <div class="info-popover">
+            <p>La urgència puja fins a 100 (negre) segons la prioritat. Acabat o cancel·lat = 0. Els tiquets es reparteixen en 4 zones segons aquest valor.</p>
+            <table>
+              <tr><th>Prioritat</th><th>Arriba a 100</th></tr>
+              <tr><td>Baixa</td><td>En 4 setmanes</td></tr>
+              <tr><td>Mitjana</td><td>En 2 setmanes</td></tr>
+              <tr><td>Alta</td><td>En 1 setmana</td></tr>
+              <tr><td>Crítica</td><td>De seguida</td></tr>
+            </table>
+          </div>
+        </span>
+      </h2>
       <span class="tickets-count" id="ticketsCount"></span>
     </div>
     <p class="error" id="ticketsError"></p>
@@ -31,8 +46,15 @@
     <div class="filters-row">
       <div class="search-field">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M17 17l-4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta...">
+        <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta..." aria-label="Cerca tiquets">
       </div>
+      <div class="search-field author-field">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="7.2" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 16c0-2.9 2.5-5 5.5-5s5.5 2.1 5.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input type="search" id="ticketAuthorSearch" placeholder="Cerca per autor..." aria-label="Cerca per autor">
+      </div>
+      <select id="ticketProjectFilter" aria-label="Filtra per projecte">
+        <option value="">Tots els projectes</option>
+      </select>
     </div>
 
     <div class="chips-row">
@@ -40,38 +62,9 @@
       <span class="chips-divider"></span>
       <div class="priority-chips" id="priorityChips"></div>
     </div>
-    <div class="table-scroll">
-      <table id="ticketsTable">
-        <thead>
-          <tr>
-            <th data-sort="urgencyScore">
-              Urgència<span class="sort-arrow"></span>
-              <span class="info-tip">
-                <button type="button" class="info-icon" aria-label="Com es calcula la urgència">?</button>
-                <div class="info-popover">
-                  <p>La urgència puja fins a 100 (negre) segons la prioritat. Acabat o cancel·lat = 0.</p>
-                  <table>
-                    <tr><th>Prioritat</th><th>Arriba a 100</th></tr>
-                    <tr><td>Baixa</td><td>En 4 setmanes</td></tr>
-                    <tr><td>Mitjana</td><td>En 2 setmanes</td></tr>
-                    <tr><td>Alta</td><td>En 1 setmana</td></tr>
-                    <tr><td>Crítica</td><td>De seguida</td></tr>
-                  </table>
-                </div>
-              </span>
-            </th>
-            <th data-sort="createdAt">Antiguitat<span class="sort-arrow"></span></th>
-            <th data-sort="title">Tiquet<span class="sort-arrow"></span></th>
-            <th data-sort="reporterEmail">Correu<span class="sort-arrow"></span></th>
-            <th data-sort="priority">Prioritat<span class="sort-arrow"></span></th>
-            <th data-sort="reporterName">Reportat per<span class="sort-arrow"></span></th>
-            <th data-sort="status">Estat<span class="sort-arrow"></span></th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="ticketsBody"></tbody>
-      </table>
-    </div>
+
+    <div class="zones-board" id="zonesBoard"></div>
+
     <p class="empty" id="ticketsNoResultsMsg" style="display:none;">Cap tiquet coincideix amb els filtres.</p>
     <p class="empty" id="ticketsEmptyMsg" style="display:none;">Encara no s'ha creat cap tiquet.</p>
   </div>
@@ -83,6 +76,7 @@
     <div class="modal-urgency" id="modalUrgency"></div>
     <h2 class="modal-title" id="modalTitle"></h2>
     <p class="modal-repo" id="modalRepo"></p>
+    <p class="ticket-card-autodelete" id="modalAutoDelete" hidden></p>
 
     <div class="modal-section">
       <h3>Descripció</h3>
