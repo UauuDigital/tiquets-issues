@@ -9,6 +9,30 @@ const statusChips = document.getElementById('statusChips');
 const priorityChips = document.getElementById('priorityChips');
 const ticketsCount = document.getElementById('ticketsCount');
 
+const ticketModal = document.getElementById('ticketModal');
+const ticketModalClose = document.getElementById('ticketModalClose');
+const modalUrgency = document.getElementById('modalUrgency');
+const modalTitle = document.getElementById('modalTitle');
+const modalRepo = document.getElementById('modalRepo');
+const modalDescription = document.getElementById('modalDescription');
+const modalStatus = document.getElementById('modalStatus');
+const modalPriority = document.getElementById('modalPriority');
+const modalCategory = document.getElementById('modalCategory');
+const modalDepartment = document.getElementById('modalDepartment');
+const modalReporter = document.getElementById('modalReporter');
+const modalDate = document.getElementById('modalDate');
+const modalUrgencyValue = document.getElementById('modalUrgencyValue');
+const modalScreenshotsSection = document.getElementById('modalScreenshotsSection');
+const modalScreenshots = document.getElementById('modalScreenshots');
+const modalComments = document.getElementById('modalComments');
+const modalCommentsStatus = document.getElementById('modalCommentsStatus');
+const modalCommentForm = document.getElementById('modalCommentForm');
+const modalCommentAuthor = document.getElementById('modalCommentAuthor');
+const modalCommentAuthorEmail = document.getElementById('modalCommentAuthorEmail');
+const modalCommentInput = document.getElementById('modalCommentInput');
+const modalCommentError = document.getElementById('modalCommentError');
+const modalCommentSubmit = document.getElementById('modalCommentSubmit');
+
 let allTickets = [];
 let ticketSearchQuery = '';
 let ticketAuthorQuery = '';
@@ -17,6 +41,8 @@ let ticketPriorityQuery = '';
 let ticketProjectQuery = '';
 
 const PRIORITY_LABELS_CA = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', critica: 'Crítica' };
+const CATEGORY_LABELS_CA = { bug: 'Error / no funciona', funcionalitat: 'Petició de funcionalitat', acces: 'Accés i permisos', altres: 'Altres' };
+const DEPARTMENT_LABELS_CA = { comercial: 'Comercial', coordinacio: 'Coordinació', cuina: 'Cuina', administracio: 'Administració', digital: 'Digital' };
 const PRIORITY_ORDER = { critica: 4, alta: 3, mitjana: 2, baixa: 1 };
 const STATUS_ORDER = { comencat: 3, en_espera: 2, no_comencat: 1, acabat: 0, cancelat: 0 };
 const STATUS_LABELS = {
@@ -89,6 +115,22 @@ const ZONES = [
 function zoneForTicket(t) {
   return ZONES.find((z) => z.match(t)) || ZONES[ZONES.length - 1];
 }
+
+function urgencyLevelKey(score) {
+  if (score <= 0) return 'none';
+  if (score < 25) return 'low';
+  if (score < 50) return 'medium';
+  if (score < 100) return 'high';
+  return 'max';
+}
+
+const URGENCY_LEVEL_LABELS_CA = {
+  none: 'Cap urgència',
+  low: 'Urgència baixa',
+  medium: 'Urgència mitjana',
+  high: 'Urgència alta',
+  max: 'Urgència màxima'
+};
 
 const URGENCY_ICONS = {
   low: `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.3" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.6" fill="currentColor"/></svg>`,
@@ -241,7 +283,7 @@ function renderPriorityChips() {
 function ticketCardHtml(t) {
   return `
     <div class="ticket-card-frame">
-    <article class="ticket-card" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
+    <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
       <div class="ticket-card-urgency" title="Urgència: ${t.urgencyScore} (dies oberts × pes de prioritat)">
         ${urgencyIconHtml(t)}
         <span class="ticket-card-number">${t.number ? '#' + t.number : ''}</span>
@@ -284,6 +326,20 @@ function renderZones(tickets) {
       </div>
     </section>
   `).join('');
+
+  zonesBoard.querySelectorAll('.ticket-card').forEach((card) => {
+    const t = tickets.find((x) => x.id === card.dataset.id);
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('a, button')) return;
+      openTicketModal(t);
+    });
+    card.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      if (e.target.closest('a, button')) return;
+      e.preventDefault();
+      openTicketModal(t);
+    });
+  });
 }
 
 function renderFilteredTickets() {
@@ -316,6 +372,122 @@ ticketAuthorSearchInput.addEventListener('input', () => {
 ticketProjectFilter.addEventListener('change', () => {
   ticketProjectQuery = ticketProjectFilter.value;
   renderFilteredTickets();
+});
+
+let currentModalTicketId = null;
+
+function populateModal(t) {
+  modalUrgency.innerHTML = urgencyIconHtml(t);
+  modalTitle.textContent = t.number ? `Tiquet núm. ${t.number}` : 'Tiquet';
+  modalRepo.textContent = t.repoLabel;
+  modalDescription.textContent = t.description || t.title || '—';
+  modalStatus.textContent = STATUS_LABELS[t.status] || 'No començat';
+  modalStatus.dataset.status = t.status || 'no_comencat';
+  modalPriority.textContent = PRIORITY_LABELS_CA[t.priority] || t.priority || '—';
+  modalPriority.dataset.priority = t.priority || '';
+  modalCategory.textContent = CATEGORY_LABELS_CA[t.category] || '—';
+  modalDepartment.textContent = DEPARTMENT_LABELS_CA[t.department] || '—';
+  modalReporter.textContent = t.reporterName || 'Anònim';
+  modalDate.textContent = `${formatRelativeTime(t.createdAt)} (${formatTicketDate(t.createdAt)})`;
+  modalUrgencyValue.textContent = URGENCY_LEVEL_LABELS_CA[urgencyLevelKey(t.urgencyScore)];
+  modalUrgencyValue.title = `Puntuació: ${t.urgencyScore}`;
+
+  if (t.screenshotUrls && t.screenshotUrls.length) {
+    modalScreenshotsSection.hidden = false;
+    modalScreenshots.innerHTML = t.screenshotUrls.map((url) => `
+      <a href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="Captura de pantalla" loading="lazy"></a>
+    `).join('');
+  } else {
+    modalScreenshotsSection.hidden = true;
+    modalScreenshots.innerHTML = '';
+  }
+}
+
+function renderCommentEl(c) {
+  const div = document.createElement('div');
+  div.className = 'modal-comment';
+  div.innerHTML = `
+    <div class="modal-comment-head">
+      <span class="modal-comment-author">${escapeHtml(c.author)}</span>
+      <span class="modal-comment-date">${escapeHtml(formatRelativeTime(c.createdAt))}</span>
+    </div>
+    <div class="modal-comment-body">${escapeHtml(c.body)}</div>
+  `;
+  return div;
+}
+
+async function loadModalComments(id) {
+  modalComments.querySelectorAll('.modal-comment').forEach((el) => el.remove());
+  modalCommentsStatus.hidden = false;
+  modalCommentsStatus.textContent = 'Carregant…';
+  try {
+    const res = await fetch(`/api/tickets/${id}/comments`);
+    if (!res.ok) throw new Error();
+    const comments = await res.json();
+    if (currentModalTicketId !== id) return;
+    if (!comments.length) {
+      modalCommentsStatus.textContent = 'Encara no hi ha cap comentari.';
+      return;
+    }
+    modalCommentsStatus.hidden = true;
+    comments.forEach((c) => modalComments.appendChild(renderCommentEl(c)));
+  } catch (err) {
+    if (currentModalTicketId !== id) return;
+    modalCommentsStatus.hidden = false;
+    modalCommentsStatus.textContent = 'No s\'han pogut carregar els comentaris.';
+  }
+}
+
+modalCommentForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  modalCommentError.style.display = 'none';
+  const body = modalCommentInput.value.trim();
+  const authorName = modalCommentAuthor.value.trim();
+  const authorEmail = modalCommentAuthorEmail.value.trim();
+  if (!body || !authorName || !currentModalTicketId) return;
+
+  modalCommentSubmit.disabled = true;
+  modalCommentSubmit.textContent = 'Publicant…';
+  try {
+    const res = await fetch(`/api/tickets/${currentModalTicketId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body, authorName, authorEmail })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+
+    modalCommentsStatus.hidden = true;
+    modalComments.appendChild(renderCommentEl(data));
+    modalCommentInput.value = '';
+    modalCommentAuthor.value = '';
+    modalCommentAuthorEmail.value = '';
+  } catch (err) {
+    modalCommentError.textContent = err.message;
+    modalCommentError.style.display = 'block';
+  } finally {
+    modalCommentSubmit.disabled = false;
+    modalCommentSubmit.textContent = 'Publicar comentari';
+  }
+});
+
+function openTicketModal(t) {
+  currentModalTicketId = t.id;
+  populateModal(t);
+  ticketModal.showModal();
+  loadModalComments(t.id);
+}
+
+ticketModalClose.addEventListener('click', () => ticketModal.close());
+ticketModal.addEventListener('click', (e) => {
+  const rect = ticketModal.getBoundingClientRect();
+  const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+  if (!inside) ticketModal.close();
+});
+ticketModal.addEventListener('close', () => {
+  currentModalTicketId = null;
+  modalCommentForm.reset();
+  modalCommentError.style.display = 'none';
 });
 
 loadTickets();

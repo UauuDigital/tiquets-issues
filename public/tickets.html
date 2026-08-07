@@ -67,6 +67,71 @@
   </div>
 </main>
 
+<dialog id="ticketModal" class="ticket-modal">
+  <button type="button" class="modal-close" id="ticketModalClose" aria-label="Tancar">&times;</button>
+  <div class="modal-urgency" id="modalUrgency"></div>
+  <h2 class="modal-title" id="modalTitle"></h2>
+  <p class="modal-repo" id="modalRepo"></p>
+
+  <div class="modal-section">
+    <h3>Descripció</h3>
+    <p class="modal-description" id="modalDescription"></p>
+  </div>
+
+  <dl class="modal-meta">
+    <div>
+      <dt>Estat</dt>
+      <dd><span class="status-badge" id="modalStatus"></span></dd>
+    </div>
+    <div>
+      <dt>Prioritat</dt>
+      <dd><span class="priority-tag" id="modalPriority"></span></dd>
+    </div>
+    <div>
+      <dt>Categoria</dt>
+      <dd id="modalCategory"></dd>
+    </div>
+    <div>
+      <dt>Departament</dt>
+      <dd id="modalDepartment"></dd>
+    </div>
+    <div>
+      <dt>Reportat per</dt>
+      <dd id="modalReporter"></dd>
+    </div>
+    <div>
+      <dt>Data de creació</dt>
+      <dd id="modalDate"></dd>
+    </div>
+    <div>
+      <dt>Urgència</dt>
+      <dd id="modalUrgencyValue"></dd>
+    </div>
+  </dl>
+
+  <div class="modal-section" id="modalScreenshotsSection" hidden>
+    <h3>Captures adjuntades</h3>
+    <div class="modal-screenshots" id="modalScreenshots"></div>
+  </div>
+
+  <div class="modal-section">
+    <h3>Comentaris</h3>
+    <div class="modal-comments" id="modalComments">
+      <p class="modal-comments-status" id="modalCommentsStatus">Carregant…</p>
+    </div>
+    <form class="modal-comment-form" id="modalCommentForm">
+      <div class="modal-comment-form-row">
+        <input type="text" id="modalCommentAuthor" placeholder="El teu nom" maxlength="80" required aria-label="El teu nom">
+        <input type="email" id="modalCommentAuthorEmail" placeholder="El teu correu (opcional)" maxlength="120" aria-label="El teu correu (opcional)">
+      </div>
+      <textarea id="modalCommentInput" placeholder="Escriu un comentari..." rows="2" required></textarea>
+      <p class="error" id="modalCommentError"></p>
+      <button type="submit" id="modalCommentSubmit">Publicar comentari</button>
+    </form>
+  </div>
+
+</dialog>
+
 <script src="js/tickets-view.js" defer></script>
 </body>
 </html>

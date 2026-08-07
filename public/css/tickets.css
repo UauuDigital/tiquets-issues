@@ -214,7 +214,9 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   flex: 0 1 260px;
   border-radius: 10px;
   box-shadow: 0 1px 2px rgba(22,35,63,0.05);
+  transition: box-shadow 0.15s ease;
 }
+.ticket-card-frame:hover { box-shadow: 0 8px 20px -8px rgba(22,35,63,0.25); }
 /* Repassa amb una línia la mossegada semicircular que el mask retalla a .ticket-card,
    dibuixant només el mig cercle que cau DINS de la targeta (no cap enfora). */
 .ticket-card-frame::before, .ticket-card-frame::after {
@@ -243,6 +245,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   border: 1.5px solid color-mix(in srgb, var(--ink) 50%, var(--border) 50%);
   border-radius: 10px;
   overflow: hidden;
+  cursor: pointer;
   -webkit-mask-image:
     linear-gradient(#000 0 0),
     radial-gradient(circle 6px at 60px 0%, #000 99%, transparent 100%),
@@ -342,4 +345,149 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 
 @media (max-width: 620px) {
   .card { padding: 16px; }
+}
+
+/* --- Modal de detall del tiquet (només lectura, amb comentaris) --- */
+.ticket-modal {
+  position: fixed;
+  margin: auto;
+  border: none;
+  border-radius: 14px;
+  padding: 1.75rem;
+  width: 90%;
+  max-width: 680px;
+  box-shadow: 0 24px 64px -12px rgba(22,35,63,0.35);
+  font-family: var(--font-ui);
+  color: var(--ink);
+}
+.ticket-modal::backdrop { background: rgba(22,35,63,0.45); }
+
+.ticket-modal input, .ticket-modal textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  margin-bottom: 0.6rem;
+  font-family: var(--font-ui);
+  background: #fff;
+  color: var(--ink);
+}
+.ticket-modal textarea { resize: vertical; }
+.ticket-modal input::placeholder, .ticket-modal textarea::placeholder { color: var(--ink-soft); opacity: 1; }
+.ticket-modal button {
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.ticket-modal button:hover { background-color: #223258; }
+
+.modal-close {
+  position: absolute;
+  top: 0.9rem;
+  right: 0.9rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.modal-close:hover { background: rgba(22,35,63,0.08); color: var(--ink); }
+
+.modal-urgency { margin-bottom: 0.5rem; }
+.modal-urgency .urgency-icon svg { width: 26px; height: 26px; }
+
+.modal-title { font-size: 1.15rem; margin: 0 0 0.2rem; padding-right: 2rem; }
+.modal-repo {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: #eef1f5;
+  border-radius: 5px;
+  padding: 0.1rem 0.45rem;
+  margin: 0 0.5rem 1.25rem 0;
+}
+
+.modal-section { margin: 0 0 1.25rem; }
+.modal-section h3 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-soft);
+  margin: 0 0 0.4rem;
+  font-weight: 700;
+}
+.modal-description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ink);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fafbfc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem 0.85rem;
+}
+
+.modal-screenshots { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.modal-screenshots a { display: block; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.modal-screenshots img { display: block; width: 96px; height: 96px; object-fit: cover; }
+
+.modal-comments { display: flex; flex-direction: column; gap: 0.75rem; max-height: 150px; overflow-y: auto; }
+.modal-comments-status { margin: 0; font-size: 0.85rem; color: var(--ink-soft); }
+.modal-comment {
+  background: #fafbfc;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+.modal-comment-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; }
+.modal-comment-avatar { width: 20px; height: 20px; border-radius: 50%; }
+.modal-comment-author { font-size: 0.82rem; font-weight: 700; color: var(--ink); text-decoration: none; }
+.modal-comment-author:hover { text-decoration: underline; }
+.modal-comment-date { font-size: 0.75rem; color: var(--ink-soft); margin-left: auto; }
+.modal-comment-body { font-size: 0.85rem; color: var(--ink); line-height: 1.45; white-space: pre-wrap; }
+
+.modal-comment-form { margin-top: 0.75rem; }
+.modal-comment-form textarea { resize: vertical; min-height: 4.5rem; }
+.modal-comment-form button { width: 100%; }
+.modal-comment-form-row { display: flex; gap: 0.5rem; }
+.modal-comment-form-row input { flex: 1; min-width: 0; }
+@media (max-width: 480px) {
+  .modal-comment-form-row { flex-direction: column; gap: 0; }
+}
+
+.modal-meta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem 1.5rem;
+  margin: 0 0 1.25rem;
+}
+.modal-meta dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 0.3rem; }
+.modal-meta dd { margin: 0; font-size: 0.9rem; color: var(--ink); }
+.modal-meta dd a { color: var(--ink); text-decoration: underline; }
+
+@media (max-width: 560px) {
+  .modal-meta { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .modal-meta { grid-template-columns: 1fr; }
 }
