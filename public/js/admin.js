@@ -150,15 +150,22 @@ function renderFiltered() {
   renderRepos(repos);
 }
 
+function toggleSort(th) {
+  const key = th.dataset.sort;
+  if (sortState.key === key) {
+    sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+  } else {
+    sortState = { key, dir: 'asc' };
+  }
+  renderFiltered();
+}
+
 sortableHeaders.forEach((th) => {
-  th.addEventListener('click', () => {
-    const key = th.dataset.sort;
-    if (sortState.key === key) {
-      sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
-    } else {
-      sortState = { key, dir: 'asc' };
-    }
-    renderFiltered();
+  th.addEventListener('click', () => toggleSort(th));
+  th.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    toggleSort(th);
   });
 });
 
