@@ -45,6 +45,12 @@
   <h1>Gestió de tiquets</h1>
   <p class="subtitle">Consulta i actualitza l'estat dels tiquets creats des del portal.</p>
 
+  <button type="button" class="activity-toggle" id="activityToggle">
+    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 5.5V10l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/></svg>
+    Activitat recent
+    <span class="activity-toggle-badge" id="activityToggleBadge" hidden>0</span>
+  </button>
+
   <div class="tickets-layout">
   <div class="card tickets-card">
     <div class="tickets-card-head">
@@ -96,8 +102,14 @@
     <p class="empty" id="ticketsEmptyMsg" style="display:none;">Encara no s'ha creat cap tiquet.</p>
   </div>
 
-  <div class="card activity-card">
-    <h2>Activitat recent</h2>
+  <div class="activity-backdrop" id="activityBackdrop"></div>
+  <div class="card activity-card" id="activityCard">
+    <div class="activity-card-head">
+      <h2>Activitat recent</h2>
+      <button type="button" class="activity-close" id="activityClose" aria-label="Tanca l'activitat recent">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
     <div class="activity-list" id="activityList">
       <p class="activity-status" id="activityStatus">Carregant…</p>
     </div>

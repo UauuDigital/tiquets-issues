@@ -65,3 +65,5 @@ body {
   color: var(--ink);
   padding: 48px 20px 80px;
 }
+
+body.no-scroll { overflow: hidden; }

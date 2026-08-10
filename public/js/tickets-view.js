@@ -217,6 +217,11 @@ async function loadTickets() {
 
 const activityList = document.getElementById('activityList');
 const activityStatus = document.getElementById('activityStatus');
+const activityCard = document.getElementById('activityCard');
+const activityToggle = document.getElementById('activityToggle');
+const activityToggleBadge = document.getElementById('activityToggleBadge');
+const activityClose = document.getElementById('activityClose');
+const activityBackdrop = document.getElementById('activityBackdrop');
 
 const ACTIVITY_ICONS = {
   created: '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
@@ -267,6 +272,8 @@ function activityText(entry) {
 
 function renderActivity(entries) {
   activityList.querySelectorAll('.activity-item').forEach((el) => el.remove());
+  activityToggleBadge.hidden = !entries.length;
+  activityToggleBadge.textContent = entries.length > 99 ? '99+' : String(entries.length);
   if (!entries.length) {
     activityStatus.textContent = 'Encara no hi ha activitat.';
     activityStatus.hidden = false;
@@ -283,6 +290,22 @@ function renderActivity(entries) {
     activityList.appendChild(item);
   });
 }
+
+// En mòbil, l'historial es mostra amagat rere un botó i s'obre com a
+// pantalla completa; en escriptori aquests controls no es veuen (CSS).
+function openActivityCard() {
+  activityCard.classList.add('is-open');
+  activityBackdrop.classList.add('is-open');
+  document.body.classList.add('no-scroll');
+}
+function closeActivityCard() {
+  activityCard.classList.remove('is-open');
+  activityBackdrop.classList.remove('is-open');
+  document.body.classList.remove('no-scroll');
+}
+activityToggle.addEventListener('click', openActivityCard);
+activityClose.addEventListener('click', closeActivityCard);
+activityBackdrop.addEventListener('click', closeActivityCard);
 
 async function loadActivity() {
   try {
