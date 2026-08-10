@@ -11,6 +11,10 @@ const ticketsCount = document.getElementById('ticketsCount');
 
 const ticketModal = document.getElementById('ticketModal');
 const ticketModalClose = document.getElementById('ticketModalClose');
+const commentModal = document.getElementById('commentModal');
+const commentModalClose = document.getElementById('commentModalClose');
+const commentModalHead = document.getElementById('commentModalHead');
+const commentModalBody = document.getElementById('commentModalBody');
 const modalUrgency = document.getElementById('modalUrgency');
 const modalTitle = document.getElementById('modalTitle');
 const modalRepo = document.getElementById('modalRepo');
@@ -165,6 +169,15 @@ const URGENCY_ICON_COLORS = {
 function urgencyIconHtml(t) {
   const key = zoneForTicket(t).key;
   return `<span class="urgency-icon" style="color:${URGENCY_ICON_COLORS[key]}">${URGENCY_ICONS[key]}</span>`;
+}
+
+// Distintiu d'urgència per al modal: mateixa icona i color que la
+// targeta, perquè el nivell es reconegui d'un cop d'ull i no només
+// pel text.
+function urgencyBadgeHtml(t) {
+  const zone = zoneForTicket(t);
+  const color = URGENCY_ICON_COLORS[zone.key];
+  return `<span class="urgency-badge" style="--urgency-color:${color}">${URGENCY_ICONS[zone.key]}${escapeHtml(zone.label)}</span>`;
 }
 
 function formatTicketDate(iso) {
@@ -366,7 +379,7 @@ function prioritySelectHtml(t) {
 function ticketCardHtml(t) {
   return `
     <div class="ticket-card-frame">
-    <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
+    <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" aria-label="Obre el tiquet ${t.number ? '#' + t.number : ''}: ${escapeHtml(t.description || '')}" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
       <div class="ticket-card-urgency" title="Urgència: ${t.urgencyScore} (dies oberts × pes de prioritat)">
         ${urgencyIconHtml(t)}
         <span class="ticket-card-number">${t.number ? '#' + t.number : ''}</span>
@@ -469,7 +482,7 @@ function populateModal(t) {
   modalReporter.textContent = t.reporterName || 'Anònim';
   modalEmail.innerHTML = t.reporterEmail ? `<a href="mailto:${escapeHtml(t.reporterEmail)}">${escapeHtml(t.reporterEmail)}</a>` : '—';
   modalDate.textContent = `${formatRelativeTime(t.createdAt)} (${formatTicketDate(t.createdAt)})`;
-  modalUrgencyValue.textContent = URGENCY_LEVEL_LABELS_CA[urgencyLevelKey(t.urgencyScore)];
+  modalUrgencyValue.innerHTML = urgencyBadgeHtml(t);
   modalUrgencyValue.title = `Puntuació: ${t.urgencyScore}`;
   modalGithubLink.href = t.url || '#';
   const autoDeleteMsg = autoDeleteText(t);
@@ -514,12 +527,24 @@ function setupCommentClamp(commentEl) {
   toggle.type = 'button';
   toggle.className = 'modal-comment-toggle';
   toggle.textContent = 'Mostra el comentari sencer';
-  toggle.addEventListener('click', () => {
-    const stillClamped = body.classList.toggle('clamped');
-    toggle.textContent = stillClamped ? 'Mostra el comentari sencer' : 'Mostra menys';
-  });
+  toggle.addEventListener('click', () => openCommentModal(commentEl));
   commentEl.appendChild(toggle);
 }
+
+function openCommentModal(commentEl) {
+  const head = commentEl.querySelector('.modal-comment-head');
+  const body = commentEl.querySelector('.modal-comment-body');
+  commentModalHead.replaceChildren(head.cloneNode(true));
+  commentModalBody.textContent = body.textContent;
+  commentModal.showModal();
+}
+
+commentModalClose.addEventListener('click', () => commentModal.close());
+commentModal.addEventListener('click', (e) => {
+  const rect = commentModal.getBoundingClientRect();
+  const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+  if (!inside) commentModal.close();
+});
 
 async function loadModalComments(id) {
   modalComments.querySelectorAll('.modal-comment').forEach((el) => el.remove());

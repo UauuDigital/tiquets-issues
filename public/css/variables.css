@@ -1,9 +1,23 @@
 :root {
+  color-scheme: light dark;
   --bg: #eef1f5;
   --card: #ffffff;
+  --surface-soft: #fafbfc;
   --ink: #16233f;
   --ink-soft: #58698c;
+  /* Marca: navy sòlid invariant, només per a la insígnia "UAUU" i el
+     stub del bitllet — mai s'ha d'adaptar (a diferència de --ink, que
+     és el color de text i sí que s'inverteix en mode fosc). */
+  --brand: #16233f;
+  /* Acció: fons dels botons/CTA i xips actius. En clar és el mateix
+     navy de marca; en fosc cal un to més clar perquè es distingeixi
+     de --card (si no, un botó navy sobre una targeta navy fosca
+     desapareix). */
+  --action: var(--brand);
+  --action-hover: #223258;
   --border: #d7dee8;
+  --input-border: #ccc;
+  --bg-glow: #e5eaf1;
   --accent: #e3a008;
   --accent-ink: #7a5200;
   --success: #2c7a7b;
@@ -19,13 +33,33 @@
   --radius: 14px;
 }
 
+/* Mode fosc: es defineixen només els tokens de superfície/text — el
+   color de marca (--accent) i els colors de prioritat es mantenen
+   perquè ja tenen prou contrast sobre fons foscos. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12182a;
+    --card: #1b2338;
+    --surface-soft: #212b44;
+    --ink: #eef1f7;
+    --ink-soft: #9fb0d1;
+    --border: #2c3752;
+    --input-border: #3a4763;
+    --success-bg: #16332f;
+    --danger-bg: #3a1f1c;
+    --bg-glow: #1b2846;
+    --action: #3a5490;
+    --action-hover: #4a68ac;
+  }
+}
+
 * { box-sizing: border-box; }
 
 body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 15% 10%, #e5eaf1 0%, transparent 45%),
+    radial-gradient(circle at 15% 10%, var(--bg-glow) 0%, transparent 45%),
     var(--bg);
   font-family: var(--font-ui);
   color: var(--ink);

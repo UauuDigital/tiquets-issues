@@ -28,7 +28,7 @@ input[type="text"], input[type="email"], select, textarea {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fbfcfe;
+  background: var(--card);
   color: var(--ink);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
@@ -66,7 +66,7 @@ input[type="file"]::file-selector-button {
   margin-right: 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fbfcfe;
+  background: var(--card);
   color: var(--ink);
   cursor: pointer;
   transition: border-color 0.15s ease;
@@ -112,7 +112,7 @@ textarea[aria-invalid="true"]:focus,
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fbfcfe;
+  background: var(--card);
   color: var(--ink);
   cursor: pointer;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -136,7 +136,7 @@ textarea[aria-invalid="true"]:focus,
 .select-panel {
   position: fixed;
   z-index: 60;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: 0 12px 32px -12px rgba(22,35,63,0.28), 0 2px 8px rgba(22,35,63,0.08);
@@ -165,7 +165,7 @@ textarea[aria-invalid="true"]:focus,
   justify-content: space-between;
   gap: 8px;
 }
-.select-option.highlighted { background: #f1f4f9; }
+.select-option.highlighted { background: var(--surface-soft); }
 .select-option.selected { color: var(--ink); font-weight: 600; background: rgba(22,35,63,0.06); }
 .select-option .check { width: 14px; height: 14px; opacity: 0; flex-shrink: 0; color: var(--ink); }
 .select-option.selected .check { opacity: 1; }
@@ -188,14 +188,14 @@ button.submit {
   font-weight: 600;
   font-size: 14px;
   padding: 13px 18px;
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   border: none;
   border-radius: 9px;
   cursor: pointer;
   transition: transform 0.1s ease, background 0.15s ease;
 }
-button.submit:hover { background: #223258; }
+button.submit:hover { background: var(--action-hover); }
 button.submit:hover .submit-icon { transform: translateX(3px); }
 button.submit:active { transform: translateY(1px); }
 button.submit:disabled { opacity: 0.6; cursor: progress; }
@@ -236,7 +236,7 @@ button.submit:disabled .submit-icon { display: none; }
   font-size: 13px;
   padding: 9px 16px;
   border-radius: 8px;
-  background: #fbfcfe;
+  background: var(--card);
   border: 1px solid var(--border);
   color: var(--ink);
   text-decoration: none;

@@ -2,7 +2,7 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at 15% 10%, #e5eaf1 0%, transparent 45%),
+    radial-gradient(circle at 15% 10%, var(--bg-glow) 0%, transparent 45%),
     var(--bg);
   font-family: var(--font-ui);
   color: var(--ink);
@@ -20,6 +20,8 @@ header.page-head { margin-bottom: 28px; }
   text-transform: uppercase;
   color: var(--ink-soft);
   display: flex;
+  flex-wrap: wrap;
+  row-gap: 6px;
   align-items: center;
   gap: 10px;
 }
@@ -29,7 +31,7 @@ header.page-head { margin-bottom: 28px; }
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #fff;
-  background: var(--ink);
+  background: var(--brand);
   padding: 3px 7px;
   border-radius: 5px;
 }
@@ -42,7 +44,7 @@ header.page-head { margin-bottom: 28px; }
   display: inline-flex;
   align-items: center;
   gap: 1px;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 3px;
@@ -62,14 +64,17 @@ header.page-head { margin-bottom: 28px; }
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .crumb-step:hover, .crumb-step:active { background: rgba(22,35,63,0.08); color: var(--ink); }
+.crumb-step:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .crumb-icon { display: none; width: 15px; height: 15px; }
 .crumb-sep { display: inline-flex; flex-shrink: 0; width: 12px; height: 12px; color: #b6bfcd; }
 
 @media (max-width: 620px) {
-  .crumb-step { width: 26px; height: 26px; padding: 0; }
+  /* 44x44 és l'àrea tocable mínima recomanada; la icona visual es queda
+     a 15px, centrada, i el botó creix al voltant seu. */
+  .crumb-step { width: 44px; height: 44px; padding: 0; }
   .crumb-icon { display: inline-flex; }
   .crumb-label { display: none; }
-  .eyebrow-current { font-size: 11px; }
+  .eyebrow-current { font-size: 11px; padding: 0 10px; }
 }
 
 h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
@@ -92,7 +97,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  background: #f8f9fb;
+  background: var(--surface-soft);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.65rem 0.75rem;
@@ -145,7 +150,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   padding: 0.35rem 0.7rem;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--card);
   font-family: var(--font-ui);
   font-size: 0.78rem;
   font-weight: 600;
@@ -153,10 +158,10 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
 }
-.status-chip:hover, .priority-chip:hover { border-color: #c3cede; background: #f5f7fa; }
-.status-chip.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+.status-chip:hover, .priority-chip:hover { border-color: var(--input-border); background: var(--surface-soft); }
+.status-chip.active { background: var(--action); border-color: var(--action); color: #fff; }
 .status-chip .chip-count, .priority-chip .chip-count { opacity: 0.7; font-weight: 500; }
-.priority-chip.active[data-priority=""]        { background: var(--ink); border-color: var(--ink); color: #fff; }
+.priority-chip.active[data-priority=""]        { background: var(--action); border-color: var(--action); color: #fff; }
 .priority-chip.active[data-priority="baixa"]   { background: var(--priority-baixa); border-color: var(--priority-baixa); color: #fff; }
 .priority-chip.active[data-priority="mitjana"] { background: var(--priority-mitjana); border-color: var(--priority-mitjana); color: #fff; }
 .priority-chip.active[data-priority="alta"]    { background: var(--priority-alta); border-color: var(--priority-alta); color: #fff; }
@@ -167,11 +172,11 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 .urgency-zone {
   border: 1px solid color-mix(in srgb, var(--zone-color) 30%, var(--border));
   border-radius: 10px;
-  background: color-mix(in srgb, var(--zone-color) 6%, #fff);
+  background: color-mix(in srgb, var(--zone-color) 6%, var(--card));
   padding: 0.85rem 1rem 1rem;
   transition: opacity 0.2s ease, background-color 0.2s ease;
 }
-.urgency-zone-empty { opacity: 0.55; background: color-mix(in srgb, var(--zone-color) 3%, #fff); }
+.urgency-zone-empty { opacity: 0.55; background: color-mix(in srgb, var(--zone-color) 3%, var(--card)); }
 .urgency-zone-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
 .urgency-zone-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--zone-color); flex-shrink: 0; }
 .urgency-zone-head h3 { margin: 0; font-size: 0.88rem; font-weight: 700; color: var(--ink); }
@@ -194,7 +199,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--ink);
-  background: #eef1f5;
+  background: var(--surface-soft);
   border-radius: 5px;
   padding: 0.1rem 0.45rem;
 }
@@ -205,11 +210,18 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 .ticket-card-frame {
   position: relative;
   width: 100%;
+  min-width: 0;
   max-width: 320px;
   flex: 0 1 260px;
   border-radius: 10px;
   box-shadow: 0 1px 2px rgba(22,35,63,0.05);
   transition: box-shadow 0.15s ease;
+}
+@media (max-width: 620px) {
+  /* Una targeta per fila, sempre amb la mateixa amplada: evita que el
+     text llarg d'algunes descripcions faci créixer unes targetes més
+     que altres quan flex-basis + contingut competeixen per l'espai. */
+  .ticket-card-frame { flex: 1 1 100%; max-width: 420px; }
 }
 .ticket-card-frame:hover { box-shadow: 0 8px 20px -8px rgba(22,35,63,0.25); }
 /* Repassa amb una línia la mossegada semicircular que el mask retalla a .ticket-card,
@@ -236,7 +248,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   z-index: 0;
   width: 100%;
   height: 100%;
-  background: #fff;
+  background: var(--card);
   border: 1.5px solid color-mix(in srgb, var(--ink) 50%, var(--border) 50%);
   border-radius: 10px;
   overflow: hidden;
@@ -261,7 +273,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   justify-content: center;
   gap: 0.3rem;
   padding: 0.75rem 0.25rem;
-  background: #fff;
+  background: var(--card);
   border-right: 2px dashed color-mix(in srgb, var(--ink) 50%, var(--border) 50%);
 }
 .urgency-icon { display: inline-flex; }
@@ -275,16 +287,18 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  background: color-mix(in srgb, var(--status-color, #fff) 16%, #fff);
+  background: color-mix(in srgb, var(--status-color, var(--card)) 16%, var(--card));
 }
 .ticket-card-top { display: flex; align-items: flex-start; gap: 0.5rem; }
 .ticket-card-desc {
   flex: 1;
+  min-width: 0;
   margin: 0;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--ink);
   line-height: 1.35;
+  overflow-wrap: break-word;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -349,13 +363,13 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   font-size: 0.95rem;
   margin-bottom: 0.6rem;
   font-family: var(--font-ui);
-  background: #fff;
+  background: var(--card);
   color: var(--ink);
 }
 .ticket-modal textarea { resize: vertical; }
 .ticket-modal input::placeholder, .ticket-modal textarea::placeholder { color: var(--ink-soft); opacity: 1; }
 .ticket-modal button {
-  background: var(--ink);
+  background: var(--action);
   color: #fff;
   border: none;
   padding: 0.55rem 1.1rem;
@@ -365,7 +379,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
-.ticket-modal button:hover { background-color: #223258; }
+.ticket-modal button:hover { background-color: var(--action-hover); }
 
 /* En escriptori tots els wrappers són transparents al layout: urgència,
    text, botó de tancar i la resta de seccions es comporten exactament
@@ -376,10 +390,10 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 
 .modal-close {
   position: absolute;
-  top: 0.9rem;
-  right: 0.9rem;
-  width: 32px;
-  height: 32px;
+  top: 0.7rem;
+  right: 0.7rem;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -392,8 +406,9 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   line-height: 1;
   cursor: pointer;
 }
-.modal-close:hover { background: rgba(22,35,63,0.08); color: var(--ink); }
-.modal-close:active { background: rgba(22,35,63,0.16); color: var(--ink); }
+.modal-close:hover { background: var(--danger); color: #fff; }
+.modal-close:active { background: #a53225; color: #fff; }
+.modal-close:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
 
 .modal-urgency { margin-bottom: 0.5rem; }
 .modal-urgency .urgency-icon svg { width: 26px; height: 26px; }
@@ -404,7 +419,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--ink);
-  background: #eef1f5;
+  background: var(--surface-soft);
   border-radius: 5px;
   padding: 0.1rem 0.45rem;
   margin: 0 0.5rem 1.25rem 0;
@@ -427,7 +442,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   white-space: pre-wrap;
   max-height: 220px;
   overflow-y: auto;
-  background: #fafbfc;
+  background: var(--surface-soft);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.7rem 0.85rem;
@@ -440,7 +455,7 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 .modal-comments { display: flex; flex-direction: column; gap: 0.75rem; max-height: 150px; overflow-y: auto; }
 .modal-comments-status { margin: 0; font-size: 0.85rem; color: var(--ink-soft); }
 .modal-comment {
-  background: #fafbfc;
+  background: var(--surface-soft);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.6rem 0.75rem;
@@ -472,6 +487,31 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 }
 .modal-comment-toggle:hover { color: var(--ink); }
 
+/* --- Modal del comentari sencer --- */
+.comment-modal {
+  position: fixed;
+  margin: auto;
+  border: none;
+  border-radius: 14px;
+  padding: 1.75rem;
+  width: 90%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px -12px rgba(22,35,63,0.35);
+  font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--card);
+}
+.comment-modal::backdrop { background: rgba(22,35,63,0.45); }
+.comment-modal-head { display: flex; align-items: center; gap: 0.4rem; margin: 0 1.5rem 0.75rem 0; }
+.comment-modal-body {
+  font-size: 0.92rem;
+  color: var(--ink);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
 .modal-comment-form { margin-top: 0.75rem; }
 .modal-comment-form textarea { resize: vertical; min-height: 4.5rem; }
 .modal-comment-form button { width: 100%; }
@@ -490,6 +530,19 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
 .modal-meta dt { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-soft); margin-bottom: 0.3rem; }
 .modal-meta dd { margin: 0; font-size: 0.9rem; color: var(--ink); }
 .modal-meta dd a { color: var(--ink); text-decoration: underline; }
+
+.urgency-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.55rem 0.15rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--urgency-color);
+  background: color-mix(in srgb, var(--urgency-color) 14%, var(--card));
+}
+.urgency-badge svg { width: 13px; height: 13px; flex-shrink: 0; }
 
 @media (max-width: 560px) {
   .modal-meta { grid-template-columns: 1fr 1fr; }

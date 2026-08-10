@@ -59,7 +59,7 @@ header.page-head { margin-bottom: 36px; }
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #fff;
-  background: var(--ink);
+  background: var(--brand);
   padding: 3px 7px;
   border-radius: 5px;
 }
