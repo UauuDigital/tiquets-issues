@@ -10,6 +10,7 @@ body {
 }
 
 .wrap { max-width: 960px; margin: 0 auto; }
+.wrap.tickets-page { max-width: 1100px; }
 
 header.page-head { margin-bottom: 28px; }
 
@@ -118,6 +119,65 @@ h1 { font-size: 28px; margin: 10px 0 8px; letter-spacing: -0.01em; }
   outline: none;
   border-color: var(--ink-soft);
   box-shadow: 0 0 0 3px rgba(22,35,63,0.12);
+}
+
+/* Dues columnes: el tauler de tiquets (flexible) i, al costat dret,
+   l'activitat recent (amplada fixa). En mòbil es reordena en una sola
+   columna, amb l'activitat després del tauler. */
+.tickets-layout { display: flex; align-items: flex-start; gap: 1.25rem; }
+.tickets-layout .tickets-card { flex: 1; min-width: 0; margin-top: 0; }
+.activity-card { flex: 0 0 300px; margin-top: 28px; max-height: calc(100vh - 4rem); position: sticky; top: 1.5rem; display: flex; flex-direction: column; }
+.activity-card h2 { font-size: 1rem; margin: 0 0 0.9rem; }
+.activity-list { display: flex; flex-direction: column; gap: 0.7rem; overflow-y: auto; }
+.activity-status { margin: 0; font-size: 0.85rem; color: var(--ink-soft); }
+.activity-item { display: flex; gap: 0.55rem; align-items: flex-start; }
+.activity-icon {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--activity-color, var(--ink-soft));
+  background: color-mix(in srgb, var(--activity-color, var(--ink-soft)) 14%, var(--card));
+}
+.activity-icon svg { width: 13px; height: 13px; }
+.activity-body { min-width: 0; font-size: 0.82rem; line-height: 1.4; color: var(--ink); }
+.activity-body strong { font-weight: 700; }
+.activity-time { display: block; font-size: 0.72rem; color: var(--ink-soft); margin-top: 0.1rem; }
+.activity-ticket-link {
+  display: inline;
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+.activity-ticket-link:hover, .activity-ticket-link:focus-visible { text-decoration: underline; box-shadow: none; background: none; }
+.activity-ticket-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.activity-value {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--activity-value-color);
+  background: color-mix(in srgb, var(--activity-value-color) 14%, var(--card));
+}
+
+@media (max-width: 900px) {
+  .tickets-layout { flex-direction: column; }
+  .activity-card { flex: 1 1 auto; width: 100%; max-height: none; position: static; margin-top: 0; }
 }
 
 .tickets-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; margin-bottom: 1.1rem; }

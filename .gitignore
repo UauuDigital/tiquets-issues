@@ -2,4 +2,6 @@ node_modules/
 .env
 repos.json
 tickets.json
+activity.json
+*.log
 .impeccable/

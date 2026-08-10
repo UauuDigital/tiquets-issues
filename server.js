@@ -24,6 +24,7 @@ const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_ADMIN_TOKEN = process.env.GITHUB_ADMIN_TOKEN;
 const reposStore = require('./repos.store');
 const ticketsStore = require('./tickets.store');
+const activityStore = require('./activity.store');
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 
 if (!GITHUB_TOKEN) {
@@ -341,6 +342,15 @@ async function cleanupExpiredTickets() {
         await deleteGithubIssue(ghIssue);
       }
       ticketsStore.remove(t.id);
+      activityStore.add({
+        id: crypto.randomUUID(),
+        ticketId: t.id,
+        ticketNumber: t.number,
+        ticketTitle: t.title,
+        type: 'deleted',
+        by: 'auto',
+        at: new Date().toISOString()
+      });
       console.log(`Tiquet #${t.number} eliminat automàticament (${AUTO_DELETE_DAYS} dies com a ${t.status}).`);
     } catch (err) {
       console.error(`No s'ha pogut eliminar automàticament el tiquet #${t.number}:`, err.message);
@@ -365,6 +375,13 @@ app.get('/api/tickets', (_req, res) => {
   }) => ({
     id, number, url, title, description, repoLabel, priority, status: status || 'no_comencat', category, department, reporterName, screenshotUrls: screenshotUrls || [], createdAt
   })));
+});
+
+// Últims esdeveniments (creació de tiquets, canvis d'estat i prioritat),
+// visibles a qualsevol usuari del portal (sense token), per a la columna
+// d'activitat recent de tickets.html.
+app.get('/api/activity', (_req, res) => {
+  res.json(activityStore.list().slice(0, 40));
 });
 
 // Comentaris d'un tiquet, visibles a qualsevol usuari del portal (sense token).
@@ -509,6 +526,12 @@ app.get('/api/admin/tickets', requireAdmin, (_req, res) => {
   res.json(ticketsStore.list());
 });
 
+// Últims esdeveniments (creació de tiquets, canvis d'estat i prioritat),
+// per a la columna d'activitat recent de l'admin.
+app.get('/api/admin/activity', requireAdmin, (_req, res) => {
+  res.json(activityStore.list().slice(0, 40));
+});
+
 // Canvia l'estat i/o la prioritat d'un tiquet, sincronitzant-ho primer amb la
 // incidència de GitHub (tanca/reobre segons l'estat, actualitza l'etiqueta de
 // prioritat). Si la sincronització amb GitHub falla, no es desa el canvi local.
@@ -557,6 +580,33 @@ app.patch('/api/admin/tickets/:id', requireAdmin, async (req, res) => {
   }
 
   const updated = ticketsStore.update(req.params.id, patch);
+
+  const now = new Date().toISOString();
+  if (patch.status !== undefined && patch.status !== ticket.status) {
+    activityStore.add({
+      id: crypto.randomUUID(),
+      ticketId: ticket.id,
+      ticketNumber: ticket.number,
+      ticketTitle: ticket.title,
+      type: 'status',
+      from: ticket.status || 'no_comencat',
+      to: patch.status,
+      at: now
+    });
+  }
+  if (patch.priority !== undefined && patch.priority !== ticket.priority) {
+    activityStore.add({
+      id: crypto.randomUUID(),
+      ticketId: ticket.id,
+      ticketNumber: ticket.number,
+      ticketTitle: ticket.title,
+      type: 'priority',
+      from: ticket.priority || null,
+      to: patch.priority,
+      at: now
+    });
+  }
+
   res.json(updated);
 });
 
@@ -581,6 +631,15 @@ app.delete('/api/admin/tickets/:id', requireAdmin, async (req, res) => {
 
   const ok = ticketsStore.remove(req.params.id);
   if (!ok) return res.status(404).json({ error: 'Tiquet no trobat.' });
+  activityStore.add({
+    id: crypto.randomUUID(),
+    ticketId: ticket.id,
+    ticketNumber: ticket.number,
+    ticketTitle: ticket.title,
+    type: 'deleted',
+    by: 'admin',
+    at: new Date().toISOString()
+  });
   res.status(204).end();
 });
 
@@ -827,8 +886,9 @@ app.post('/api/tickets', ticketLimiter, screenshotUpload.array('screenshots', MA
 
     const issue = await ghResponse.json();
     notifyByEmail({ title: title.trim(), url: issue.html_url, number: issue.number, repoLabel: targetRepo.label });
+    const newTicketId = crypto.randomUUID();
     ticketsStore.add({
-      id: crypto.randomUUID(),
+      id: newTicketId,
       number: issue.number,
       url: issue.html_url,
       title: title.trim(),
@@ -842,6 +902,15 @@ app.post('/api/tickets', ticketLimiter, screenshotUpload.array('screenshots', MA
       screenshotUrls,
       status: 'no_comencat',
       createdAt: new Date().toISOString()
+    });
+    activityStore.add({
+      id: crypto.randomUUID(),
+      ticketId: newTicketId,
+      ticketNumber: issue.number,
+      ticketTitle: title.trim(),
+      type: 'created',
+      reporterName: reporterName?.trim() || null,
+      at: new Date().toISOString()
     });
     return res.status(201).json({ ok: true, number: issue.number, url: issue.html_url });
   } catch (err) {

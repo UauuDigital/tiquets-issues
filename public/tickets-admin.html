@@ -45,10 +45,11 @@
   <h1>Gestió de tiquets</h1>
   <p class="subtitle">Consulta i actualitza l'estat dels tiquets creats des del portal.</p>
 
+  <div class="tickets-layout">
   <div class="card tickets-card">
     <div class="tickets-card-head">
       <h2>
-        Historial de tiquets creats
+        Tiquets en curs
         <span class="info-tip">
           <button type="button" class="info-icon" aria-label="Com es calcula la urgència">?</button>
           <div class="info-popover">
@@ -70,11 +71,13 @@
     <div class="filters-row">
       <div class="search-field">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="9" cy="9" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M17 17l-4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta..." aria-label="Cerca tiquets">
+        <input type="search" id="ticketSearch" placeholder="Cerca per títol, projecte o qui ho reporta..." aria-label="Cerca tiquets" list="ticketSearchSuggest" autocomplete="off">
+        <datalist id="ticketSearchSuggest"></datalist>
       </div>
       <div class="search-field author-field">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="7.2" r="3" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 16c0-2.9 2.5-5 5.5-5s5.5 2.1 5.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        <input type="search" id="ticketAuthorSearch" placeholder="Cerca per autor..." aria-label="Cerca per autor">
+        <input type="search" id="ticketAuthorSearch" placeholder="Cerca per autor..." aria-label="Cerca per autor" list="ticketAuthorSuggest" autocomplete="off">
+        <datalist id="ticketAuthorSuggest"></datalist>
       </div>
       <select id="ticketProjectFilter" aria-label="Filtra per projecte">
         <option value="">Tots els projectes</option>
@@ -91,6 +94,14 @@
 
     <p class="empty" id="ticketsNoResultsMsg" style="display:none;">Cap tiquet coincideix amb els filtres.</p>
     <p class="empty" id="ticketsEmptyMsg" style="display:none;">Encara no s'ha creat cap tiquet.</p>
+  </div>
+
+  <div class="card activity-card">
+    <h2>Activitat recent</h2>
+    <div class="activity-list" id="activityList">
+      <p class="activity-status" id="activityStatus">Carregant…</p>
+    </div>
+  </div>
   </div>
 
   </div>
