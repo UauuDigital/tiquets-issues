@@ -219,7 +219,6 @@ const activityList = document.getElementById('activityList');
 const activityStatus = document.getElementById('activityStatus');
 const activityCard = document.getElementById('activityCard');
 const activityToggle = document.getElementById('activityToggle');
-const activityToggleBadge = document.getElementById('activityToggleBadge');
 const activityClose = document.getElementById('activityClose');
 const activityBackdrop = document.getElementById('activityBackdrop');
 
@@ -272,8 +271,6 @@ function activityText(entry) {
 
 function renderActivity(entries) {
   activityList.querySelectorAll('.activity-item').forEach((el) => el.remove());
-  activityToggleBadge.hidden = !entries.length;
-  activityToggleBadge.textContent = entries.length > 99 ? '99+' : String(entries.length);
   if (!entries.length) {
     activityStatus.textContent = 'Encara no hi ha activitat.';
     activityStatus.hidden = false;

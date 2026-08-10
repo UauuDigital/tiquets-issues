@@ -529,7 +529,7 @@ app.get('/api/admin/tickets', requireAdmin, (_req, res) => {
 // Últims esdeveniments (creació de tiquets, canvis d'estat i prioritat),
 // per a la columna d'activitat recent de l'admin.
 app.get('/api/admin/activity', requireAdmin, (_req, res) => {
-  res.json(activityStore.list().slice(0, 40));
+  res.json(activityStore.list().slice(0, 200));
 });
 
 // Canvia l'estat i/o la prioritat d'un tiquet, sincronitzant-ho primer amb la
