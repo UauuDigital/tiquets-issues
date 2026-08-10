@@ -13,7 +13,20 @@
 <body>
 <main class="wrap tickets-page">
   <header class="page-head">
-    <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · <a href="index.html" class="eyebrow-link eyebrow-back">← Portal de tiquets</a> / Tiquets oberts</div>
+    <div class="eyebrow">
+      <span class="eyebrow-brand">UAUU</span>
+      <nav class="crumb-trail" aria-label="Camí de navegació">
+        <a href="index.html" class="crumb-step" title="Portal de tiquets" aria-label="Portal de tiquets">
+          <svg class="crumb-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M3.5 9.5L10 4l6.5 5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5.5 8.5V16a1 1 0 001 1h7a1 1 0 001-1V8.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="crumb-label">Portal de tiquets</span>
+        </a>
+        <svg class="crumb-sep" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.5 4.5l5 5.5-5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="eyebrow-current">Tiquets oberts</span>
+      </nav>
+    </div>
     <h1>Tiquets oberts</h1>
     <p class="subtitle">Totes les incidències i peticions creades des del portal, per tenir-ne una visió ràpida sense duplicar-les.</p>
   </header>
@@ -53,11 +66,17 @@
 </main>
 
 <dialog id="ticketModal" class="ticket-modal">
-  <button type="button" class="modal-close" id="ticketModalClose" aria-label="Tancar">&times;</button>
-  <div class="modal-urgency" id="modalUrgency"></div>
-  <h2 class="modal-title" id="modalTitle"></h2>
-  <p class="modal-repo" id="modalRepo"></p>
+  <div class="modal-shell">
+  <div class="modal-header">
+    <div class="modal-urgency" id="modalUrgency"></div>
+    <div class="modal-header-text">
+      <h2 class="modal-title" id="modalTitle"></h2>
+      <p class="modal-repo" id="modalRepo"></p>
+    </div>
+    <button type="button" class="modal-close" id="ticketModalClose" aria-label="Tancar">&times;</button>
+  </div>
 
+  <div class="modal-body">
   <div class="modal-section">
     <h3>Descripció</h3>
     <p class="modal-description" id="modalDescription"></p>
@@ -113,6 +132,8 @@
       <p class="error" id="modalCommentError"></p>
       <button type="submit" id="modalCommentSubmit">Publicar comentari</button>
     </form>
+  </div>
+  </div>
   </div>
 
 </dialog>

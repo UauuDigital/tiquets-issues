@@ -5,6 +5,7 @@ const reposBody = document.getElementById('reposBody');
 const emptyMsg = document.getElementById('emptyMsg');
 const submitBtn = document.getElementById('submitBtn');
 const cancelEditBtn = document.getElementById('cancelEdit');
+const repoFormTitle = document.getElementById('repoFormTitle');
 const editingIdInput = document.getElementById('editingId');
 const repoSearchInput = document.getElementById('repoSearch');
 const noResultsMsg = document.getElementById('noResultsMsg');
@@ -179,10 +180,10 @@ function renderRepos(repos) {
   for (const r of repos) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${escapeHtml(r.label)}</td>
-      <td>${escapeHtml(r.owner)}</td>
-      <td>${escapeHtml(r.repo)}</td>
-      <td>${escapeHtml(r.description || '')}</td>
+      <td data-label="Nom">${escapeHtml(r.label)}</td>
+      <td data-label="Owner">${escapeHtml(r.owner)}</td>
+      <td data-label="Repo">${escapeHtml(r.repo)}</td>
+      <td data-label="Descripció">${escapeHtml(r.description || '')}</td>
       <td class="actions">
         <div class="actions-inner">
           <button type="button" class="icon-btn" data-edit="${r.id}" title="Editar" aria-label="Editar">${ICON_EDIT}</button>
@@ -236,6 +237,8 @@ function startEdit(repo) {
   updateRepoDatalist();
   submitBtn.textContent = 'Desar canvis';
   cancelEditBtn.style.display = 'inline-block';
+  repoFormTitle.textContent = 'Editar repositori';
+  window.scrollTo(0, 0);
 }
 
 cancelEditBtn.addEventListener('click', () => {
@@ -243,6 +246,7 @@ cancelEditBtn.addEventListener('click', () => {
   editingIdInput.value = '';
   submitBtn.textContent = 'Afegir';
   cancelEditBtn.style.display = 'none';
+  repoFormTitle.textContent = 'Afegir repositori';
   updateRepoDatalist();
 });
 
@@ -268,6 +272,7 @@ form.addEventListener('submit', async (e) => {
     editingIdInput.value = '';
     submitBtn.textContent = 'Afegir';
     cancelEditBtn.style.display = 'none';
+    repoFormTitle.textContent = 'Afegir repositori';
     loadRepos();
   } catch (err) {
     formError.textContent = err.message;

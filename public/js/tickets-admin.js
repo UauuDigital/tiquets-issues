@@ -501,6 +501,26 @@ function renderCommentEl(c) {
   return div;
 }
 
+// Si el comentari ocupa més de les línies visibles per defecte, hi afegeix
+// un botó per desplegar-lo sencer (només es mostra quan cal de veritat).
+function setupCommentClamp(commentEl) {
+  const body = commentEl.querySelector('.modal-comment-body');
+  body.classList.add('clamped');
+  if (body.scrollHeight <= body.clientHeight + 1) {
+    body.classList.remove('clamped');
+    return;
+  }
+  const toggle = document.createElement('button');
+  toggle.type = 'button';
+  toggle.className = 'modal-comment-toggle';
+  toggle.textContent = 'Mostra el comentari sencer';
+  toggle.addEventListener('click', () => {
+    const stillClamped = body.classList.toggle('clamped');
+    toggle.textContent = stillClamped ? 'Mostra el comentari sencer' : 'Mostra menys';
+  });
+  commentEl.appendChild(toggle);
+}
+
 async function loadModalComments(id) {
   modalComments.querySelectorAll('.modal-comment').forEach((el) => el.remove());
   modalCommentsStatus.hidden = false;
@@ -515,7 +535,11 @@ async function loadModalComments(id) {
       return;
     }
     modalCommentsStatus.hidden = true;
-    comments.forEach((c) => modalComments.appendChild(renderCommentEl(c)));
+    comments.forEach((c) => {
+      const el = renderCommentEl(c);
+      modalComments.appendChild(el);
+      setupCommentClamp(el);
+    });
   } catch (err) {
     if (currentModalTicketId !== id) return;
     modalCommentsStatus.hidden = false;
@@ -541,7 +565,9 @@ modalCommentForm.addEventListener('submit', async (e) => {
     if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
 
     modalCommentsStatus.hidden = true;
-    modalComments.appendChild(renderCommentEl(data));
+    const newCommentEl = renderCommentEl(data);
+    modalComments.appendChild(newCommentEl);
+    setupCommentClamp(newCommentEl);
     modalCommentInput.value = '';
   } catch (err) {
     modalCommentError.textContent = err.message;

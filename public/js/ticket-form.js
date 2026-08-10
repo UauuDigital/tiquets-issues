@@ -1,6 +1,9 @@
 const form = document.getElementById('ticket-form');
 const submitBtn = document.getElementById('submit-btn');
 const submitBtnText = document.getElementById('submit-btn-text');
+const submitBtnMobile = document.getElementById('submit-btn-mobile');
+const submitBtnTextMobile = document.getElementById('submit-btn-text-mobile');
+const ticketActionsMobile = document.getElementById('ticket-actions-mobile');
 const formError = document.getElementById('form-error');
 const confirmView = document.getElementById('confirm-view');
 const confirmText = document.getElementById('confirm-text');
@@ -266,6 +269,8 @@ form.addEventListener('submit', async (e) => {
 
   submitBtn.disabled = true;
   submitBtnText.textContent = 'Enviant…';
+  submitBtnMobile.disabled = true;
+  submitBtnTextMobile.textContent = 'Enviant…';
 
   const formData = new FormData();
   formData.append('description', form.description.value);
@@ -301,6 +306,7 @@ form.addEventListener('submit', async (e) => {
     }
 
     form.style.display = 'none';
+    ticketActionsMobile.style.display = 'none';
     confirmView.classList.add('visible');
   } catch (err) {
     formError.textContent = err.message || ERROR_MESSAGES.submitFailed;
@@ -308,6 +314,8 @@ form.addEventListener('submit', async (e) => {
   } finally {
     submitBtn.disabled = false;
     submitBtnText.textContent = 'Enviar tiquet';
+    submitBtnMobile.disabled = false;
+    submitBtnTextMobile.textContent = 'Enviar tiquet';
   }
 });
 
@@ -328,4 +336,18 @@ againBtn.addEventListener('click', () => {
   syncProjectDescription();
   confirmView.classList.remove('visible');
   form.style.display = 'block';
+  ticketActionsMobile.style.display = '';
 });
+
+// Manté la mossegada circular de la costura mòbil (ticket.css) enganxada
+// al final real de .ticket-main, que canvia d'alçada amb els errors,
+// la descripció del projecte o la vista de confirmació.
+const ticketEl = document.querySelector('.ticket');
+const ticketMainEl = document.querySelector('.ticket-main');
+if (ticketEl && ticketMainEl && 'ResizeObserver' in window) {
+  const updateSeamY = () => {
+    ticketEl.style.setProperty('--ticket-seam-y', `${ticketMainEl.offsetHeight}px`);
+  };
+  new ResizeObserver(updateSeamY).observe(ticketMainEl);
+  updateSeamY();
+}

@@ -180,12 +180,39 @@
 
 .honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
+/* Duplicat mòbil del botó d'enviar (veure media query més avall): ocult
+   per defecte, es mostra només per sota de 620px. */
+.ticket-actions-mobile { display: none; }
+
 @media (max-width: 620px) {
   .ticket {
     flex-direction: column;
-    -webkit-mask-image: none;
-    mask-image: none;
+    /* Retall real (no un anell decoratiu al damunt): dues mossegades
+       circulars a l'alçada de la costura (--ticket-seam-y, calculada en
+       JS a partir de l'alçada de .ticket-main) foraden tot el bitllet
+       fins al fons de la pàgina, igual que fa la mà·scara d'escriptori
+       amb la costura vertical. */
+    --ticket-seam-y: 50%;
+    -webkit-mask-image:
+      linear-gradient(#000 0 0),
+      radial-gradient(circle 13px at 0% var(--ticket-seam-y), #000 99%, transparent 100%),
+      radial-gradient(circle 13px at 100% var(--ticket-seam-y), #000 99%, transparent 100%);
+    -webkit-mask-composite: source-over, xor, xor;
+    mask-image:
+      linear-gradient(#000 0 0),
+      radial-gradient(circle 13px at 0% var(--ticket-seam-y), #000 99%, transparent 100%),
+      radial-gradient(circle 13px at 100% var(--ticket-seam-y), #000 99%, transparent 100%);
+    mask-composite: exclude, exclude;
   }
-  .ticket-main { border-right: none; border-bottom: 2px dashed var(--border); }
+  .ticket-main {
+    border-right: none;
+    border-bottom: 2px dashed var(--border);
+  }
   .ticket-stub { width: auto; flex-direction: column; align-items: stretch; gap: 18px; }
+
+  /* El botó d'enviar surt de la targeta i queda com a pas final, fora del
+     bitllet i sota l'stub fosc; el botó original (dins el formulari) es
+     desactiva visualment i de l'arbre d'accessibilitat. */
+  .ticket-main button.submit { display: none; }
+  .ticket-actions-mobile { display: block; margin-top: 20px; }
 }
