@@ -11,6 +11,7 @@ const { notifyByEmail } = require('../lib/mailer');
 const { CATEGORY_LABELS, PRIORITY_LABELS, DEPARTMENT_LABELS, PRIORITY_TEXT } = require('../lib/labels');
 const { publicCommentAuthorLine, extractPublicCommentAuthor, stripPublicCommentAuthor } = require('../lib/comments');
 const { GITHUB_TOKEN, ghPublicHeaders, parseGithubIssueUrl, uploadScreenshotToGithub } = require('../lib/github-api');
+const requireApprovedUser = require('../middleware/require-approved-user');
 
 const router = express.Router();
 
@@ -175,7 +176,7 @@ router.get('/api/tickets/next-number', (_req, res) => {
   res.json({ next });
 });
 
-router.post('/api/tickets', ticketLimiter, screenshotUpload.array('screenshots', MAX_SCREENSHOTS), async (req, res) => {
+router.post('/api/tickets', ticketLimiter, requireApprovedUser, screenshotUpload.array('screenshots', MAX_SCREENSHOTS), async (req, res) => {
   const {
     description,
     category,
