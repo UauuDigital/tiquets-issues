@@ -6,6 +6,7 @@ const reposStore = require('./repos.store');
 const { startAutoDelete } = require('./lib/auto-delete');
 const ticketsRouter = require('./routes/tickets');
 const adminRouter = require('./routes/admin');
+const authRouter = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -37,6 +38,16 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(ticketsRouter);
 app.use(adminRouter);
+app.use(authRouter);
+
+// L'anon key de Supabase és pública per disseny (queda protegida per la
+// RLS de cada taula), però no la volem hardcodejada al repositori.
+app.get('/js/supabase-config.js', (_req, res) => {
+  res.type('application/javascript').send(
+    `window.SUPABASE_URL = ${JSON.stringify(process.env.SUPABASE_URL || '')};\n` +
+    `window.SUPABASE_ANON_KEY = ${JSON.stringify(process.env.SUPABASE_ANON_KEY || '')};\n`
+  );
+});
 
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
