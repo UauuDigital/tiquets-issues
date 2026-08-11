@@ -1,0 +1,158 @@
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 16px;
+}
+.filters-row input, .filters-row select {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fbfcfe;
+  color: var(--ink);
+  height: 38px;
+  box-sizing: border-box;
+}
+.filters-row input:focus, .filters-row select:focus {
+  outline: none;
+  border-color: var(--ink-soft);
+  box-shadow: 0 0 0 3px rgba(22,35,63,0.12);
+}
+
+/* Dues columnes: el tauler de tiquets (flexible) i, al costat dret,
+   l'activitat recent (amplada fixa). En mòbil es reordena en una sola
+   columna, amb l'activitat després del tauler. */
+.tickets-layout { display: flex; align-items: flex-start; gap: 1.25rem; }
+.tickets-layout .tickets-card { flex: 1; min-width: 0; margin-top: 0; }
+.activity-card { flex: 0 0 300px; margin-top: 28px; max-height: calc(100vh - 4rem); position: sticky; top: 1.5rem; display: flex; flex-direction: column; }
+.activity-card h2 { font-size: 1rem; margin: 0 0 0.9rem; }
+.activity-list { display: flex; flex-direction: column; gap: 0.7rem; overflow-y: auto; }
+.activity-status { margin: 0; font-size: 0.85rem; color: var(--ink-soft); }
+.activity-item { display: flex; gap: 0.55rem; align-items: flex-start; }
+.activity-icon {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--activity-color, var(--ink-soft));
+  background: color-mix(in srgb, var(--activity-color, var(--ink-soft)) 14%, var(--card));
+}
+.activity-icon svg { width: 13px; height: 13px; }
+.activity-body { min-width: 0; font-size: 0.82rem; line-height: 1.4; color: var(--ink); }
+.activity-body strong { font-weight: 700; }
+.activity-time { display: block; font-size: 0.72rem; color: var(--ink-soft); margin-top: 0.1rem; }
+.activity-ticket-link {
+  display: inline;
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+.activity-ticket-link:hover, .activity-ticket-link:focus-visible { text-decoration: underline; box-shadow: none; background: none; }
+.activity-ticket-link:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.activity-value {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--activity-value-color);
+  background: color-mix(in srgb, var(--activity-value-color) 14%, var(--card));
+}
+
+.activity-card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.9rem; }
+.activity-card-head h2 { margin: 0; }
+.activity-close, .activity-toggle { display: none; }
+
+/* Botó "mig amagat" que substitueix la columna d'activitat en mòbil: obre
+   l'historial sencer com a full que cobreix la pantalla. */
+.activity-toggle {
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.activity-toggle svg { width: 15px; height: 15px; flex-shrink: 0; }
+.activity-toggle-badge {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--action);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.activity-close {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+  margin: -0.5rem -0.5rem -0.5rem 0;
+}
+.activity-close:hover, .activity-close:focus-visible { color: var(--ink); }
+.activity-close:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+.activity-backdrop { display: none; }
+
+@media (max-width: 900px) {
+  .tickets-layout { flex-direction: column; }
+  .activity-toggle { display: flex; }
+  .activity-card { display: none; flex: 1 1 auto; width: 100%; max-height: none; position: static; margin-top: 0; }
+  .activity-close { display: flex; }
+
+  .activity-card.is-open {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    margin: 0;
+    border-radius: 0;
+    max-height: none;
+    overflow-y: auto;
+  }
+  .activity-backdrop.is-open {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 59;
+    background: rgba(15, 23, 42, 0.45);
+  }
+}
