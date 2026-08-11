@@ -45,7 +45,7 @@ function list() {
   return load();
 }
 
-function create({ label, owner, repo, description }) {
+function create({ label, owner, repo, description, projectUrl }) {
   const repos = load();
   const baseId = slugify(`${owner}-${repo}`) || slugify(label);
   let id = baseId;
@@ -53,17 +53,17 @@ function create({ label, owner, repo, description }) {
   while (repos.some((r) => r.id === id)) {
     id = `${baseId}-${n++}`;
   }
-  const entry = { id, label, owner, repo, description: description || '' };
+  const entry = { id, label, owner, repo, description: description || '', projectUrl: projectUrl || '' };
   repos.push(entry);
   save(repos);
   return entry;
 }
 
-function update(id, { label, owner, repo, description }) {
+function update(id, { label, owner, repo, description, projectUrl }) {
   const repos = load();
   const idx = repos.findIndex((r) => r.id === id);
   if (idx === -1) return null;
-  repos[idx] = { ...repos[idx], label, owner, repo, description: description || '' };
+  repos[idx] = { ...repos[idx], label, owner, repo, description: description || '', projectUrl: projectUrl || '' };
   save(repos);
   return repos[idx];
 }

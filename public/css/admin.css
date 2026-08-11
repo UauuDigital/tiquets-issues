@@ -167,6 +167,47 @@ th[data-sort]:hover { color: #333; }
 .sort-arrow { display: inline-block; width: 1em; font-size: 0.75em; opacity: 0.6; }
 #repoSearch { max-width: 340px; }
 
+.repo-name-link {
+  color: inherit;
+  font-weight: inherit;
+  text-decoration: none;
+}
+.repo-name-link:hover, .repo-name-link:focus-visible { text-decoration: underline; }
+
+/* Taula de repositoris a escriptori: mateix llenguatge visual que la
+   versió de targetes de mòbil (radius, badges, jerarquia), però com a
+   taula real amb capçalera fixa i files amb hover. */
+@media (min-width: 641px) {
+  .table-scroll {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  #reposTable { font-size: 0.88rem; }
+  #reposTable thead th {
+    background: var(--surface-soft);
+    border-bottom: 1px solid var(--border);
+    padding: 0.65rem 0.75rem;
+  }
+  #reposTable tbody tr { transition: background-color 0.15s ease; }
+  #reposTable tbody tr:hover { background: var(--surface-soft); }
+  #reposTable tbody tr:last-child td { border-bottom: none; }
+  #reposTable td { padding: 0.6rem 0.75rem; }
+  #reposTable td[data-label="Nom"] { font-weight: 600; color: var(--ink); }
+  #reposTable td[data-label="Owner"],
+  #reposTable td[data-label="Repo"] {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  #reposTable td[data-label="Descripció"] {
+    color: var(--ink-soft);
+    white-space: normal;
+    line-height: 1.4;
+  }
+  #reposTable td.actions { white-space: nowrap; }
+}
+
 @media (max-width: 640px) {
   /* La taula de repositoris, amb 4 columnes de text + accions, no cap
      en una pantalla de mòbil sense fer scroll horitzontal. Es

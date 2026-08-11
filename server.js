@@ -758,11 +758,25 @@ app.get('/api/admin/github-repos', requireAdmin, async (_req, res) => {
   }
 });
 
+function normalizeProjectUrl(projectUrl) {
+  const trimmed = projectUrl?.trim() || '';
+  if (!trimmed) return { ok: true, value: '' };
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('protocol');
+    return { ok: true, value: trimmed };
+  } catch (err) {
+    return { ok: false, error: 'El link del projecte ha de ser una URL vàlida (http:// o https://).' };
+  }
+}
+
 app.post('/api/admin/repos', requireAdmin, async (req, res) => {
-  const { label, owner, repo, description } = req.body || {};
+  const { label, owner, repo, description, projectUrl } = req.body || {};
   if (!label?.trim() || !owner?.trim() || !repo?.trim()) {
     return res.status(400).json({ error: 'Cal indicar label, owner i repo.' });
   }
+  const urlCheck = normalizeProjectUrl(projectUrl);
+  if (!urlCheck.ok) return res.status(400).json({ error: urlCheck.error });
   const check = await verifyGithubRepo(owner.trim(), repo.trim());
   if (!check.ok) return res.status(400).json({ error: check.error });
 
@@ -770,16 +784,19 @@ app.post('/api/admin/repos', requireAdmin, async (req, res) => {
     label: label.trim(),
     owner: owner.trim(),
     repo: repo.trim(),
-    description: description?.trim() || ''
+    description: description?.trim() || '',
+    projectUrl: urlCheck.value
   });
   res.status(201).json(entry);
 });
 
 app.put('/api/admin/repos/:id', requireAdmin, async (req, res) => {
-  const { label, owner, repo, description } = req.body || {};
+  const { label, owner, repo, description, projectUrl } = req.body || {};
   if (!label?.trim() || !owner?.trim() || !repo?.trim()) {
     return res.status(400).json({ error: 'Cal indicar label, owner i repo.' });
   }
+  const urlCheck = normalizeProjectUrl(projectUrl);
+  if (!urlCheck.ok) return res.status(400).json({ error: urlCheck.error });
   const check = await verifyGithubRepo(owner.trim(), repo.trim());
   if (!check.ok) return res.status(400).json({ error: check.error });
 
@@ -787,7 +804,8 @@ app.put('/api/admin/repos/:id', requireAdmin, async (req, res) => {
     label: label.trim(),
     owner: owner.trim(),
     repo: repo.trim(),
-    description: description?.trim() || ''
+    description: description?.trim() || '',
+    projectUrl: urlCheck.value
   });
   if (!updated) return res.status(404).json({ error: 'Repositori no trobat.' });
   res.json(updated);

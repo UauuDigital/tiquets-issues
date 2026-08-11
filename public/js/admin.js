@@ -23,6 +23,7 @@ const ICON_EDIT = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path
 const ICON_LINK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.5 11.5l3-3M7 13.5H5.5A3.5 3.5 0 012 10a3.5 3.5 0 013.5-3.5H7M13 6.5h1.5A3.5 3.5 0 0118 10a3.5 3.5 0 01-3.5 3.5H13" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 const ICON_TRASH = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 6h12M8 6V4.5h4V6M8.5 9v5M11.5 9v5M5.5 6l.6 9a1 1 0 001 .9h5.8a1 1 0 001-.9l.6-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const ICON_CHECK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10.5L8 14.5L16 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const ICON_EXTERNAL = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.5 5.5H5.5a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1v-3M11.5 4.5H15.5V8.5M15 5L9.5 10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 function authHeaders() {
   return { 'x-admin-token': localStorage.getItem('adminToken') || '', 'Content-Type': 'application/json' };
@@ -180,12 +181,13 @@ function renderRepos(repos) {
   for (const r of repos) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Nom">${escapeHtml(r.label)}</td>
+      <td data-label="Nom"><a class="repo-name-link" href="https://github.com/${encodeURIComponent(r.owner)}/${encodeURIComponent(r.repo)}" target="_blank" rel="noopener noreferrer">${escapeHtml(r.label)}</a></td>
       <td data-label="Owner">${escapeHtml(r.owner)}</td>
       <td data-label="Repo">${escapeHtml(r.repo)}</td>
       <td data-label="Descripció">${escapeHtml(r.description || '')}</td>
       <td class="actions">
         <div class="actions-inner">
+          ${r.projectUrl ? `<a class="icon-btn" href="${escapeHtml(r.projectUrl)}" target="_blank" rel="noopener noreferrer" title="Obrir projecte" aria-label="Obrir projecte">${ICON_EXTERNAL}</a>` : ''}
           <button type="button" class="icon-btn" data-edit="${r.id}" title="Editar" aria-label="Editar">${ICON_EDIT}</button>
           <button type="button" class="icon-btn" data-copy="${r.id}" title="Copiar enllaç" aria-label="Copiar enllaç">${ICON_LINK}</button>
           <button type="button" class="icon-btn danger" data-del="${r.id}" title="Eliminar" aria-label="Eliminar">${ICON_TRASH}</button>
@@ -234,6 +236,7 @@ function startEdit(repo) {
   document.getElementById('owner').value = repo.owner;
   document.getElementById('repo').value = repo.repo;
   document.getElementById('description').value = repo.description || '';
+  document.getElementById('projectUrl').value = repo.projectUrl || '';
   updateRepoDatalist();
   submitBtn.textContent = 'Desar canvis';
   cancelEditBtn.style.display = 'inline-block';
@@ -257,7 +260,8 @@ form.addEventListener('submit', async (e) => {
     label: document.getElementById('label').value.trim(),
     owner: document.getElementById('owner').value.trim(),
     repo: document.getElementById('repo').value.trim(),
-    description: document.getElementById('description').value.trim()
+    description: document.getElementById('description').value.trim(),
+    projectUrl: document.getElementById('projectUrl').value.trim()
   };
   const id = editingIdInput.value;
   const url = id ? `/api/admin/repos/${id}` : '/api/admin/repos';
