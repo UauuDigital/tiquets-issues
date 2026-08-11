@@ -32,4 +32,8 @@ function add(entry) {
   save(entries);
 }
 
-module.exports = { list, add };
+function clear() {
+  save([]);
+}
+
+module.exports = { list, add, clear };

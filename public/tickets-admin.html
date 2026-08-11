@@ -106,6 +106,9 @@
   <div class="card activity-card" id="activityCard">
     <div class="activity-card-head">
       <h2>Activitat recent</h2>
+      <button type="button" class="activity-clear" id="activityClear" title="Buida l'historial d'activitat">
+        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 6h12M8 6V4.5h4V6M6.5 6l.6 9a1 1 0 001 .9h3.8a1 1 0 001-.9l.6-9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
       <button type="button" class="activity-close" id="activityClose" aria-label="Tanca l'activitat recent">
         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5.5 5.5l9 9M14.5 5.5l-9 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       </button>
@@ -115,6 +118,18 @@
     </div>
   </div>
   </div>
+
+  <dialog id="activityClearModal" class="activity-clear-modal">
+    <h3>Buida tot l'historial d'activitat</h3>
+    <p>Aquesta acció eliminarà totes les entrades de l'historial (creacions, comentaris, canvis d'estat...) i no es pot desfer.</p>
+    <p>Per confirmar, escriu <strong>ELIMINA</strong> al camp de sota:</p>
+    <input type="text" id="activityClearInput" autocomplete="off" placeholder="ELIMINA">
+    <p class="error" id="activityClearError" style="display:none;">El text no coincideix.</p>
+    <div class="activity-clear-actions">
+      <button type="button" id="activityClearCancel">Cancel·la</button>
+      <button type="button" id="activityClearConfirm" class="danger" disabled>Buida l'historial</button>
+    </div>
+  </dialog>
 
   </div>
 

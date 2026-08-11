@@ -381,7 +381,8 @@ app.get('/api/tickets', (_req, res) => {
 // visibles a qualsevol usuari del portal (sense token), per a la columna
 // d'activitat recent de tickets.html.
 app.get('/api/activity', (_req, res) => {
-  res.json(activityStore.list().slice(0, 40));
+  // Els comentaris només es mostren a l'historial de l'admin, no al públic.
+  res.json(activityStore.list().filter((e) => e.type !== 'comment').slice(0, 40));
 });
 
 // Comentaris d'un tiquet, visibles a qualsevol usuari del portal (sense token).
@@ -457,6 +458,17 @@ app.post('/api/tickets/:id/comments', commentLimiter, async (req, res) => {
       throw new Error();
     }
     const comment = await ghResponse.json();
+    activityStore.add({
+      id: crypto.randomUUID(),
+      ticketId: ticket.id,
+      ticketNumber: ticket.number,
+      ticketTitle: ticket.title,
+      type: 'comment',
+      commentAuthor: cleanAuthor,
+      commentBody: body.trim(),
+      by: 'user',
+      at: new Date().toISOString()
+    });
     res.status(201).json({
       author: cleanAuthor + (cleanEmail ? ` — ${cleanEmail}` : ''),
       avatarUrl: comment.user?.avatar_url || null,
@@ -530,6 +542,17 @@ app.get('/api/admin/tickets', requireAdmin, (_req, res) => {
 // per a la columna d'activitat recent de l'admin.
 app.get('/api/admin/activity', requireAdmin, (_req, res) => {
   res.json(activityStore.list().slice(0, 200));
+});
+
+// Esborra tot l'historial d'activitat. Exigeix un text de confirmació exacte
+// a més del token d'admin, com a segona barrera contra un clic accidental.
+app.delete('/api/admin/activity', requireAdmin, (req, res) => {
+  const { confirm } = req.body || {};
+  if (confirm !== 'ELIMINA') {
+    return res.status(400).json({ error: 'Cal confirmar l\'eliminació amb el text exacte.' });
+  }
+  activityStore.clear();
+  res.status(204).end();
 });
 
 // Canvia l'estat i/o la prioritat d'un tiquet, sincronitzant-ho primer amb la
@@ -665,6 +688,7 @@ app.get('/api/admin/tickets/:id/comments', requireAdmin, async (req, res) => {
     }
     const comments = await ghResponse.json();
     res.json(comments.map((c) => ({
+      id: c.id,
       author: extractPublicCommentAuthor(c.body) || c.user?.login || 'Desconegut',
       avatarUrl: c.user?.avatar_url || null,
       body: stripPublicCommentAuthor(c.body),
@@ -710,7 +734,19 @@ app.post('/api/admin/tickets/:id/comments', requireAdmin, async (req, res) => {
       throw new Error();
     }
     const comment = await ghResponse.json();
+    activityStore.add({
+      id: crypto.randomUUID(),
+      ticketId: ticket.id,
+      ticketNumber: ticket.number,
+      ticketTitle: ticket.title,
+      type: 'comment',
+      commentAuthor: comment.user?.login || 'Administrador',
+      commentBody: body.trim(),
+      by: 'admin',
+      at: new Date().toISOString()
+    });
     res.status(201).json({
+      id: comment.id,
       author: comment.user?.login || 'Desconegut',
       avatarUrl: comment.user?.avatar_url || null,
       body: comment.body || '',
@@ -719,6 +755,35 @@ app.post('/api/admin/tickets/:id/comments', requireAdmin, async (req, res) => {
     });
   } catch (err) {
     res.status(502).json({ error: 'No s\'ha pogut publicar el comentari a GitHub.' });
+  }
+});
+
+// Elimina un comentari de la issue de GitHub des del modal de detall del tiquet.
+app.delete('/api/admin/tickets/:id/comments/:commentId', requireAdmin, async (req, res) => {
+  const ticket = ticketsStore.list().find((t) => t.id === req.params.id);
+  if (!ticket) return res.status(404).json({ error: 'Tiquet no trobat.' });
+
+  const ghIssue = parseGithubIssueUrl(ticket.url);
+  if (!ghIssue) {
+    return res.status(502).json({ error: 'Aquest tiquet no està enllaçat amb cap incidència de GitHub.' });
+  }
+  if (!GITHUB_ADMIN_TOKEN) {
+    return res.status(500).json({ error: 'El servidor no té configurat GITHUB_ADMIN_TOKEN (revisa .env).' });
+  }
+
+  try {
+    const ghResponse = await fetch(
+      `https://api.github.com/repos/${ghIssue.owner}/${ghIssue.repo}/issues/comments/${req.params.commentId}`,
+      { method: 'DELETE', headers: ghHeaders() }
+    );
+    if (!ghResponse.ok && ghResponse.status !== 404) {
+      const errText = await ghResponse.text();
+      console.error('Error eliminant comentari a GitHub:', ghResponse.status, errText);
+      throw new Error();
+    }
+    res.status(204).end();
+  } catch (err) {
+    res.status(502).json({ error: 'No s\'ha pogut eliminar el comentari a GitHub.' });
   }
 });
 

@@ -13,6 +13,12 @@ const activityToggle = document.getElementById('activityToggle');
 const activityToggleBadge = document.getElementById('activityToggleBadge');
 const activityClose = document.getElementById('activityClose');
 const activityBackdrop = document.getElementById('activityBackdrop');
+const activityClear = document.getElementById('activityClear');
+const activityClearModal = document.getElementById('activityClearModal');
+const activityClearInput = document.getElementById('activityClearInput');
+const activityClearError = document.getElementById('activityClearError');
+const activityClearCancel = document.getElementById('activityClearCancel');
+const activityClearConfirm = document.getElementById('activityClearConfirm');
 const ticketProjectFilter = document.getElementById('ticketProjectFilter');
 const statusChips = document.getElementById('statusChips');
 const priorityChips = document.getElementById('priorityChips');
@@ -240,14 +246,16 @@ const ACTIVITY_ICONS = {
   created: '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   status: '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10a6 6 0 0110-4.5M16 10a6 6 0 01-10 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M14 3.2v3.3h-3.3M6 16.8v-3.3h3.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   priority: '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 15.5V4.5M6 8.5l4-4 4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-  deleted: '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 6h10M8.5 6V4.5h3V6M6.5 6l.6 9a1 1 0 001 .9h3.8a1 1 0 001-.9l.6-9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  deleted: '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 6h10M8.5 6V4.5h3V6M6.5 6l.6 9a1 1 0 001 .9h3.8a1 1 0 001-.9l.6-9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  comment: '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 4.5h14v9H8.5L5 16.5v-3H3v-9z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 };
 
 const ACTIVITY_COLORS = {
   created: '#2563eb',
   status: 'var(--ink-soft)',
   priority: 'var(--accent-ink)',
-  deleted: 'var(--danger)'
+  deleted: 'var(--danger)',
+  comment: '#16a34a'
 };
 
 function activityStatusBadge(key) {
@@ -279,6 +287,10 @@ function activityText(entry) {
   }
   if (entry.type === 'deleted') {
     return `${ticketRef} eliminat ${entry.by === 'auto' ? 'automàticament' : 'per l\'administrador'}`;
+  }
+  if (entry.type === 'comment') {
+    const preview = entry.commentBody ? escapeHtml(entry.commentBody).slice(0, 120) : '';
+    return `${ticketRef}: comentari de ${escapeHtml(entry.commentAuthor || 'algú')}${preview ? `: "${preview}${entry.commentBody.length > 120 ? '…' : ''}"` : ''}`;
   }
   return `${ticketRef} actualitzat`;
 }
@@ -330,6 +342,47 @@ async function loadActivity() {
     activityStatus.hidden = false;
   }
 }
+
+// Buidar l'historial exigeix escriure "ELIMINA" al camp: el botó de
+// confirmació roman desactivat fins que el text coincideix exactament,
+// per evitar que un clic accidental esborri tot l'historial.
+function openActivityClearModal() {
+  activityClearInput.value = '';
+  activityClearError.style.display = 'none';
+  activityClearConfirm.disabled = true;
+  activityClearModal.showModal();
+}
+activityClear.addEventListener('click', openActivityClearModal);
+activityClearCancel.addEventListener('click', () => activityClearModal.close());
+activityClearModal.addEventListener('click', (e) => {
+  const rect = activityClearModal.getBoundingClientRect();
+  const inside = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+  if (!inside) activityClearModal.close();
+});
+activityClearInput.addEventListener('input', () => {
+  activityClearConfirm.disabled = activityClearInput.value !== 'ELIMINA';
+});
+activityClearConfirm.addEventListener('click', async () => {
+  if (activityClearInput.value !== 'ELIMINA') return;
+  activityClearConfirm.disabled = true;
+  activityClearConfirm.textContent = 'Buidant…';
+  try {
+    const res = await fetch('/api/admin/activity', {
+      method: 'DELETE',
+      headers: authHeaders(),
+      body: JSON.stringify({ confirm: activityClearInput.value })
+    });
+    if (!res.ok) throw new Error();
+    activityClearModal.close();
+    loadActivity();
+  } catch (err) {
+    activityClearError.textContent = 'No s\'ha pogut buidar l\'historial.';
+    activityClearError.style.display = 'block';
+    activityClearConfirm.disabled = false;
+  } finally {
+    activityClearConfirm.textContent = 'Buida l\'historial';
+  }
+});
 
 // El número de tiquet a cada entrada de l'activitat obre el modal de
 // detall d'aquell tiquet (delegat: els elements es recreen cada cop
@@ -631,13 +684,32 @@ function renderCommentEl(c) {
   div.className = 'modal-comment';
   div.innerHTML = `
     <div class="modal-comment-head">
-      ${c.avatarUrl ? `<img src="${c.avatarUrl}" alt="" class="modal-comment-avatar">` : ''}
       <a href="${c.url}" target="_blank" rel="noopener" class="modal-comment-author">${escapeHtml(c.author)}</a>
       <span class="modal-comment-date">${escapeHtml(formatRelativeTime(c.createdAt))}</span>
+      <button type="button" class="modal-comment-delete" title="Elimina el comentari">🗑</button>
     </div>
     <div class="modal-comment-body">${escapeHtml(c.body)}</div>
   `;
+  div.querySelector('.modal-comment-delete').addEventListener('click', () => deleteComment(c.id, div));
   return div;
+}
+
+async function deleteComment(commentId, commentEl) {
+  if (!window.confirm('Segur que vols eliminar aquest comentari? Aquesta acció no es pot desfer.')) return;
+  try {
+    const res = await fetch(`/api/admin/tickets/${currentModalTicketId}/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error();
+    commentEl.remove();
+    if (!modalComments.querySelector('.modal-comment')) {
+      modalCommentsStatus.hidden = false;
+      modalCommentsStatus.textContent = 'Encara no hi ha cap comentari.';
+    }
+  } catch (err) {
+    window.alert('No s\'ha pogut eliminar el comentari.');
+  }
 }
 
 // Si el comentari ocupa més de les línies visibles per defecte, hi afegeix

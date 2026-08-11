@@ -388,6 +388,52 @@ th[data-sort]:hover { color: #333; }
 .activity-close:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
 .activity-backdrop { display: none; }
 
+.activity-clear {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.activity-clear svg { width: 16px; height: 16px; }
+.activity-clear:hover, .activity-clear:focus-visible { color: var(--danger); }
+.activity-clear:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+
+.activity-clear-modal {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  max-width: 380px;
+  width: calc(100% - 2rem);
+  color: var(--ink);
+  background: var(--card);
+}
+.activity-clear-modal::backdrop { background: rgba(0, 0, 0, 0.4); }
+.activity-clear-modal h3 { margin: 0 0 0.6rem; }
+.activity-clear-modal p { margin: 0 0 0.6rem; font-size: 0.88rem; color: var(--ink-soft); }
+.activity-clear-modal input {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  margin-bottom: 0.6rem;
+}
+.activity-clear-actions { display: flex; gap: 0.6rem; justify-content: flex-end; }
+.activity-clear-actions button { padding: 0.5rem 0.9rem; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.activity-clear-actions #activityClearCancel { border: 1px solid var(--border); background: var(--card); color: var(--ink); }
+.activity-clear-actions .danger { border: none; background: var(--danger); color: #fff; }
+.activity-clear-actions .danger:disabled { opacity: 0.5; cursor: not-allowed; }
+
 @media (max-width: 900px) {
   .tickets-layout { flex-direction: column; }
   .activity-toggle { display: flex; }
@@ -878,10 +924,20 @@ th[data-sort]:hover { color: #333; }
   padding: 0.6rem 0.75rem;
 }
 .modal-comment-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; }
-.modal-comment-avatar { width: 20px; height: 20px; border-radius: 50%; }
 .modal-comment-author { font-size: 0.82rem; font-weight: 700; color: var(--ink); text-decoration: none; }
 .modal-comment-author:hover { text-decoration: underline; }
 .modal-comment-date { font-size: 0.75rem; color: var(--ink-soft); margin-left: auto; }
+.modal-comment-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0.15rem;
+  color: var(--ink-soft);
+  opacity: 0.6;
+}
+.modal-comment-delete:hover { opacity: 1; color: var(--danger); }
 .modal-comment-body { font-size: 0.85rem; color: var(--ink); line-height: 1.45; white-space: pre-wrap; }
 .modal-comment-body.clamped {
   display: -webkit-box;
