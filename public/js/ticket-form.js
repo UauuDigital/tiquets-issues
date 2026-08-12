@@ -1,6 +1,7 @@
 const authGate = document.getElementById('authGate');
 const authGateMessage = document.getElementById('authGateMessage');
 const authGateLink = document.getElementById('authGateLink');
+const pageHead = document.getElementById('pageHead');
 const headerLoginLink = document.getElementById('headerLoginLink');
 const adminLink = document.getElementById('adminLink');
 const ticketBlock = document.querySelector('.ticket');
@@ -24,14 +25,10 @@ async function syncAuthGate() {
     cachedAccessToken = null;
     authGate.hidden = false;
     ticketBlock.hidden = true;
+    if (pageHead) pageHead.hidden = true;
     authGateMessage.textContent = 'Cal iniciar sessió per crear un tiquet nou.';
     authGateLink.textContent = 'Iniciar sessió';
     authGateLink.href = 'login.html';
-    if (headerLoginLink) {
-      headerLoginLink.textContent = 'Iniciar sessió';
-      headerLoginLink.onclick = null;
-      headerLoginLink.href = 'login.html';
-    }
     syncAdminLink(null);
     return;
   }
@@ -41,14 +38,10 @@ async function syncAuthGate() {
     cachedAccessToken = null;
     authGate.hidden = false;
     ticketBlock.hidden = true;
+    if (pageHead) pageHead.hidden = true;
     authGateMessage.textContent = 'La teva sol·licitud d\'accés encara no ha estat aprovada per un administrador.';
     authGateLink.textContent = 'Sol·licitar accés';
     authGateLink.href = 'registre.html';
-    if (headerLoginLink) {
-      headerLoginLink.textContent = 'Iniciar sessió';
-      headerLoginLink.onclick = null;
-      headerLoginLink.href = 'login.html';
-    }
     syncAdminLink(null);
     return;
   }
@@ -56,6 +49,7 @@ async function syncAuthGate() {
   cachedAccessToken = session.access_token;
   authGate.hidden = true;
   ticketBlock.hidden = false;
+  if (pageHead) pageHead.hidden = false;
   if (headerLoginLink) {
     headerLoginLink.textContent = `Tancar sessió (${usuari.nom})`;
     headerLoginLink.href = '#';

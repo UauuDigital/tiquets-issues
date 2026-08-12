@@ -18,6 +18,15 @@ header.page-head { margin-bottom: 36px; }
   }
   header.page-head { grid-column: 2; margin-bottom: 0; }
   .ticket { grid-column: 3; }
+  .auth-gate { grid-column: 3; }
+
+  /* Sense sessio, l'<header> queda amagat i .auth-gate es l'unic bloc
+     visible: es passa d'una graella de 2 columnes a un layout centrat
+     de veritat, en lloc de deixar la caixa penjada a la columna 3. */
+  .wrap:has(#pageHead[hidden]) {
+    display: flex;
+    justify-content: center;
+  }
 }
 
 .admin-link[hidden] { display: none; }
@@ -28,8 +37,8 @@ header.page-head { margin-bottom: 36px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   color: var(--ink-soft);
   opacity: 0.35;
@@ -112,7 +121,7 @@ h1 {
   text-align: center;
   color: #fff;
   text-decoration: none;
-  background: #384562;
+  background: var(--brand-panel);
   border-radius: 8px;
   transition: background-color 0.15s ease, transform 0.15s ease;
 }

@@ -209,7 +209,7 @@ button.submit {
   font-weight: 600;
   font-size: 14px;
   padding: 13px 18px;
-  background: #384562;
+  background: var(--brand-panel);
   color: #fff;
   border: none;
   border-radius: 9px;

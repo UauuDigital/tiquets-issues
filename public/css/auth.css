@@ -78,7 +78,7 @@ body {
 .auth-card button:hover { background-color: var(--action-hover); }
 .auth-card button:disabled { opacity: 0.6; cursor: progress; }
 
-.auth-card .error { color: #dc2626; font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
+.auth-card .error { color: var(--danger); font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
 .auth-card .success { color: var(--success); font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
 
 .auth-card .auth-back-link {

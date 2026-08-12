@@ -24,7 +24,7 @@
 .ticket-stub {
   width: 220px;
   flex-shrink: 0;
-  background: #384562;
+  background: var(--brand-panel);
   color: #f2f5fa;
   padding: 28px 22px;
   position: relative;
@@ -84,6 +84,16 @@
 .stub-priority[data-level="mitjana"] { background: var(--priority-mitjana); }
 .stub-priority[data-level="alta"]    { background: var(--priority-alta); }
 .stub-priority[data-level="critica"] { background: var(--priority-critica); }
+
+/* La bombolla "Baixa"/"Mitjana"/... del slider de prioritat es
+   posiciona en absolut per sobre del track (veure .priority-bubble),
+   i el padding-top de .priority-slider li reserva l'espai. Aixo fa
+   que el track (el control interactiu real) quedi mes avall que el
+   desplegable de Categoria, que no te cap bombolla al damunt. Per
+   tenir els dos controls de la fila al mateix nivell visual, el
+   trigger del select de Categoria es desplaça la mateixa distancia
+   que reserva la bombolla. */
+#category + .select-trigger { margin-top: 28px; }
 
 /* --- Priority slider --- */
 .priority-slider {
@@ -158,6 +168,14 @@
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.22s ease;
 }
 .priority-slider input[type="range"]:active::-moz-range-thumb { transform: scale(1.15); }
+
+/* Nomes en dispositius tactils (sense ratoli de precisio) el thumb
+   creix per facilitar agafar-lo amb el dit; a escriptori es queda
+   exactament com abans (20px webkit / 14px moz). */
+@media (pointer: coarse) {
+  .priority-slider input[type="range"]::-webkit-slider-thumb { width: 28px; height: 28px; }
+  .priority-slider input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; }
+}
 
 .priority-ticks {
   display: flex;

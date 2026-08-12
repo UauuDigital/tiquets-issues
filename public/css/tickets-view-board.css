@@ -206,8 +206,8 @@
   border-radius: 999px;
   white-space: nowrap;
 }
-.status-badge[data-status="no_comencat"] { background: #eef0f3; color: #4b5563; }
-.status-badge[data-status="comencat"]    { background: #e3edfd; color: #1d4ed8; }
-.status-badge[data-status="en_espera"]   { background: #fbedd6; color: #96450a; }
-.status-badge[data-status="acabat"]      { background: #e0f5e6; color: #136934; }
-.status-badge[data-status="cancelat"]    { background: #fbe4e4; color: #b91c1c; }
+.status-badge[data-status="no_comencat"] { background: var(--status-no-comencat-bg); color: var(--status-no-comencat-ink); }
+.status-badge[data-status="comencat"]    { background: var(--status-comencat-bg); color: var(--status-comencat-ink); }
+.status-badge[data-status="en_espera"]   { background: var(--status-en-espera-bg); color: var(--status-en-espera-ink); }
+.status-badge[data-status="acabat"]      { background: var(--status-acabat-bg); color: var(--status-acabat-ink); }
+.status-badge[data-status="cancelat"]    { background: var(--status-cancelat-bg); color: var(--status-cancelat-ink); }

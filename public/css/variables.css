@@ -23,11 +23,26 @@
   --success: #2c7a7b;
   --success-bg: #e4f2f1;
   --danger: #c0392b;
+  --danger-hover: #a53225;
   --danger-bg: #fbeae8;
   --priority-baixa: var(--success);
   --priority-mitjana: #ca8a04;
   --priority-alta: #ea580c;
   --priority-critica: #b91c1c;
+  /* Panell secundari (stub del bitllet, botons "tickets-link"/"secondary"):
+     mateix blau fosc que --brand però amb el seu propi token perque en
+     mode fosc pugui aclarir-se sense afectar la insignia de marca. */
+  --brand-panel: #384562;
+  --status-no-comencat-bg: #eef0f3;
+  --status-no-comencat-ink: #4b5563;
+  --status-comencat-bg: #e3edfd;
+  --status-comencat-ink: #1d4ed8;
+  --status-en-espera-bg: #fbedd6;
+  --status-en-espera-ink: #b45309;
+  --status-acabat-bg: #e0f5e6;
+  --status-acabat-ink: #15803d;
+  --status-cancelat-bg: #fbe4e4;
+  --status-cancelat-ink: #b91c1c;
   --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
   --font-ui: 'Inter', system-ui, 'Segoe UI', sans-serif;
   --radius: 14px;
@@ -50,6 +65,17 @@
     --bg-glow: #1b2846;
     --action: #3a5490;
     --action-hover: #4a68ac;
+    --brand-panel: #2a3555;
+    --status-no-comencat-bg: #2b3348;
+    --status-no-comencat-ink: #b7c1d9;
+    --status-comencat-bg: #1f3358;
+    --status-comencat-ink: #8fb3f7;
+    --status-en-espera-bg: #3a2f18;
+    --status-en-espera-ink: #f0b862;
+    --status-acabat-bg: #16332a;
+    --status-acabat-ink: #6fd393;
+    --status-cancelat-bg: #3a1f1c;
+    --status-cancelat-ink: #f19b90;
   }
 }
 

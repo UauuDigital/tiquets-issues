@@ -42,7 +42,7 @@ h1 { font-size: 28px; margin-bottom: 0.25rem; }
   text-align: center;
   color: #fff;
   text-decoration: none;
-  background: #384562;
+  background: var(--brand-panel);
   border-radius: 8px;
   transition: background-color 0.15s ease;
 }
@@ -98,12 +98,12 @@ button {
 button.secondary:not(.icon-btn) { background: var(--ink-soft); }
 button.danger:not(.icon-btn) { background: var(--danger); }
 button:hover { background-color: var(--action-hover); }
-button.secondary:not(.icon-btn):hover { background-color: #384562; }
-button.danger:not(.icon-btn):hover { background-color: #a53225; }
+button.secondary:not(.icon-btn):hover { background-color: var(--brand-panel); }
+button.danger:not(.icon-btn):hover { background-color: var(--danger-hover); }
 
 .form-actions { display: flex; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
 
-.error { color: #dc2626; font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
+.error { color: var(--danger); font-size: 0.85rem; margin-bottom: 0.75rem; display: none; }
 .empty { color: var(--ink-soft); font-size: 0.9rem; padding: 2.5rem 1rem; text-align: center; }
 .muted { color: var(--ink-soft); font-size: 0.8rem; }
 
