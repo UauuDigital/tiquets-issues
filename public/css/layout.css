@@ -20,6 +20,7 @@ header.page-head { margin-bottom: 36px; }
   .ticket { grid-column: 3; }
 }
 
+.admin-link[hidden] { display: none; }
 .admin-link {
   position: fixed;
   right: 16px;
