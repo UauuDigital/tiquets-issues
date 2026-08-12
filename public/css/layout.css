@@ -93,6 +93,10 @@ h1 {
   flex-direction: column;
   gap: 10px;
   width: 100%;
+  /* La unitat ch es calcula amb la mida de font de l'element mateix: cal
+     que coincideixi amb la de .project-description (14px) perque els
+     52ch donin exactament la mateixa amplada en pixels als dos. */
+  font-size: 14px;
   max-width: 52ch;
   margin-top: 20px;
 }
