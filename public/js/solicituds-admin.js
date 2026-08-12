@@ -14,10 +14,12 @@ function escapeHtml(str) {
 
 function solicitudCardHtml(s) {
   return `
-    <div class="card" data-id="${s.id}">
-      <p><strong>${escapeHtml(s.nom)}</strong> — ${escapeHtml(s.email)}</p>
-      ${s.missatge ? `<p class="muted">${escapeHtml(s.missatge)}</p>` : ''}
-      <div class="form-actions">
+    <div class="card solicitud-card" data-id="${s.id}">
+      <div class="solicitud-info">
+        <p class="solicitud-name"><strong>${escapeHtml(s.nom)}</strong> — ${escapeHtml(s.email)}</p>
+        ${s.missatge ? `<p class="solicitud-message">${escapeHtml(s.missatge)}</p>` : ''}
+      </div>
+      <div class="solicitud-actions">
         <button type="button" data-accept="${s.id}">Acceptar</button>
         <button type="button" class="secondary" data-reject="${s.id}">Rebutjar</button>
       </div>

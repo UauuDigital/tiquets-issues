@@ -42,12 +42,7 @@
   <h1>Sol·licituds d'accés</h1>
   <p class="subtitle">Persones que han demanat poder crear tiquets. Només es mostren les que ja han confirmat el seu correu.</p>
 
-  <p class="error" id="solicitudsError"></p>
-  <p class="empty" id="solicitudsEmptyMsg" style="display:none;">No hi ha cap sol·licitud pendent.</p>
-
-  <div id="solicitudsList"></div>
-
-  <div class="card" style="margin-top:2rem;border-color:var(--accent);">
+  <div class="card" style="border-color:var(--accent);">
     <h2 style="font-size:1rem;margin-top:0;">⚠️ Només per a proves: generar magic link sense correu</h2>
     <p class="muted">Mentre Resend no estigui configurat, això permet provar el login sense topar amb el límit de correu de Supabase. Eliminar aquesta eina abans de publicar-ho de debò.</p>
     <div class="row">
@@ -62,6 +57,11 @@
     <p class="error" id="devMagicLinkError"></p>
     <p id="devMagicLinkResult" style="word-break:break-all;display:none;"></p>
   </div>
+
+  <p class="error" id="solicitudsError"></p>
+  <p class="empty" id="solicitudsEmptyMsg" style="display:none;">No hi ha cap sol·licitud pendent.</p>
+
+  <div id="solicitudsList"></div>
 
   </div>
 </div>

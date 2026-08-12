@@ -25,15 +25,28 @@ body {
 
 h1 { font-size: 28px; margin-bottom: 0.25rem; }
 .subtitle { color: var(--ink-soft); margin-top: 0; margin-bottom: 0.75rem; font-size: 0.9rem; }
-.tickets-admin-link {
-  display: inline-block;
+.admin-nav-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 16px;
   margin-bottom: 1.5rem;
+}
+.tickets-admin-link {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 12px 14px;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--ink);
+  text-align: center;
+  color: #fff;
   text-decoration: none;
+  background: #384562;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
 }
-.tickets-admin-link:hover { text-decoration: underline; }
+.tickets-admin-link:hover { color: #fff; background: var(--brand); text-decoration: none; }
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -41,6 +54,18 @@ h1 { font-size: 28px; margin-bottom: 0.25rem; }
   padding: 1.25rem;
   margin-bottom: 1.5rem;
 }
+.solicitud-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.6rem;
+}
+.solicitud-info { min-width: 0; }
+.solicitud-name { margin: 0; font-size: 0.9rem; }
+.solicitud-message { margin: 0.25rem 0 0; font-size: 0.82rem; color: var(--ink-soft); }
+.solicitud-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
 label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }
 input, textarea, select {
   width: 100%;
@@ -73,7 +98,7 @@ button {
 button.secondary:not(.icon-btn) { background: var(--ink-soft); }
 button.danger:not(.icon-btn) { background: var(--danger); }
 button:hover { background-color: var(--action-hover); }
-button.secondary:not(.icon-btn):hover { background-color: #46567a; }
+button.secondary:not(.icon-btn):hover { background-color: #384562; }
 button.danger:not(.icon-btn):hover { background-color: #a53225; }
 
 .form-actions { display: flex; justify-content: center; gap: 0.75rem; margin-top: 0.5rem; }
