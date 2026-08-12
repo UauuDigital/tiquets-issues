@@ -86,12 +86,23 @@ h1 {
 }
 .project-description.visible { display: block; }
 
+.header-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 52ch;
+  margin-top: 20px;
+}
+
 .tickets-link {
-  display: inline-block;
-  margin-top: 16px;
+  display: block;
+  padding: 12px 14px;
   font-family: var(--mono);
   font-size: 13px;
   color: var(--ink-soft);
   text-decoration: none;
+  background: rgba(22,35,63,0.05);
+  border-radius: 8px;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
-.tickets-link:hover { color: var(--ink); text-decoration: underline; }
+.tickets-link:hover { color: var(--ink); background: rgba(22,35,63,0.08); text-decoration: none; }
