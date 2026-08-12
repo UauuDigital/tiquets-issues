@@ -65,3 +65,38 @@ solicitudsList.addEventListener('click', async (e) => {
 });
 
 document.addEventListener('admin-authenticated', loadSolicituds);
+
+// NOMÉS PER A PROVES: vegeu la nota a routes/admin.js sobre POST
+// /api/admin/dev-magic-link. Eliminar aquest bloc abans de publicar-ho de debò.
+const devMagicLinkBtn = document.getElementById('devMagicLinkBtn');
+const devMagicLinkEmail = document.getElementById('devMagicLinkEmail');
+const devMagicLinkError = document.getElementById('devMagicLinkError');
+const devMagicLinkResult = document.getElementById('devMagicLinkResult');
+
+devMagicLinkBtn.addEventListener('click', async () => {
+  devMagicLinkError.style.display = 'none';
+  devMagicLinkResult.style.display = 'none';
+  const email = devMagicLinkEmail.value.trim();
+  if (!email) return;
+
+  devMagicLinkBtn.disabled = true;
+  devMagicLinkBtn.textContent = 'Generant…';
+  try {
+    const res = await fetch('/api/admin/dev-magic-link', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+
+    devMagicLinkResult.innerHTML = `<a href="${data.url}" target="_blank" rel="noopener">${data.url}</a>`;
+    devMagicLinkResult.style.display = 'block';
+  } catch (err) {
+    devMagicLinkError.textContent = err.message;
+    devMagicLinkError.style.display = 'block';
+  } finally {
+    devMagicLinkBtn.disabled = false;
+    devMagicLinkBtn.textContent = 'Generar enllaç';
+  }
+});

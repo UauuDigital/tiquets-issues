@@ -17,6 +17,8 @@ const {
   verifyGithubRepo,
   normalizeProjectUrl
 } = require('../lib/github-api');
+const { supabaseAdmin, tiquets } = require('../lib/supabase');
+const { sendRejectedEmail } = require('../lib/resend');
 
 const router = express.Router();
 
@@ -365,6 +367,116 @@ router.put('/api/admin/repos/:id', requireAdmin, async (req, res) => {
 router.delete('/api/admin/repos/:id', requireAdmin, (req, res) => {
   const ok = reposStore.remove(req.params.id);
   if (!ok) return res.status(404).json({ error: 'Repositori no trobat.' });
+  res.status(204).end();
+});
+
+// NOMÉS PER A PROVES: genera un magic link vàlid sense enviar cap correu
+// (Supabase el crea però no l'envia), per poder provar el login mentre el
+// mailer per defecte de Supabase està limitat i el SMTP de Resend encara
+// no està configurat. Eliminar aquest endpoint abans de publicar-ho de debò.
+router.post('/api/admin/dev-magic-link', requireAdmin, async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const email = (req.body?.email || '').trim().toLowerCase();
+  if (!email) return res.status(400).json({ error: 'Cal indicar un correu.' });
+
+  const publicBaseUrl = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+  const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+    type: 'magiclink',
+    email,
+    options: { redirectTo: `${publicBaseUrl}/login.html` }
+  });
+  if (error) {
+    console.error('Error generant magic link de prova:', error);
+    return res.status(500).json({ error: error.message || 'No s\'ha pogut generar l\'enllaç.' });
+  }
+  res.json({ url: data.properties.action_link });
+});
+
+// Llista sol·licituds d'accés verificades i pendents d'aprovar.
+router.get('/api/admin/solicituds', requireAdmin, async (_req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const { data, error } = await tiquets(supabaseAdmin)
+    .from('solicituds_registre')
+    .select('id, email, nom, missatge, creat_el')
+    .eq('estat', 'pendent')
+    .eq('email_verificat', true)
+    .order('creat_el', { ascending: true });
+  if (error) {
+    console.error('Error llistant sol·licituds de registre:', error);
+    return res.status(500).json({ error: 'No s\'han pogut carregar les sol·licituds.' });
+  }
+  res.json(data);
+});
+
+// Accepta una sol·licitud: crea l'usuari a Supabase Auth via invitació
+// (Supabase envia el propi correu d'invitació) i el desa a tiquets.usuaris.
+router.post('/api/admin/solicituds/:id/acceptar', requireAdmin, async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const { data: solicitud } = await tiquets(supabaseAdmin)
+    .from('solicituds_registre')
+    .select('id, email, nom, estat, email_verificat')
+    .eq('id', req.params.id)
+    .maybeSingle();
+
+  if (!solicitud) return res.status(404).json({ error: 'Sol·licitud no trobada.' });
+  if (solicitud.estat !== 'pendent' || !solicitud.email_verificat) {
+    return res.status(400).json({ error: 'Aquesta sol·licitud no es pot acceptar (no està pendent o l\'email no s\'ha verificat).' });
+  }
+
+  const { data: invited, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(solicitud.email);
+  if (inviteError) {
+    console.error('Error invitant usuari a Supabase Auth:', inviteError);
+    return res.status(500).json({ error: 'No s\'ha pogut crear l\'usuari.' });
+  }
+
+  const { error: insertError } = await tiquets(supabaseAdmin)
+    .from('usuaris')
+    .insert({ id: invited.user.id, email: solicitud.email, nom: solicitud.nom, actiu: true });
+  if (insertError) {
+    console.error('Error inserint a usuaris:', insertError);
+    return res.status(500).json({ error: 'No s\'ha pogut desar l\'usuari.' });
+  }
+
+  await tiquets(supabaseAdmin)
+    .from('solicituds_registre')
+    .update({ estat: 'acceptat' })
+    .eq('id', solicitud.id);
+
+  res.json({ ok: true });
+});
+
+// Rebutja una sol·licitud.
+router.post('/api/admin/solicituds/:id/rebutjar', requireAdmin, async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const { data: solicitud } = await tiquets(supabaseAdmin)
+    .from('solicituds_registre')
+    .select('id, email, nom, estat')
+    .eq('id', req.params.id)
+    .maybeSingle();
+
+  if (!solicitud) return res.status(404).json({ error: 'Sol·licitud no trobada.' });
+  if (solicitud.estat !== 'pendent') {
+    return res.status(400).json({ error: 'Aquesta sol·licitud ja no està pendent.' });
+  }
+
+  const { error } = await tiquets(supabaseAdmin)
+    .from('solicituds_registre')
+    .update({ estat: 'rebutjat' })
+    .eq('id', solicitud.id);
+  if (error) {
+    console.error('Error rebutjant sol·licitud:', error);
+    return res.status(500).json({ error: 'No s\'ha pogut rebutjar la sol·licitud.' });
+  }
+
+  await sendRejectedEmail({ to: solicitud.email, nom: solicitud.nom });
   res.status(204).end();
 });
 

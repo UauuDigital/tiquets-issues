@@ -47,6 +47,22 @@
 
   <div id="solicitudsList"></div>
 
+  <div class="card" style="margin-top:2rem;border-color:var(--accent);">
+    <h2 style="font-size:1rem;margin-top:0;">⚠️ Només per a proves: generar magic link sense correu</h2>
+    <p class="muted">Mentre Resend no estigui configurat, això permet provar el login sense topar amb el límit de correu de Supabase. Eliminar aquesta eina abans de publicar-ho de debò.</p>
+    <div class="row">
+      <div>
+        <label for="devMagicLinkEmail">Correu de l'usuari</label>
+        <input type="email" id="devMagicLinkEmail" placeholder="Ex: martifarranc@gmail.com">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="button" id="devMagicLinkBtn">Generar enllaç</button>
+    </div>
+    <p class="error" id="devMagicLinkError"></p>
+    <p id="devMagicLinkResult" style="word-break:break-all;display:none;"></p>
+  </div>
+
   </div>
 </div>
 
