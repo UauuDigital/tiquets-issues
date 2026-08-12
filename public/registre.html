@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sol·licitar accés — Portal de tiquets</title>
+<link rel="icon" href="assets/favicon.ico">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+<div class="auth-card">
+  <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · Portal de tiquets</div>
+  <h1>Sol·licitar accés</h1>
+  <p class="subtitle">Per crear tiquets cal que un administrador aprovi el teu accés. Emplena aquest formulari i rebràs un correu de confirmació.</p>
+
+  <p class="error" id="formError"></p>
+  <p class="success" id="formSuccess"></p>
+
+  <form id="registreForm">
+    <label for="nom">Nom</label>
+    <input type="text" id="nom" name="nom" autocomplete="name" required>
+
+    <label for="email">Correu</label>
+    <input type="email" id="email" name="email" autocomplete="email" required>
+
+    <label for="missatge">Per què vols accés? <span style="font-weight:400">(opcional)</span></label>
+    <textarea id="missatge" name="missatge"></textarea>
+
+    <button type="submit" id="submitBtn">Sol·licitar accés</button>
+  </form>
+
+  <a href="login.html" class="auth-back-link">Ja tens accés? Inicia sessió</a>
+</div>
+
+<script src="js/error-messages.js" defer></script>
+<script src="js/registre-form.js" defer></script>
+</body>
+</html>
