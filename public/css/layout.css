@@ -75,6 +75,8 @@ h1 {
 
 .project-description {
   display: none;
+  box-sizing: border-box;
+  width: 100%;
   margin: 14px 0 0;
   padding: 12px 14px;
   max-width: 52ch;
@@ -90,19 +92,28 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
   max-width: 52ch;
   margin-top: 20px;
 }
 
 .tickets-link {
   display: block;
+  box-sizing: border-box;
+  width: 100%;
   padding: 12px 14px;
   font-family: var(--mono);
   font-size: 13px;
-  color: var(--ink-soft);
+  text-align: center;
+  color: var(--ink);
   text-decoration: none;
   background: rgba(22,35,63,0.05);
   border-radius: 8px;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .tickets-link:hover { color: var(--ink); background: rgba(22,35,63,0.08); text-decoration: none; }
+
+.tickets-link-session:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}

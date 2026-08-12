@@ -28,7 +28,7 @@ async function syncAuthGate() {
     authGateLink.textContent = 'Iniciar sessió';
     authGateLink.href = 'login.html';
     if (headerLoginLink) {
-      headerLoginLink.textContent = 'Iniciar sessió →';
+      headerLoginLink.textContent = 'Iniciar sessió';
       headerLoginLink.onclick = null;
       headerLoginLink.href = 'login.html';
     }
@@ -45,7 +45,7 @@ async function syncAuthGate() {
     authGateLink.textContent = 'Sol·licitar accés';
     authGateLink.href = 'registre.html';
     if (headerLoginLink) {
-      headerLoginLink.textContent = 'Iniciar sessió →';
+      headerLoginLink.textContent = 'Iniciar sessió';
       headerLoginLink.onclick = null;
       headerLoginLink.href = 'login.html';
     }
@@ -57,7 +57,7 @@ async function syncAuthGate() {
   authGate.hidden = true;
   ticketBlock.hidden = false;
   if (headerLoginLink) {
-    headerLoginLink.textContent = `Tancar sessió (${usuari.nom}) →`;
+    headerLoginLink.textContent = `Tancar sessió (${usuari.nom})`;
     headerLoginLink.href = '#';
     headerLoginLink.onclick = (e) => { e.preventDefault(); AuthSession.signOut(); };
   }
