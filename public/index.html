@@ -17,7 +17,13 @@
     <p class="subtitle">Explica'ns el problema o la petició. En enviar el formulari es crea automàticament una incidència a l'equip tècnic.</p>
     <p class="project-description" id="project-description"></p>
     <a href="tickets.html" class="tickets-link">Veure tiquets oberts →</a>
+    <a href="login.html" class="tickets-link" id="headerLoginLink">Iniciar sessió →</a>
   </header>
+
+  <div class="auth-gate" id="authGate" hidden>
+    <p id="authGateMessage"></p>
+    <a href="login.html" class="auth-gate-link" id="authGateLink">Iniciar sessió</a>
+  </div>
 
   <div class="ticket">
     <div class="ticket-main">
@@ -160,6 +166,10 @@
   </a>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/supabase-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth-session.js"></script>
 <script src="js/error-messages.js" defer></script>
 <script src="js/custom-select.js" defer></script>
 <script src="js/ticket-form.js" defer></script>

@@ -1,4 +1,5 @@
 /* --- Bitllet / ticket card --- */
+.ticket[hidden] { display: none; }
 .ticket {
   position: relative;
   display: flex;

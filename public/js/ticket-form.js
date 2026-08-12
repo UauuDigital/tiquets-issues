@@ -1,3 +1,57 @@
+const authGate = document.getElementById('authGate');
+const authGateMessage = document.getElementById('authGateMessage');
+const authGateLink = document.getElementById('authGateLink');
+const headerLoginLink = document.getElementById('headerLoginLink');
+const ticketBlock = document.querySelector('.ticket');
+
+let cachedAccessToken = null;
+
+async function syncAuthGate() {
+  const session = await AuthSession.getSession();
+  if (!session) {
+    cachedAccessToken = null;
+    authGate.hidden = false;
+    ticketBlock.hidden = true;
+    authGateMessage.textContent = 'Cal iniciar sessió per crear un tiquet nou.';
+    authGateLink.textContent = 'Iniciar sessió';
+    authGateLink.href = 'login.html';
+    if (headerLoginLink) {
+      headerLoginLink.textContent = 'Iniciar sessió →';
+      headerLoginLink.onclick = null;
+      headerLoginLink.href = 'login.html';
+    }
+    return;
+  }
+
+  const usuari = await AuthSession.getUsuari();
+  if (!usuari || !usuari.actiu) {
+    cachedAccessToken = null;
+    authGate.hidden = false;
+    ticketBlock.hidden = true;
+    authGateMessage.textContent = 'La teva sol·licitud d\'accés encara no ha estat aprovada per un administrador.';
+    authGateLink.textContent = 'Sol·licitar accés';
+    authGateLink.href = 'registre.html';
+    if (headerLoginLink) {
+      headerLoginLink.textContent = 'Iniciar sessió →';
+      headerLoginLink.onclick = null;
+      headerLoginLink.href = 'login.html';
+    }
+    return;
+  }
+
+  cachedAccessToken = session.access_token;
+  authGate.hidden = true;
+  ticketBlock.hidden = false;
+  if (headerLoginLink) {
+    headerLoginLink.textContent = `Tancar sessió (${usuari.nom}) →`;
+    headerLoginLink.href = '#';
+    headerLoginLink.onclick = (e) => { e.preventDefault(); AuthSession.signOut(); };
+  }
+}
+
+AuthSession.onChange(() => syncAuthGate());
+syncAuthGate();
+
 const form = document.getElementById('ticket-form');
 const submitBtn = document.getElementById('submit-btn');
 const submitBtnText = document.getElementById('submit-btn-text');
@@ -286,6 +340,7 @@ form.addEventListener('submit', async (e) => {
   try {
     const res = await fetch('/api/tickets', {
       method: 'POST',
+      headers: cachedAccessToken ? { Authorization: `Bearer ${cachedAccessToken}` } : {},
       body: formData
     });
     const data = await res.json();
