@@ -2,9 +2,21 @@ const authGate = document.getElementById('authGate');
 const authGateMessage = document.getElementById('authGateMessage');
 const authGateLink = document.getElementById('authGateLink');
 const headerLoginLink = document.getElementById('headerLoginLink');
+const adminLink = document.getElementById('adminLink');
 const ticketBlock = document.querySelector('.ticket');
 
 let cachedAccessToken = null;
+
+// La icona nomes es mostra si l'email de la sessio activa es a
+// window.ADMIN_EMAILS (exposat per /js/supabase-config.js a partir de
+// ADMIN_NOTIFY_EMAILS). Nomes es un ajut de navegacio: l'accés real a
+// /admin.html el protegeix ADMIN_TOKEN, no aquesta comprovació.
+function syncAdminLink(usuari) {
+  if (!adminLink) return;
+  const adminEmails = window.ADMIN_EMAILS || [];
+  const isAdmin = usuari && adminEmails.includes((usuari.email || '').toLowerCase());
+  adminLink.hidden = !isAdmin;
+}
 
 async function syncAuthGate() {
   const session = await AuthSession.getSession();
@@ -20,6 +32,7 @@ async function syncAuthGate() {
       headerLoginLink.onclick = null;
       headerLoginLink.href = 'login.html';
     }
+    syncAdminLink(null);
     return;
   }
 
@@ -36,6 +49,7 @@ async function syncAuthGate() {
       headerLoginLink.onclick = null;
       headerLoginLink.href = 'login.html';
     }
+    syncAdminLink(null);
     return;
   }
 
@@ -47,6 +61,7 @@ async function syncAuthGate() {
     headerLoginLink.href = '#';
     headerLoginLink.onclick = (e) => { e.preventDefault(); AuthSession.signOut(); };
   }
+  syncAdminLink(usuari);
 }
 
 AuthSession.onChange(() => syncAuthGate());

@@ -43,9 +43,16 @@ app.use(authRouter);
 // L'anon key de Supabase és pública per disseny (queda protegida per la
 // RLS de cada taula), però no la volem hardcodejada al repositori.
 app.get('/js/supabase-config.js', (_req, res) => {
+  const adminEmails = (process.env.ADMIN_NOTIFY_EMAILS || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
   res.type('application/javascript').send(
     `window.SUPABASE_URL = ${JSON.stringify(process.env.SUPABASE_URL || '')};\n` +
-    `window.SUPABASE_ANON_KEY = ${JSON.stringify(process.env.SUPABASE_ANON_KEY || '')};\n`
+    `window.SUPABASE_ANON_KEY = ${JSON.stringify(process.env.SUPABASE_ANON_KEY || '')};\n` +
+    // Nomes per mostrar/amagar la icona d'administracio al portal; no es
+    // cap control de seguretat real (aixo el fa ADMIN_TOKEN al backend).
+    `window.ADMIN_EMAILS = ${JSON.stringify(adminEmails)};\n`
   );
 });
 
