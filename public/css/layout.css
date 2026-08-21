@@ -20,10 +20,13 @@ header.page-head { margin-bottom: 36px; }
   .ticket { grid-column: 3; }
   .auth-gate { grid-column: 3; }
 
-  /* Sense sessio, l'<header> queda amagat i .auth-gate es l'unic bloc
-     visible: es passa d'una graella de 2 columnes a un layout centrat
-     de veritat, en lloc de deixar la caixa penjada a la columna 3. */
-  .wrap:has(#pageHead[hidden]) {
+  /* Quan .auth-gate es l'unic bloc visible (sense sessio i sense permis
+     per veure el tiquet), es passa d'una graella de 2 columnes a un layout
+     centrat de veritat, en lloc de deixar la caixa penjada a la columna 3.
+     Cal mirar .auth-gate concretament (no #pageHead): hi ha estats sense
+     sessio en que el .ticket es mostra igualment i l'#pageHead es l'unic
+     amagat, i llavors la graella normal de 3 columnes s'ha de mantenir. */
+  .wrap:has(#authGate:not([hidden])) {
     display: flex;
     justify-content: center;
   }
