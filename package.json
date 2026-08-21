@@ -5,7 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "killzombie": "pkill -f 'node server.js' || true; sleep 1; pkill -9 -f 'node server.js' || true; echo OK"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.109.0",
@@ -14,7 +15,8 @@
     "express-rate-limit": "^7.4.0",
     "multer": "^2.2.0",
     "nodemailer": "^9.0.3",
-    "resend": "^6.19.0"
+    "resend": "^6.19.0",
+    "ws": "^8.21.3"
   },
   "engines": {
     "node": ">=18"
