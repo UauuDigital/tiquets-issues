@@ -66,4 +66,68 @@ solicitudsList.addEventListener('click', async (e) => {
   }
 });
 
+const usuarisList = document.getElementById('usuarisList');
+const usuarisError = document.getElementById('usuarisError');
+const usuarisEmptyMsg = document.getElementById('usuarisEmptyMsg');
+
+function usuariCardHtml(u) {
+  return `
+    <div class="card solicitud-card" data-id="${u.id}">
+      <div class="solicitud-info">
+        <p class="solicitud-name"><strong>${escapeHtml(u.nom || '(sense nom)')}</strong> — ${escapeHtml(u.email)}</p>
+        <p class="solicitud-message">${u.actiu ? 'Accés actiu' : 'Accés revocat'}</p>
+      </div>
+      <div class="solicitud-actions">
+        ${u.actiu
+          ? `<button type="button" class="secondary" data-revoke="${u.id}">Revocar accés</button>`
+          : `<button type="button" data-restore="${u.id}">Restaurar accés</button>`}
+      </div>
+    </div>
+  `;
+}
+
+async function loadUsuaris() {
+  usuarisError.style.display = 'none';
+  try {
+    const res = await fetch('/api/admin/usuaris', { headers: authHeaders() });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Error ${res.status}`);
+    }
+    const usuaris = await res.json();
+    usuarisEmptyMsg.style.display = usuaris.length ? 'none' : 'block';
+    usuarisList.innerHTML = usuaris.map(usuariCardHtml).join('');
+  } catch (err) {
+    usuarisError.textContent = err.message;
+    usuarisError.style.display = 'block';
+  }
+}
+
+usuarisList.addEventListener('click', async (e) => {
+  const revokeBtn = e.target.closest('[data-revoke]');
+  const restoreBtn = e.target.closest('[data-restore]');
+  if (!revokeBtn && !restoreBtn) return;
+
+  const id = (revokeBtn || restoreBtn).dataset.revoke || (revokeBtn || restoreBtn).dataset.restore;
+  const actiu = !!restoreBtn;
+  if (revokeBtn && !window.confirm('Segur que vols revocar l\'accés d\'aquest usuari?')) return;
+
+  try {
+    const res = await fetch(`/api/admin/usuaris/${id}`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ actiu })
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || `Error ${res.status}`);
+    }
+    loadUsuaris();
+  } catch (err) {
+    usuarisError.textContent = err.message;
+    usuarisError.style.display = 'block';
+  }
+});
+
 document.addEventListener('admin-authenticated', loadSolicituds);
+document.addEventListener('admin-authenticated', loadUsuaris);

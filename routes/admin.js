@@ -388,6 +388,45 @@ router.get('/api/admin/solicituds', requireAdmin, async (_req, res) => {
   res.json(data);
 });
 
+// Llista els usuaris que tenen accés al portal de tiquets.
+router.get('/api/admin/usuaris', requireAdmin, async (_req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const { data, error } = await tiquets(supabaseAdmin)
+    .from('usuaris')
+    .select('id, email, nom, actiu, creat_el')
+    .order('creat_el', { ascending: true });
+  if (error) {
+    console.error('Error llistant usuaris:', error);
+    return res.status(500).json({ error: 'No s\'han pogut carregar els usuaris.' });
+  }
+  res.json(data);
+});
+
+// Revoca o restaura l'accés d'un usuari (actiu: true/false).
+router.patch('/api/admin/usuaris/:id', requireAdmin, async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const { actiu } = req.body || {};
+  if (typeof actiu !== 'boolean') {
+    return res.status(400).json({ error: 'Cal indicar actiu (true/false).' });
+  }
+  const { data, error } = await tiquets(supabaseAdmin)
+    .from('usuaris')
+    .update({ actiu })
+    .eq('id', req.params.id)
+    .select('id, email, nom, actiu, creat_el')
+    .maybeSingle();
+  if (error) {
+    console.error('Error actualitzant usuari:', error);
+    return res.status(500).json({ error: 'No s\'ha pogut actualitzar l\'usuari.' });
+  }
+  if (!data) return res.status(404).json({ error: 'Usuari no trobat.' });
+  res.json(data);
+});
+
 // Accepta una sol·licitud: crea l'usuari a Supabase Auth via invitació
 // (Supabase envia el propi correu d'invitació) i el desa a tiquets.usuaris.
 router.post('/api/admin/solicituds/:id/acceptar', requireAdmin, async (req, res) => {
