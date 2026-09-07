@@ -45,7 +45,8 @@ loginForm.addEventListener('submit', async (e) => {
     formSuccess.textContent = 'T\'hem enviat un enllaç d\'accés al teu correu. Obre\'l des d\'aquest mateix dispositiu.';
     formSuccess.style.display = 'block';
   } catch (err) {
-    formError.textContent = ERROR_MESSAGES.submitFailed;
+    const isRateLimited = err && (err.code === 'over_email_send_rate_limit' || err.status === 429);
+    formError.textContent = isRateLimited ? ERROR_MESSAGES.loginRateLimited : ERROR_MESSAGES.submitFailed;
     formError.style.display = 'block';
   } finally {
     submitBtn.disabled = false;
