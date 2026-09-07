@@ -53,7 +53,10 @@ async function syncAuthGate() {
   if (headerLoginLink) {
     headerLoginLink.textContent = `Tancar sessió (${usuari.nom})`;
     headerLoginLink.href = '#';
-    headerLoginLink.onclick = (e) => { e.preventDefault(); AuthSession.signOut(); };
+    headerLoginLink.onclick = (e) => {
+      e.preventDefault();
+      if (window.confirm('Segur que vols tancar la sessió?')) AuthSession.signOut();
+    };
   }
   syncAdminLink(usuari);
 }
