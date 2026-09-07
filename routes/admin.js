@@ -370,30 +370,6 @@ router.delete('/api/admin/repos/:id', requireAdmin, (req, res) => {
   res.status(204).end();
 });
 
-// NOMÉS PER A PROVES: genera un magic link vàlid sense enviar cap correu
-// (Supabase el crea però no l'envia), per poder provar el login mentre el
-// mailer per defecte de Supabase està limitat i el SMTP de Resend encara
-// no està configurat. Eliminar aquest endpoint abans de publicar-ho de debò.
-router.post('/api/admin/dev-magic-link', requireAdmin, async (req, res) => {
-  if (!supabaseAdmin) {
-    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
-  }
-  const email = (req.body?.email || '').trim().toLowerCase();
-  if (!email) return res.status(400).json({ error: 'Cal indicar un correu.' });
-
-  const publicBaseUrl = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
-  const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-    type: 'magiclink',
-    email,
-    options: { redirectTo: `${publicBaseUrl}/login.html` }
-  });
-  if (error) {
-    console.error('Error generant magic link de prova:', error);
-    return res.status(500).json({ error: error.message || 'No s\'ha pogut generar l\'enllaç.' });
-  }
-  res.json({ url: data.properties.action_link });
-});
-
 // Llista sol·licituds d'accés verificades i pendents d'aprovar.
 router.get('/api/admin/solicituds', requireAdmin, async (_req, res) => {
   if (!supabaseAdmin) {
