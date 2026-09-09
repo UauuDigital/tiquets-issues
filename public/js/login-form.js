@@ -46,7 +46,11 @@ loginForm.addEventListener('submit', async (e) => {
       body: JSON.stringify({ email })
     });
     const checkData = await checkRes.json().catch(() => ({}));
-    if (!checkRes.ok) throw new Error(checkData.error || ERROR_MESSAGES.submitFailed);
+    if (!checkRes.ok) {
+      formError.textContent = checkData.error || ERROR_MESSAGES.submitFailed;
+      formError.style.display = 'block';
+      return;
+    }
 
     if (!checkData.exists) {
       loginForm.style.display = 'none';
