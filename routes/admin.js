@@ -427,6 +427,42 @@ router.patch('/api/admin/usuaris/:id', requireAdmin, async (req, res) => {
   res.json(data);
 });
 
+// Elimina definitivament un usuari (de tiquets.usuaris i de Supabase Auth).
+// Nomes es pot eliminar un usuari amb l'acces ja revocat, per evitar
+// esborrar per error algu amb acces actiu.
+router.delete('/api/admin/usuaris/:id', requireAdmin, async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const { data: usuari } = await tiquets(supabaseAdmin)
+    .from('usuaris')
+    .select('id, actiu')
+    .eq('id', req.params.id)
+    .maybeSingle();
+
+  if (!usuari) return res.status(404).json({ error: 'Usuari no trobat.' });
+  if (usuari.actiu) {
+    return res.status(400).json({ error: 'Cal revocar l\'accés abans d\'eliminar l\'usuari.' });
+  }
+
+  const { error: deleteError } = await tiquets(supabaseAdmin)
+    .from('usuaris')
+    .delete()
+    .eq('id', req.params.id);
+  if (deleteError) {
+    console.error('Error eliminant usuari de tiquets.usuaris:', deleteError);
+    return res.status(500).json({ error: 'No s\'ha pogut eliminar l\'usuari.' });
+  }
+
+  const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(req.params.id);
+  if (authDeleteError) {
+    console.error('Error eliminant usuari de Supabase Auth:', authDeleteError);
+    return res.status(500).json({ error: 'L\'usuari s\'ha eliminat del portal, però no s\'ha pogut eliminar el seu compte d\'accés. Contacta amb suport.' });
+  }
+
+  res.json({ ok: true });
+});
+
 // Accepta una sol·licitud: crea l'usuari a Supabase Auth via invitació
 // (Supabase envia el propi correu d'invitació) i el desa a tiquets.usuaris.
 router.post('/api/admin/solicituds/:id/acceptar', requireAdmin, async (req, res) => {

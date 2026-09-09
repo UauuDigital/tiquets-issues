@@ -80,7 +80,8 @@ function usuariCardHtml(u) {
       <div class="solicitud-actions">
         ${u.actiu
           ? `<button type="button" class="secondary" data-revoke="${u.id}">Revocar accés</button>`
-          : `<button type="button" data-restore="${u.id}">Restaurar accés</button>`}
+          : `<button type="button" data-restore="${u.id}">Restaurar accés</button>
+             <button type="button" class="secondary" data-delete="${u.id}">Eliminar usuari</button>`}
       </div>
     </div>
   `;
@@ -106,7 +107,29 @@ async function loadUsuaris() {
 usuarisList.addEventListener('click', async (e) => {
   const revokeBtn = e.target.closest('[data-revoke]');
   const restoreBtn = e.target.closest('[data-restore]');
-  if (!revokeBtn && !restoreBtn) return;
+  const deleteBtn = e.target.closest('[data-delete]');
+  if (!revokeBtn && !restoreBtn && !deleteBtn) return;
+
+  usuarisError.style.display = 'none';
+
+  if (deleteBtn) {
+    if (!window.confirm('Segur que vols eliminar definitivament aquest usuari? Aquesta acció no es pot desfer.')) return;
+    try {
+      const res = await fetch(`/api/admin/usuaris/${deleteBtn.dataset.delete}`, {
+        method: 'DELETE',
+        headers: authHeaders()
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Error ${res.status}`);
+      }
+      loadUsuaris();
+    } catch (err) {
+      usuarisError.textContent = err.message;
+      usuarisError.style.display = 'block';
+    }
+    return;
+  }
 
   const id = (revokeBtn || restoreBtn).dataset.revoke || (revokeBtn || restoreBtn).dataset.restore;
   const actiu = !!restoreBtn;
