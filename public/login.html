@@ -10,11 +10,16 @@
 <body>
 <div class="auth-card">
   <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · Portal de tiquets</div>
-  <h1>Inicia sessió</h1>
+  <h1 id="loginTitle">Inicia sessió</h1>
   <p class="subtitle" id="loginSubtitle">Introdueix el teu correu i et enviarem un enllaç per entrar (sense contrasenya).</p>
 
   <p class="error" id="formError"></p>
   <p class="success" id="formSuccess"></p>
+
+  <div id="notRegisteredBox" style="display:none">
+    <p class="success" style="display:block">Aquest correu no està registrat. Registra't primer per continuar.</p>
+    <a href="#" id="goToRegistreLink" class="auth-back-link">Anar a la pàgina de registre →</a>
+  </div>
 
   <form id="loginForm">
     <label for="email">Correu</label>
@@ -24,7 +29,7 @@
 
   <p id="signedInStatus" style="display:none; font-size:0.9rem; color:var(--ink-soft);"></p>
 
-  <a href="registre.html" class="auth-back-link">Encara no tens accés? Sol·licita'l</a>
+  <a href="registre.html" class="auth-back-link" id="registreLink">Encara no tens accés? Sol·licita'l</a>
   <a href="index.html" class="auth-back-link">← Tornar al portal</a>
 </div>
 

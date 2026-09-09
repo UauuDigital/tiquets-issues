@@ -3,6 +3,11 @@ const submitBtn = document.getElementById('submitBtn');
 const formError = document.getElementById('formError');
 const formSuccess = document.getElementById('formSuccess');
 const signedInStatus = document.getElementById('signedInStatus');
+const notRegisteredBox = document.getElementById('notRegisteredBox');
+const goToRegistreLink = document.getElementById('goToRegistreLink');
+const loginTitle = document.getElementById('loginTitle');
+const loginSubtitle = document.getElementById('loginSubtitle');
+const registreLink = document.getElementById('registreLink');
 
 async function handleExistingSession() {
   const session = await AuthSession.getSession();
@@ -35,9 +40,27 @@ loginForm.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   submitBtn.textContent = 'Enviant…';
   try {
+    const checkRes = await fetch('/api/auth/check-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const checkData = await checkRes.json().catch(() => ({}));
+    if (!checkRes.ok) throw new Error(checkData.error || ERROR_MESSAGES.submitFailed);
+
+    if (!checkData.exists) {
+      loginForm.style.display = 'none';
+      loginTitle.style.display = 'none';
+      loginSubtitle.style.display = 'none';
+      registreLink.style.display = 'none';
+      goToRegistreLink.href = `registre.html?email=${encodeURIComponent(email)}`;
+      notRegisteredBox.style.display = 'block';
+      return;
+    }
+
     const { error } = await window.supabaseClient.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.origin + '/login.html' }
+      options: { emailRedirectTo: window.location.origin + '/login.html', shouldCreateUser: false }
     });
     if (error) throw error;
 

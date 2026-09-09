@@ -19,6 +19,33 @@ const solicitudLimiter = rateLimit({
   message: { error: 'Massa sol·licituds enviades des d\'aquesta connexió. Torna-ho a provar més tard.' }
 });
 
+// Evita fer servir aquest endpoint per enumerar correus massivament.
+const checkEmailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Massa comprovacions seguides. Torna-ho a provar més tard.' }
+});
+
+router.post('/api/auth/check-email', checkEmailLimiter, async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const cleanEmail = ((req.body || {}).email || '').trim().toLowerCase();
+  if (!cleanEmail || !EMAIL_RE.test(cleanEmail)) {
+    return res.status(400).json({ error: 'Cal indicar un correu vàlid.' });
+  }
+
+  const { data: existingUser } = await tiquets(supabaseAdmin)
+    .from('usuaris')
+    .select('id')
+    .eq('email', cleanEmail)
+    .maybeSingle();
+
+  res.json({ exists: !!existingUser });
+});
+
 router.post('/api/auth/solicituds', solicitudLimiter, async (req, res) => {
   if (!supabaseAdmin) {
     return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });

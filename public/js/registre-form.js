@@ -5,7 +5,13 @@ const formSuccess = document.getElementById('formSuccess');
 
 // Si venim del clic al link de verificacio del correu
 // (GET /api/auth/verificar-email redirigeix aqui amb ?verificat=ok|error).
-const verificatParam = new URLSearchParams(window.location.search).get('verificat');
+const urlParams = new URLSearchParams(window.location.search);
+const verificatParam = urlParams.get('verificat');
+const emailParam = urlParams.get('email');
+if (emailParam) {
+  registreForm.email.value = emailParam;
+}
+
 if (verificatParam === 'ok') {
   registreForm.style.display = 'none';
   formSuccess.textContent = 'Correu confirmat. Un administrador revisarà la teva sol·licitud i rebràs un email quan estigui aprovada.';
