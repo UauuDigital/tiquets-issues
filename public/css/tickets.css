@@ -1,8 +1,3 @@
-@import url("tickets-view-nav.css");
-@import url("tickets-view-activity.css");
-@import url("tickets-view-board.css");
-@import url("tickets-view-modal.css");
-
 body {
   margin: 0;
   min-height: 100vh;

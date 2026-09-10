@@ -27,6 +27,8 @@
      mateix blau fosc que --brand però amb el seu propi token per poder-lo
      ajustar sense afectar la insígnia de marca. */
   --brand-panel: #384562;
+  --stub-ink: #f2f5fa;
+  --stub-ink-soft: #9fb0d1;
   --status-no-comencat-bg: #eef0f3;
   --status-no-comencat-ink: #4b5563;
   --status-comencat-bg: #e3edfd;

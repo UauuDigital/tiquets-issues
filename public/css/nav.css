@@ -99,4 +99,5 @@
   cursor: pointer;
 }
 .logout-link:hover { color: var(--ink); background: transparent; }
+.logout-link--end { margin-left: auto; }
 .logout-icon { display: none; }

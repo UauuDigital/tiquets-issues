@@ -6,7 +6,13 @@
 <title>Gestió de tiquets — Portal de tiquets</title>
 <link rel="icon" href="assets/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/nav.css">
+<link rel="stylesheet" href="css/activity-panel.css">
+<link rel="stylesheet" href="css/repos-table.css">
+<link rel="stylesheet" href="css/tickets-board.css">
+<link rel="stylesheet" href="css/modal.css">
 <link rel="stylesheet" href="css/admin.css">
 </head>
 <body class="tickets-admin">
@@ -32,7 +38,7 @@
       <svg class="crumb-sep" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M7.5 4.5l5 5.5-5 5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="eyebrow-current">Tiquets</span>
     </nav>
-    <button type="button" class="logout-link" data-logout title="Tancar sessió" aria-label="Tancar sessió" style="margin-left:auto;">
+    <button type="button" class="logout-link logout-link--end" data-logout title="Tancar sessió" aria-label="Tancar sessió">
       <span class="logout-text">Tancar sessió</span>
       <svg class="logout-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <path d="M8 3H4.5a1.5 1.5 0 00-1.5 1.5v11A1.5 1.5 0 004.5 17H8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -96,8 +102,8 @@
 
     <div class="zones-board" id="zonesBoard"></div>
 
-    <p class="empty" id="ticketsNoResultsMsg" style="display:none;">Cap tiquet coincideix amb els filtres.</p>
-    <p class="empty" id="ticketsEmptyMsg" style="display:none;">Encara no s'ha creat cap tiquet.</p>
+    <p class="empty" id="ticketsNoResultsMsg" hidden>Cap tiquet coincideix amb els filtres.</p>
+    <p class="empty" id="ticketsEmptyMsg" hidden>Encara no s'ha creat cap tiquet.</p>
   </div>
 
   <div class="activity-backdrop" id="activityBackdrop"></div>
@@ -122,7 +128,7 @@
     <p>Aquesta acció eliminarà totes les entrades de l'historial (creacions, comentaris, canvis d'estat...) i no es pot desfer.</p>
     <p>Per confirmar, escriu <strong>ELIMINA</strong> al camp de sota:</p>
     <input type="text" id="activityClearInput" autocomplete="off" placeholder="ELIMINA">
-    <p class="error" id="activityClearError" style="display:none;" role="alert" aria-live="polite">El text no coincideix.</p>
+    <p class="error" id="activityClearError" role="alert" aria-live="polite">El text no coincideix.</p>
     <div class="activity-clear-actions">
       <button type="button" id="activityClearCancel">Cancel·la</button>
       <button type="button" id="activityClearConfirm" class="danger" disabled>Buida l'historial</button>

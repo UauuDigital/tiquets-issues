@@ -215,10 +215,10 @@
 .ticket-card-actions .icon-btn { width: 28px; height: 28px; }
 .ticket-card-actions .icon-btn svg { width: 14px; height: 14px; }
 
-@media (max-width: 620px) {
-  /* La targeta és petita i compacta (per disseny) tant a escriptori com
-     a mòbil, però amb el dit calen 44px reals d'àrea de toc a cada
-     acció; la icona visual es queda igual, l'àrea que envolta creix. */
+@media (pointer: coarse) {
+  /* La targeta és petita i compacta (per disseny), però amb el dit calen
+     44px reals d'àrea de toc a cada acció; la icona visual es queda
+     igual, l'àrea que envolta creix. */
   .ticket-card-actions { gap: 0.1rem; }
   .ticket-card-actions .icon-btn { width: 44px; height: 44px; }
 }
@@ -257,7 +257,7 @@
   cursor: pointer;
 }
 .priority-select:disabled { opacity: 0.6; cursor: progress; }
-.priority-select option { color: #1c1e21; background: var(--card); font-weight: 400; }
+.priority-select option { color: var(--ink); background: var(--card); font-weight: 400; }
 .priority-select[data-priority="baixa"]   { color: var(--priority-baixa); }
 .priority-select[data-priority="mitjana"] { color: var(--priority-mitjana); }
 .priority-select[data-priority="alta"]    { color: var(--priority-alta); }
@@ -348,4 +348,4 @@
 .status-select[data-status="acabat"]      { background-color: var(--status-acabat-bg); color: var(--status-acabat-ink); }
 .status-select[data-status="cancelat"]    { background-color: var(--status-cancelat-bg); color: var(--status-cancelat-ink); }
 .status-select:disabled { opacity: 0.6; cursor: progress; }
-.status-select option { color: #1c1e21; background: var(--card); font-weight: 400; }
+.status-select option { color: var(--ink); background: var(--card); font-weight: 400; }
