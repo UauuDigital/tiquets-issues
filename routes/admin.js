@@ -489,8 +489,7 @@ router.post('/api/admin/solicituds/:id/acceptar', requireAdmin, async (req, res)
   // fer createUser() abans, perquè 'invite' fallaria en trobar l'usuari ja creat.
   const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
     type: 'invite',
-    email: solicitud.email,
-    options: { redirectTo: `${PUBLIC_BASE_URL}/crear-contrasenya.html` }
+    email: solicitud.email
   });
   if (linkError) {
     console.error('Error creant usuari / generant enllaç d\'invitació:', linkError);
@@ -505,8 +504,15 @@ router.post('/api/admin/solicituds/:id/acceptar', requireAdmin, async (req, res)
     return res.status(500).json({ error: 'No s\'ha pogut desar l\'usuari.' });
   }
 
-  if (linkData?.properties?.action_link) {
-    await sendSetPasswordEmail({ to: solicitud.email, nom: solicitud.nom, actionLink: linkData.properties.action_link });
+  // No enviem linkData.properties.action_link directament: és un enllaç de
+  // Supabase d'un sol ús que un escàner de seguretat del correu (p. ex.
+  // Microsoft Defender Safe Links) pot "prefetchar" i consumir abans que
+  // l'usuari el cliqui de veritat. En comptes d'això, enviem un enllaç cap a
+  // la nostra pròpia pàgina amb el token_hash, que només es verifica quan
+  // l'usuari interactua realment amb el formulari (crear-contrasenya-form.js).
+  if (linkData?.properties?.hashed_token) {
+    const actionLink = `${PUBLIC_BASE_URL}/crear-contrasenya.html?token_hash=${encodeURIComponent(linkData.properties.hashed_token)}&type=invite`;
+    await sendSetPasswordEmail({ to: solicitud.email, nom: solicitud.nom, actionLink });
   }
 
   await tiquets(supabaseAdmin)

@@ -68,13 +68,16 @@ router.post('/api/auth/recuperar-contrasenya', recoveryLimiter, async (req, res)
   try {
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
-      email: cleanEmail,
-      options: { redirectTo: `${PUBLIC_BASE_URL}/crear-contrasenya.html` }
+      email: cleanEmail
     });
     if (linkError) {
       console.error('Error generant enllaç de recuperació:', linkError);
-    } else if (linkData?.properties?.action_link) {
-      await sendPasswordRecoveryEmail({ to: cleanEmail, actionLink: linkData.properties.action_link });
+    } else if (linkData?.properties?.hashed_token) {
+      // Enllaç propi amb el token_hash (no l'action_link de Supabase): evita
+      // que un escàner de seguretat del correu consumeixi l'enllaç d'un sol
+      // ús abans que l'usuari el cliqui de veritat.
+      const actionLink = `${PUBLIC_BASE_URL}/crear-contrasenya.html?token_hash=${encodeURIComponent(linkData.properties.hashed_token)}&type=recovery`;
+      await sendPasswordRecoveryEmail({ to: cleanEmail, actionLink });
     }
   } catch (err) {
     console.error('Error inesperat a recuperar-contrasenya:', err);
