@@ -1,18 +1,12 @@
 :root {
-  color-scheme: light dark;
   --bg: #eef1f5;
   --card: #ffffff;
   --surface-soft: #fafbfc;
   --ink: #16233f;
   --ink-soft: #58698c;
-  /* Marca: navy sòlid invariant, només per a la insígnia "UAUU" i el
-     stub del bitllet — mai s'ha d'adaptar (a diferència de --ink, que
-     és el color de text i sí que s'inverteix en mode fosc). */
+  /* Marca: navy sòlid, només per a la insígnia "UAUU" i el stub del
+     bitllet — mai s'ha d'adaptar. */
   --brand: #16233f;
-  /* Acció: fons dels botons/CTA i xips actius. En clar és el mateix
-     navy de marca; en fosc cal un to més clar perquè es distingeixi
-     de --card (si no, un botó navy sobre una targeta navy fosca
-     desapareix). */
   --action: var(--brand);
   --action-hover: #223258;
   --border: #d7dee8;
@@ -30,8 +24,8 @@
   --priority-alta: #ea580c;
   --priority-critica: #b91c1c;
   /* Panell secundari (stub del bitllet, botons "tickets-link"/"secondary"):
-     mateix blau fosc que --brand però amb el seu propi token perque en
-     mode fosc pugui aclarir-se sense afectar la insignia de marca. */
+     mateix blau fosc que --brand però amb el seu propi token per poder-lo
+     ajustar sense afectar la insígnia de marca. */
   --brand-panel: #384562;
   --status-no-comencat-bg: #eef0f3;
   --status-no-comencat-ink: #4b5563;
@@ -46,37 +40,6 @@
   --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
   --font-ui: 'Inter', system-ui, 'Segoe UI', sans-serif;
   --radius: 14px;
-}
-
-/* Mode fosc: es defineixen només els tokens de superfície/text — el
-   color de marca (--accent) i els colors de prioritat es mantenen
-   perquè ja tenen prou contrast sobre fons foscos. */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #12182a;
-    --card: #1b2338;
-    --surface-soft: #212b44;
-    --ink: #eef1f7;
-    --ink-soft: #9fb0d1;
-    --border: #2c3752;
-    --input-border: #3a4763;
-    --success-bg: #16332f;
-    --danger-bg: #3a1f1c;
-    --bg-glow: #1b2846;
-    --action: #3a5490;
-    --action-hover: #4a68ac;
-    --brand-panel: #2a3555;
-    --status-no-comencat-bg: #2b3348;
-    --status-no-comencat-ink: #b7c1d9;
-    --status-comencat-bg: #1f3358;
-    --status-comencat-ink: #8fb3f7;
-    --status-en-espera-bg: #3a2f18;
-    --status-en-espera-ink: #f0b862;
-    --status-acabat-bg: #16332a;
-    --status-acabat-ink: #6fd393;
-    --status-cancelat-bg: #3a1f1c;
-    --status-cancelat-ink: #f19b90;
-  }
 }
 
 * { box-sizing: border-box; }

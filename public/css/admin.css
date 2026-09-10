@@ -5,7 +5,6 @@
 @import url("tickets-board.css");
 @import url("modal.css");
 
-:root { color-scheme: light dark; }
 html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
