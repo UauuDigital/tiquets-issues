@@ -22,6 +22,8 @@ const { sendRejectedEmail, sendSetPasswordEmail } = require('../lib/resend');
 
 const router = express.Router();
 
+const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+
 // Verifica si el token d'administració desat al navegador encara és vàlid,
 // per poder mostrar una pantalla d'inici de sessió abans de carregar l'admin.
 router.get('/api/admin/verify', requireAdmin, (_req, res) => {
@@ -482,30 +484,28 @@ router.post('/api/admin/solicituds/:id/acceptar', requireAdmin, async (req, res)
     return res.status(400).json({ error: 'Aquesta sol·licitud no es pot acceptar (no està pendent o l\'email no s\'ha verificat).' });
   }
 
-  const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+  // generateLink({type:'invite'}) crea l'usuari a Supabase Auth (sense
+  // contrasenya) i retorna l'enllaç en una sola crida — no cal (ni es pot)
+  // fer createUser() abans, perquè 'invite' fallaria en trobar l'usuari ja creat.
+  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    type: 'invite',
     email: solicitud.email,
-    email_confirm: true
+    options: { redirectTo: `${PUBLIC_BASE_URL}/crear-contrasenya.html` }
   });
-  if (createError) {
-    console.error('Error creant usuari a Supabase Auth:', createError);
+  if (linkError) {
+    console.error('Error creant usuari / generant enllaç d\'invitació:', linkError);
     return res.status(500).json({ error: 'No s\'ha pogut crear l\'usuari.' });
   }
 
   const { error: insertError } = await tiquets(supabaseAdmin)
     .from('usuaris')
-    .insert({ id: created.user.id, email: solicitud.email, nom: solicitud.nom, actiu: true });
+    .insert({ id: linkData.user.id, email: solicitud.email, nom: solicitud.nom, actiu: true });
   if (insertError) {
     console.error('Error inserint a usuaris:', insertError);
     return res.status(500).json({ error: 'No s\'ha pogut desar l\'usuari.' });
   }
 
-  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-    type: 'invite',
-    email: solicitud.email
-  });
-  if (linkError) {
-    console.error('Error generant enllaç d\'invitació:', linkError);
-  } else if (linkData?.properties?.action_link) {
+  if (linkData?.properties?.action_link) {
     await sendSetPasswordEmail({ to: solicitud.email, nom: solicitud.nom, actionLink: linkData.properties.action_link });
   }
 

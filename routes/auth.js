@@ -9,6 +9,7 @@ const router = express.Router();
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hores
+const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
 
 // Evita abús del formulari de sol·licitud: màxim 5 per IP cada hora.
 const solicitudLimiter = rateLimit({
@@ -67,7 +68,8 @@ router.post('/api/auth/recuperar-contrasenya', recoveryLimiter, async (req, res)
   try {
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: 'recovery',
-      email: cleanEmail
+      email: cleanEmail,
+      options: { redirectTo: `${PUBLIC_BASE_URL}/crear-contrasenya.html` }
     });
     if (linkError) {
       console.error('Error generant enllaç de recuperació:', linkError);
