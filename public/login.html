@@ -11,7 +11,7 @@
 <div class="auth-card">
   <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · Portal de tiquets</div>
   <h1 id="loginTitle">Inicia sessió</h1>
-  <p class="subtitle" id="loginSubtitle">Introdueix el teu correu i et enviarem un enllaç per entrar (sense contrasenya).</p>
+  <p class="subtitle" id="loginSubtitle">Introdueix el teu correu i la teva contrasenya.</p>
 
   <p class="error" id="formError" role="alert" aria-live="polite"></p>
   <p class="success" id="formSuccess" role="status" aria-live="polite"></p>
@@ -24,8 +24,21 @@
   <form id="loginForm">
     <label for="email">Correu</label>
     <input type="email" id="email" name="email" autocomplete="email" required>
-    <button type="submit" id="submitBtn">Enviar enllaç d'accés</button>
+    <label for="password">Contrasenya</label>
+    <input type="password" id="password" name="password" autocomplete="current-password" required>
+    <button type="submit" id="submitBtn">Inicia sessió</button>
   </form>
+  <a href="#" id="forgotPasswordLink" class="auth-back-link">Has oblidat la contrasenya?</a>
+
+  <div id="recoveryBox" style="display:none">
+    <p class="subtitle">T'enviarem un enllaç per crear una contrasenya nova.</p>
+    <form id="recoveryForm">
+      <label for="recoveryEmail">Correu</label>
+      <input type="email" id="recoveryEmail" name="recoveryEmail" autocomplete="email" required>
+      <button type="submit" id="recoverySubmitBtn">Enviar enllaç</button>
+    </form>
+    <a href="#" id="backToLoginLink" class="auth-back-link">← Tornar a l'inici de sessió</a>
+  </div>
 
   <p id="signedInStatus" style="display:none; font-size:0.9rem; color:var(--ink-soft);"></p>
 

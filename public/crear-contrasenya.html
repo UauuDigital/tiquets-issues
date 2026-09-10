@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crea la teva contrasenya — Portal de tiquets</title>
+<link rel="icon" href="assets/favicon.ico">
+<link rel="stylesheet" href="css/auth.css">
+</head>
+<body>
+<div class="auth-card">
+  <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · Portal de tiquets</div>
+  <h1>Crea la teva contrasenya</h1>
+  <p class="subtitle">Tria una contrasenya per accedir al portal.</p>
+
+  <p class="error" id="formError" role="alert" aria-live="polite"></p>
+  <p class="success" id="formSuccess" role="status" aria-live="polite"></p>
+
+  <form id="setPasswordForm">
+    <label for="password">Nova contrasenya</label>
+    <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" required>
+    <label for="passwordRepeat">Repeteix la contrasenya</label>
+    <input type="password" id="passwordRepeat" name="passwordRepeat" autocomplete="new-password" minlength="8" required>
+    <button type="submit" id="submitBtn">Desar contrasenya</button>
+  </form>
+
+  <a href="login.html" class="auth-back-link">← Tornar a l'inici de sessió</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/supabase-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/i18n.js" defer></script>
+<script src="js/error-messages.js" defer></script>
+<script src="js/crear-contrasenya-form.js" defer></script>
+</body>
+</html>

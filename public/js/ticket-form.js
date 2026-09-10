@@ -3,6 +3,7 @@ const authGateMessage = document.getElementById('authGateMessage');
 const authGateLink = document.getElementById('authGateLink');
 const pageHead = document.getElementById('pageHead');
 const headerLoginLink = document.getElementById('headerLoginLink');
+const headerAccountLink = document.getElementById('headerAccountLink');
 const adminLink = document.getElementById('adminLink');
 const ticketBlock = document.querySelector('.ticket');
 
@@ -48,6 +49,7 @@ async function syncAuthGate() {
     renderAuthGateTexts();
     authGateLink.href = 'login.html';
     syncAdminLink(null);
+    if (headerAccountLink) headerAccountLink.hidden = true;
     return;
   }
 
@@ -61,6 +63,7 @@ async function syncAuthGate() {
     renderAuthGateTexts();
     authGateLink.href = 'registre.html';
     syncAdminLink(null);
+    if (headerAccountLink) headerAccountLink.hidden = true;
     return;
   }
 
@@ -69,6 +72,7 @@ async function syncAuthGate() {
   authGate.hidden = true;
   ticketBlock.hidden = false;
   if (pageHead) pageHead.hidden = false;
+  if (headerAccountLink) headerAccountLink.hidden = false;
   if (headerLoginLink) {
     renderHeaderLoginLink();
     headerLoginLink.href = '#';

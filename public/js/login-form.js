@@ -8,6 +8,11 @@ const goToRegistreLink = document.getElementById('goToRegistreLink');
 const loginTitle = document.getElementById('loginTitle');
 const loginSubtitle = document.getElementById('loginSubtitle');
 const registreLink = document.getElementById('registreLink');
+const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+const backToLoginLink = document.getElementById('backToLoginLink');
+const recoveryBox = document.getElementById('recoveryBox');
+const recoveryForm = document.getElementById('recoveryForm');
+const recoverySubmitBtn = document.getElementById('recoverySubmitBtn');
 
 async function handleExistingSession() {
   const session = await AuthSession.getSession();
@@ -40,6 +45,19 @@ loginForm.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   submitBtn.textContent = 'Enviant…';
   try {
+    if (email.toLowerCase() === 'digital@uauu.cat') {
+      const token = loginForm.password.value;
+      const verifyRes = await fetch('/api/admin/verify', { headers: { 'x-admin-token': token } });
+      if (!verifyRes.ok) {
+        formError.textContent = ERROR_MESSAGES.loginFailed;
+        formError.style.display = 'block';
+        return;
+      }
+      localStorage.setItem('adminToken', token);
+      window.location.href = 'admin.html';
+      return;
+    }
+
     const checkRes = await fetch('/api/auth/check-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -62,21 +80,59 @@ loginForm.addEventListener('submit', async (e) => {
       return;
     }
 
-    const { error } = await window.supabaseClient.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin + '/login.html', shouldCreateUser: false }
-    });
+    const password = loginForm.password.value;
+    const { error } = await window.supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
-    loginForm.style.display = 'none';
-    formSuccess.textContent = 'T\'hem enviat un enllaç d\'accés al teu correu. Obre\'l des d\'aquest mateix dispositiu.';
-    formSuccess.style.display = 'block';
+    window.location.href = 'index.html';
   } catch (err) {
-    const isRateLimited = err && (err.code === 'over_email_send_rate_limit' || err.status === 429);
-    formError.textContent = isRateLimited ? ERROR_MESSAGES.loginRateLimited : ERROR_MESSAGES.submitFailed;
+    const isRateLimited = err && err.status === 429;
+    formError.textContent = isRateLimited ? ERROR_MESSAGES.loginRateLimited : ERROR_MESSAGES.loginFailed;
     formError.style.display = 'block';
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Enviar enllaç d\'accés';
+    submitBtn.textContent = 'Inicia sessió';
+  }
+});
+
+forgotPasswordLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  loginForm.style.display = 'none';
+  forgotPasswordLink.style.display = 'none';
+  recoveryBox.style.display = 'block';
+  formError.style.display = 'none';
+  formSuccess.style.display = 'none';
+});
+
+backToLoginLink.addEventListener('click', (e) => {
+  e.preventDefault();
+  recoveryBox.style.display = 'none';
+  loginForm.style.display = 'block';
+  forgotPasswordLink.style.display = 'block';
+  formSuccess.style.display = 'none';
+});
+
+recoveryForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  formError.style.display = 'none';
+  formSuccess.style.display = 'none';
+  recoverySubmitBtn.disabled = true;
+  recoverySubmitBtn.textContent = 'Enviant…';
+  try {
+    await fetch('/api/auth/recuperar-contrasenya', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: recoveryForm.recoveryEmail.value.trim() })
+    });
+  } catch (err) {
+    // Ignorem errors de xarxa: el missatge mostrat és sempre el mateix.
+  } finally {
+    recoveryBox.style.display = 'none';
+    loginForm.style.display = 'block';
+    forgotPasswordLink.style.display = 'block';
+    formSuccess.textContent = ERROR_MESSAGES.recoveryEmailSent;
+    formSuccess.style.display = 'block';
+    recoverySubmitBtn.disabled = false;
+    recoverySubmitBtn.textContent = 'Enviar enllaç';
   }
 });

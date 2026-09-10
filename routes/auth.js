@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 
 const { supabaseAdmin, tiquets } = require('../lib/supabase');
-const { sendVerificationEmail, sendAdminNotificationEmail } = require('../lib/resend');
+const { sendVerificationEmail, sendAdminNotificationEmail, sendPasswordRecoveryEmail } = require('../lib/resend');
 
 const router = express.Router();
 
@@ -44,6 +44,42 @@ router.post('/api/auth/check-email', checkEmailLimiter, async (req, res) => {
     .maybeSingle();
 
   res.json({ exists: !!existingUser });
+});
+
+// Evita fer servir aquest endpoint per enumerar correus o rebre correus en massa.
+const recoveryLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Massa peticions de recuperació. Torna-ho a provar més tard.' }
+});
+
+router.post('/api/auth/recuperar-contrasenya', recoveryLimiter, async (req, res) => {
+  if (!supabaseAdmin) {
+    return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
+  }
+  const cleanEmail = ((req.body || {}).email || '').trim().toLowerCase();
+  if (!cleanEmail || !EMAIL_RE.test(cleanEmail)) {
+    return res.status(400).json({ error: 'Cal indicar un correu vàlid.' });
+  }
+
+  try {
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'recovery',
+      email: cleanEmail
+    });
+    if (linkError) {
+      console.error('Error generant enllaç de recuperació:', linkError);
+    } else if (linkData?.properties?.action_link) {
+      await sendPasswordRecoveryEmail({ to: cleanEmail, actionLink: linkData.properties.action_link });
+    }
+  } catch (err) {
+    console.error('Error inesperat a recuperar-contrasenya:', err);
+  }
+
+  // Resposta sempre genèrica: no revelem si el correu existeix o no.
+  res.json({ ok: true });
 });
 
 router.post('/api/auth/solicituds', solicitudLimiter, async (req, res) => {

@@ -7,7 +7,7 @@ Portal intern de tiquets que crea issues de GitHub automàticament.
 - **Backend:** Node.js + Express (`server.js` com a punt d'entrada).
 - **Altres dependències:** dotenv, express-rate-limit, @supabase/supabase-js, resend, multer, ws. (`nodemailer` continua instal·lat per `lib/mailer.js`, la via SMTP opcional que no s'utilitza en producció — vegeu la secció 5.)
 - **Frontend:** servit des de `/public`, sense build step (HTML/CSS/JS servits directament).
-- **Autenticació d'usuaris del portal:** Supabase Auth (magic link / OTP, sense contrasenya), amb aprovació manual d'accés per part d'un administrador.
+- **Autenticació d'usuaris del portal:** Supabase Auth (correu + contrasenya), amb aprovació manual d'accés per part d'un administrador.
 
 > Pendent de confirmar amb l'usuari si aquest stack és definitiu o si es preveu ampliar-lo.
 
@@ -28,7 +28,9 @@ Portal intern de tiquets que crea issues de GitHub automàticament.
 │   ├── tickets.html       # Llistat públic de tiquets
 │   ├── tickets-admin.html # Gestió de tiquets (estat, prioritat, comentaris)
 │   ├── admin.html         # Gestió de repositoris connectats
-│   ├── login.html         # Login per magic link/OTP (Supabase Auth)
+│   ├── login.html         # Login per correu+contrasenya (usuaris i, amb correu "admin", accés d'administració)
+│   ├── crear-contrasenya.html # Estableix la contrasenya (des de l'enllaç d'invitació o de recuperació)
+│   ├── compte.html        # "El meu compte": canvi de contrasenya amb sessió activa
 │   ├── registre.html      # Sol·licitud d'accés d'un usuari nou
 │   ├── solicituds-admin.html # Aprovació/rebuig de sol·licituds d'accés (ADMIN_TOKEN)
 │   └── ajuda-acces.html   # Pàgina d'ajuda sobre l'accés
@@ -58,14 +60,17 @@ Veure `.env.example` per a la llista actualitzada de variables necessàries.
 
 ## 5. Notes específiques del projecte
 
-### Accés d'usuaris al portal (Supabase Auth)
-- L'accés al formulari de tiquets requereix sessió: **registre.html** (sol·licitud amb nom+email) → correu de verificació via Resend (`routes/auth.js`, `lib/resend.js`) → un administrador aprova/rebutja la sol·licitud des de **solicituds-admin.html** (protegit per `ADMIN_TOKEN`, no per Supabase Auth) → en aprovar-la, `routes/admin.js` crida `supabaseAdmin.auth.admin.inviteUserByEmail()` (crea l'usuari a Supabase Auth) i insereix una fila a `tiquets.usuaris` (`actiu: true`).
-- Un cop aprovat, l'usuari inicia sessió a **login.html** amb un magic link / OTP per correu (sense contrasenya), gestionat pel client de `public/js/supabase-client.js` i els helpers de `public/js/auth-session.js`.
+### Accés d'usuaris al portal (Supabase Auth, correu + contrasenya)
+- L'accés al formulari de tiquets requereix sessió: **registre.html** (sol·licitud amb nom+email) → correu de verificació via Resend (`routes/auth.js`, `lib/resend.js`) → un administrador aprova/rebutja la sol·licitud des de **solicituds-admin.html** (protegit per `ADMIN_TOKEN`, no per Supabase Auth) → en aprovar-la, `routes/admin.js` crida `supabaseAdmin.auth.admin.createUser()` (sense contrasenya) i `supabaseAdmin.auth.admin.generateLink({type:'invite'})`, i envia l'enllaç amb un correu propi (`sendSetPasswordEmail`, via Resend — **no** el correu natiu de Supabase) perquè l'usuari creï la seva contrasenya a **crear-contrasenya.html**. També insereix una fila a `tiquets.usuaris` (`actiu: true`).
+- Un cop té contrasenya, l'usuari inicia sessió a **login.html** amb correu+contrasenya (`signInWithPassword`), gestionat pel client de `public/js/supabase-client.js` i els helpers de `public/js/auth-session.js`.
+- Recuperació de contrasenya: des de login.html ("Has oblidat la contrasenya?") → `POST /api/auth/recuperar-contrasenya` → `generateLink({type:'recovery'})` + `sendPasswordRecoveryEmail` (Resend) → mateixa pàgina **crear-contrasenya.html**. La resposta d'aquest endpoint és sempre genèrica (no revela si el correu existeix).
+- Canvi de contrasenya amb sessió activa: **compte.html**, exigeix reintroduir la contrasenya actual (re-autenticació silenciosa amb `signInWithPassword` abans de `updateUser`).
 - Totes les taules pròpies viuen a l'esquema `tiquets` de Supabase (mai `public`), compartit amb l'app "compras". Cal tenir l'esquema `tiquets` a "Exposed schemas" perquè les consultes des del navegador (protegides per RLS) funcionin.
-- **Aquest sistema és independent del login d'administració (`ADMIN_TOKEN`)** descrit al punt següent: un usuari aprovat pot crear tiquets, però no pot entrar a `/admin.html` ni `/tickets-admin.html` sense el token separat.
+- Al Dashboard de Supabase (Authentication → Settings) la longitud mínima de contrasenya s'ha de pujar a 8 (el validador del client ja exigeix 8, però el mínim per defecte de Supabase és 6).
 
 ### Login d'administració (`ADMIN_TOKEN`)
-- `/admin.html`, `/tickets-admin.html` i `/solicituds-admin.html` estan protegits per un token compartit únic (`ADMIN_TOKEN` a `.env`), verificat via `GET /api/admin/verify` amb la capçalera `x-admin-token` (`public/js/admin-auth.js`, `middleware/require-admin.js`). No hi ha usuaris/rols diferenciats en aquesta capa.
+- Ja no hi ha una pantalla de login pròpia per a l'admin: es fa des de **login.html** mateix, posant `digital@uauu.cat` (literal, no és un compte real de Supabase Auth) com a correu i el valor d'`ADMIN_TOKEN` com a contrasenya (`public/js/login-form.js` detecta `email === 'digital@uauu.cat'` abans de tocar Supabase Auth, verifica contra `GET /api/admin/verify` i redirigeix a `admin.html`).
+- `/admin.html`, `/tickets-admin.html` i `/solicituds-admin.html` ja no tenen formulari de login inline: `public/js/admin-auth.js` només comprova el token desat a `localStorage` contra `GET /api/admin/verify` (capçalera `x-admin-token`) i, si no n'hi ha o no és vàlid, redirigeix a `login.html`. La protecció real de les rutes segueix sent `middleware/require-admin.js`. No hi ha usuaris/rols diferenciats en aquesta capa — és un token compartit únic.
 - El servidor de producció (Servatica) té el seu **propi `.env`**, gestionat des del panell "Setup Node.js App" → cal actualitzar-lo (i reiniciar l'app) allà si es canvia el token, no n'hi ha prou amb canviar el `.env` local.
 
 ### Notificacions de tiquets nous

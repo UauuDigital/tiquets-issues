@@ -18,7 +18,7 @@ const {
   normalizeProjectUrl
 } = require('../lib/github-api');
 const { supabaseAdmin, tiquets } = require('../lib/supabase');
-const { sendRejectedEmail } = require('../lib/resend');
+const { sendRejectedEmail, sendSetPasswordEmail } = require('../lib/resend');
 
 const router = express.Router();
 
@@ -463,8 +463,10 @@ router.delete('/api/admin/usuaris/:id', requireAdmin, async (req, res) => {
   res.json({ ok: true });
 });
 
-// Accepta una sol·licitud: crea l'usuari a Supabase Auth via invitació
-// (Supabase envia el propi correu d'invitació) i el desa a tiquets.usuaris.
+// Accepta una sol·licitud: crea l'usuari a Supabase Auth (sense contrasenya),
+// genera un enllaç d'invitació i el desa a tiquets.usuaris. L'enllaç s'envia
+// amb un correu propi via Resend (no el correu natiu de Supabase), perquè
+// segueixi la mateixa estètica que la resta de correus del sistema.
 router.post('/api/admin/solicituds/:id/acceptar', requireAdmin, async (req, res) => {
   if (!supabaseAdmin) {
     return res.status(500).json({ error: 'El servidor no té configurat l\'accés a Supabase (revisa .env).' });
@@ -480,18 +482,31 @@ router.post('/api/admin/solicituds/:id/acceptar', requireAdmin, async (req, res)
     return res.status(400).json({ error: 'Aquesta sol·licitud no es pot acceptar (no està pendent o l\'email no s\'ha verificat).' });
   }
 
-  const { data: invited, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(solicitud.email);
-  if (inviteError) {
-    console.error('Error invitant usuari a Supabase Auth:', inviteError);
+  const { data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+    email: solicitud.email,
+    email_confirm: true
+  });
+  if (createError) {
+    console.error('Error creant usuari a Supabase Auth:', createError);
     return res.status(500).json({ error: 'No s\'ha pogut crear l\'usuari.' });
   }
 
   const { error: insertError } = await tiquets(supabaseAdmin)
     .from('usuaris')
-    .insert({ id: invited.user.id, email: solicitud.email, nom: solicitud.nom, actiu: true });
+    .insert({ id: created.user.id, email: solicitud.email, nom: solicitud.nom, actiu: true });
   if (insertError) {
     console.error('Error inserint a usuaris:', insertError);
     return res.status(500).json({ error: 'No s\'ha pogut desar l\'usuari.' });
+  }
+
+  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    type: 'invite',
+    email: solicitud.email
+  });
+  if (linkError) {
+    console.error('Error generant enllaç d\'invitació:', linkError);
+  } else if (linkData?.properties?.action_link) {
+    await sendSetPasswordEmail({ to: solicitud.email, nom: solicitud.nom, actionLink: linkData.properties.action_link });
   }
 
   await tiquets(supabaseAdmin)
