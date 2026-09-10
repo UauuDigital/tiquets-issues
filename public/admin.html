@@ -44,7 +44,7 @@
 
   <div class="card">
     <h2 style="font-size:1rem;margin-top:0;" id="repoFormTitle">Afegir repositori</h2>
-    <p class="error" id="formError"></p>
+    <p class="error" id="formError" role="alert" aria-live="polite"></p>
     <form id="repoForm">
       <label for="label">Nom visible</label>
       <input type="text" id="label" placeholder="Ex: Web corporativa" required>
@@ -74,7 +74,7 @@
 
   <div class="card">
     <h2 style="font-size:1rem;margin-top:0;">Repositoris connectats</h2>
-    <p class="error" id="listError"></p>
+    <p class="error" id="listError" role="alert" aria-live="polite"></p>
     <input type="search" id="repoSearch" placeholder="Cerca per nom, owner, repo o descripció..." aria-label="Cerca repositoris">
     <div class="table-scroll">
       <table id="reposTable">

@@ -13,11 +13,11 @@
   <h1 id="loginTitle">Inicia sessió</h1>
   <p class="subtitle" id="loginSubtitle">Introdueix el teu correu i et enviarem un enllaç per entrar (sense contrasenya).</p>
 
-  <p class="error" id="formError"></p>
-  <p class="success" id="formSuccess"></p>
+  <p class="error" id="formError" role="alert" aria-live="polite"></p>
+  <p class="success" id="formSuccess" role="status" aria-live="polite"></p>
 
   <div id="notRegisteredBox" style="display:none">
-    <p class="success" style="display:block">Aquest correu no està registrat. Registra't primer per continuar.</p>
+    <p class="success" style="display:block" role="status" aria-live="polite">Aquest correu no està registrat. Registra't primer per continuar.</p>
     <a href="#" id="goToRegistreLink" class="auth-back-link">Anar a la pàgina de registre →</a>
   </div>
 

@@ -42,7 +42,7 @@
       <h2>Tiquets en curs</h2>
       <span class="tickets-count" id="ticketsCount"></span>
     </div>
-    <p class="error" id="ticketsError"></p>
+    <p class="error" id="ticketsError" role="alert" aria-live="polite"></p>
 
     <div class="filters-row">
       <div class="search-field">
@@ -151,7 +151,7 @@
         <input type="email" id="modalCommentAuthorEmail" placeholder="El teu correu (opcional)" maxlength="120" aria-label="El teu correu (opcional)">
       </div>
       <textarea id="modalCommentInput" placeholder="Escriu un comentari..." rows="2" required></textarea>
-      <p class="error" id="modalCommentError"></p>
+      <p class="error" id="modalCommentError" role="alert" aria-live="polite"></p>
       <button type="submit" id="modalCommentSubmit">Publicar comentari</button>
     </form>
   </div>

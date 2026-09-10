@@ -18,7 +18,7 @@
       <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · Administració</div>
       <h1>Inicia sessió</h1>
       <p class="subtitle">Introdueix el token d'administració per continuar.</p>
-      <p class="error" id="loginError"></p>
+      <p class="error" id="loginError" role="alert" aria-live="polite"></p>
       <form id="loginForm">
         <label for="loginToken">Token d'administració</label>
         <input type="password" id="loginToken" placeholder="ADMIN_TOKEN" autocomplete="off" required>

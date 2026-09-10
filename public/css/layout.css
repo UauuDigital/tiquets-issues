@@ -129,6 +129,9 @@ h1 {
   transition: background-color 0.15s ease, transform 0.15s ease;
 }
 .tickets-link:hover { color: #fff; background: var(--brand); transform: scale(1.05); text-decoration: none; }
+@media (prefers-reduced-motion: reduce) {
+  .tickets-link:hover { transform: none; }
+}
 
 .tickets-link-session:hover {
   background: var(--danger);

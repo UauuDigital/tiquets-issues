@@ -72,7 +72,7 @@
       </h2>
       <span class="tickets-count" id="ticketsCount"></span>
     </div>
-    <p class="error" id="ticketsError"></p>
+    <p class="error" id="ticketsError" role="alert" aria-live="polite"></p>
 
     <div class="filters-row">
       <div class="search-field">
@@ -124,7 +124,7 @@
     <p>Aquesta acció eliminarà totes les entrades de l'historial (creacions, comentaris, canvis d'estat...) i no es pot desfer.</p>
     <p>Per confirmar, escriu <strong>ELIMINA</strong> al camp de sota:</p>
     <input type="text" id="activityClearInput" autocomplete="off" placeholder="ELIMINA">
-    <p class="error" id="activityClearError" style="display:none;">El text no coincideix.</p>
+    <p class="error" id="activityClearError" style="display:none;" role="alert" aria-live="polite">El text no coincideix.</p>
     <div class="activity-clear-actions">
       <button type="button" id="activityClearCancel">Cancel·la</button>
       <button type="button" id="activityClearConfirm" class="danger" disabled>Buida l'historial</button>
@@ -198,7 +198,7 @@
       </div>
       <form class="modal-comment-form" id="modalCommentForm">
         <textarea id="modalCommentInput" placeholder="Escriu un comentari..." rows="2" required></textarea>
-        <p class="error" id="modalCommentError"></p>
+        <p class="error" id="modalCommentError" role="alert" aria-live="polite"></p>
         <button type="submit" id="modalCommentSubmit">Publicar comentari</button>
       </form>
     </div>
