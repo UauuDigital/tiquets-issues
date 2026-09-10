@@ -19,15 +19,33 @@ function syncAdminLink(usuari) {
   adminLink.hidden = !isAdmin;
 }
 
+let currentUsuari = null;
+
+function renderAuthGateTexts() {
+  if (authGate.hidden) return;
+  if (currentUsuari === 'not-approved') {
+    authGateMessage.textContent = I18N.t('authGate.notApproved');
+    authGateLink.textContent = I18N.t('authGate.requestAccess');
+  } else {
+    authGateMessage.textContent = I18N.t('authGate.noSession');
+    authGateLink.textContent = I18N.t('nav.login');
+  }
+}
+
+function renderHeaderLoginLink() {
+  if (!headerLoginLink || !currentUsuari || currentUsuari === 'not-approved') return;
+  headerLoginLink.textContent = I18N.t('nav.logoutWith', { name: currentUsuari.nom });
+}
+
 async function syncAuthGate() {
   const session = await AuthSession.getSession();
   if (!session) {
     cachedAccessToken = null;
+    currentUsuari = null;
     authGate.hidden = false;
     ticketBlock.hidden = true;
     if (pageHead) pageHead.hidden = true;
-    authGateMessage.textContent = 'Cal iniciar sessió per crear un tiquet nou.';
-    authGateLink.textContent = 'Iniciar sessió';
+    renderAuthGateTexts();
     authGateLink.href = 'login.html';
     syncAdminLink(null);
     return;
@@ -36,26 +54,27 @@ async function syncAuthGate() {
   const usuari = await AuthSession.getUsuari();
   if (!usuari || !usuari.actiu) {
     cachedAccessToken = null;
+    currentUsuari = 'not-approved';
     authGate.hidden = false;
     ticketBlock.hidden = true;
     if (pageHead) pageHead.hidden = true;
-    authGateMessage.textContent = 'La teva sol·licitud d\'accés encara no ha estat aprovada per un administrador.';
-    authGateLink.textContent = 'Sol·licitar accés';
+    renderAuthGateTexts();
     authGateLink.href = 'registre.html';
     syncAdminLink(null);
     return;
   }
 
   cachedAccessToken = session.access_token;
+  currentUsuari = usuari;
   authGate.hidden = true;
   ticketBlock.hidden = false;
   if (pageHead) pageHead.hidden = false;
   if (headerLoginLink) {
-    headerLoginLink.textContent = `Tancar sessió (${usuari.nom})`;
+    renderHeaderLoginLink();
     headerLoginLink.href = '#';
     headerLoginLink.onclick = (e) => {
       e.preventDefault();
-      if (window.confirm('Segur que vols tancar la sessió?')) AuthSession.signOut();
+      if (window.confirm(I18N.t('nav.logoutConfirm'))) AuthSession.signOut();
     };
   }
   syncAdminLink(usuari);
@@ -63,6 +82,11 @@ async function syncAuthGate() {
 
 AuthSession.onChange(() => syncAuthGate());
 syncAuthGate();
+
+document.addEventListener('i18n:change', () => {
+  renderAuthGateTexts();
+  renderHeaderLoginLink();
+});
 
 const form = document.getElementById('ticket-form');
 const submitBtn = document.getElementById('submit-btn');
@@ -203,7 +227,7 @@ async function loadRepos() {
     const repos = await res.json();
     repoSelect.innerHTML = '';
     if (!repos.length) {
-      repoSelect.innerHTML = '<option value="" disabled selected>No hi ha projectes configurats</option>';
+      repoSelect.innerHTML = `<option value="" disabled selected>${I18N.t('form.noProjects')}</option>`;
       return;
     }
     repoDescriptions = Object.fromEntries(repos.map((r) => [r.id, r.description || '']));
@@ -216,7 +240,7 @@ async function loadRepos() {
       repoSelect.value = requestedRepo;
     }
   } catch (err) {
-    repoSelect.innerHTML = '<option value="" disabled selected>Error carregant projectes</option>';
+    repoSelect.innerHTML = `<option value="" disabled selected>${I18N.t('form.errorLoadingProjects')}</option>`;
   } finally {
     repoCustomSelect.refresh();
     syncProjectDescription();
@@ -230,7 +254,7 @@ async function loadNextTicketNumber() {
     const data = await res.json();
     if (data.next) {
       stubNumber.textContent = '#' + data.next;
-      stubNumber.title = 'Número orientatiu: GitHub assignarà el número definitiu en crear el tiquet.';
+      stubNumber.title = I18N.t('stub.numberHint');
     }
   } catch (err) {
     // Si falla, es queda el placeholder per defecte ("— — —").
@@ -238,7 +262,7 @@ async function loadNextTicketNumber() {
 }
 loadNextTicketNumber();
 
-const PRIORITY_TEXT = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', critica: 'Crítica' };
+function priorityText(level) { return I18N.t(`priority.${level}`); }
 const PRIORITY_ICONS = {
   baixa: '<path d="M10 4v11M6 11l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
   mitjana: '<path d="M4 8h12M4 12h12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
@@ -270,7 +294,7 @@ descriptionInput.addEventListener('input', syncDescriptionStub);
 syncDescriptionStub();
 
 function syncReporter() {
-  syncStubField(stubReporter, reporterNameInput.value, 'Anònim');
+  syncStubField(stubReporter, reporterNameInput.value, I18N.t('stub.anonymous'));
 }
 reporterNameInput.addEventListener('input', syncReporter);
 syncReporter();
@@ -280,7 +304,7 @@ function syncPriority() {
   const pct = Number(priorityRange.value) / (PRIORITY_LEVELS.length - 1);
 
   prioritySlider.dataset.level = level;
-  priorityBubble.textContent = PRIORITY_TEXT[level];
+  priorityBubble.textContent = priorityText(level);
 
   const trackWidth = priorityRange.offsetWidth;
   const bubbleWidth = priorityBubble.offsetWidth;
@@ -292,12 +316,22 @@ function syncPriority() {
     tick.classList.toggle('active', tick.dataset.value === level);
   });
 
-  stubPriorityText.textContent = PRIORITY_TEXT[level];
+  stubPriorityText.textContent = priorityText(level);
   stubPriorityIcon.innerHTML = PRIORITY_ICONS[level];
   stubPriority.dataset.level = level;
 }
 priorityRange.addEventListener('input', syncPriority);
 syncPriority();
+
+document.addEventListener('i18n:change', () => {
+  categoryCustomSelect.refresh();
+  departmentCustomSelect.refresh();
+  repoCustomSelect.refresh();
+  syncStub();
+  syncPriority();
+  syncReporter();
+  if (stubNumber.title) stubNumber.title = I18N.t('stub.numberHint');
+});
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -334,9 +368,9 @@ form.addEventListener('submit', async (e) => {
   }
 
   submitBtn.disabled = true;
-  submitBtnText.textContent = 'Enviant…';
+  submitBtnText.textContent = I18N.t('form.submitting');
   submitBtnMobile.disabled = true;
-  submitBtnTextMobile.textContent = 'Enviant…';
+  submitBtnTextMobile.textContent = I18N.t('form.submitting');
 
   const formData = new FormData();
   formData.append('description', form.description.value);
@@ -363,12 +397,12 @@ form.addEventListener('submit', async (e) => {
 
     if (data.number) {
       stubNumber.textContent = '#' + data.number;
-      confirmText.textContent = `L'equip tècnic ja té la incidència número ${data.number}.`;
+      confirmText.textContent = I18N.t('confirm.textWithNumber', { number: data.number });
       issueLink.href = data.url;
-      issueLink.textContent = 'Veure la incidència a GitHub ↗';
+      issueLink.textContent = I18N.t('confirm.viewIssue');
       issueLink.style.display = 'inline-block';
     } else {
-      confirmText.textContent = 'L\'equip tècnic ja té la incidència.';
+      confirmText.textContent = I18N.t('confirm.defaultText');
       issueLink.style.display = 'none';
     }
 
@@ -380,9 +414,9 @@ form.addEventListener('submit', async (e) => {
     formError.classList.add('error');
   } finally {
     submitBtn.disabled = false;
-    submitBtnText.textContent = 'Enviar tiquet';
+    submitBtnText.textContent = I18N.t('form.submit');
     submitBtnMobile.disabled = false;
-    submitBtnTextMobile.textContent = 'Enviar tiquet';
+    submitBtnTextMobile.textContent = I18N.t('form.submit');
   }
 });
 

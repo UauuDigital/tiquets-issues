@@ -7,6 +7,12 @@
  * perquè la targeta editable (admin) i la de només lectura (view) són
  * comportaments genuïnament diferents, no duplicació accidental.
  */
+// tickets-admin.html no carrega i18n.js (es manté sempre en català); aquest
+// ajudant permet que board-core.js sigui compartit sense trencar-se allà.
+function boardText(key, fallback, vars) {
+  return typeof I18N !== 'undefined' ? I18N.t(key, vars) : fallback;
+}
+
 function initBoardCore({ fetchUrl, headers, searchFields }) {
   window.loadTickets = async function loadTickets() {
     ticketsError.style.display = 'none';
@@ -55,7 +61,7 @@ function initBoardCore({ fetchUrl, headers, searchFields }) {
   window.renderProjectFilterOptions = function renderProjectFilterOptions() {
     const projects = [...new Set(allTickets.map((t) => t.repoLabel).filter(Boolean))].sort((a, b) => a.localeCompare(b));
     const previousValue = ticketProjectFilter.value;
-    ticketProjectFilter.innerHTML = '<option value="">Tots els projectes</option>' +
+    ticketProjectFilter.innerHTML = `<option value="">${boardText('tickets.allProjects', 'Tots els projectes')}</option>` +
       projects.map((label) => `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`).join('');
     if (projects.includes(previousValue)) ticketProjectFilter.value = previousValue;
   };
@@ -79,7 +85,7 @@ function initBoardCore({ fetchUrl, headers, searchFields }) {
       counts[status] = (counts[status] || 0) + 1;
     });
 
-    const chips = [{ value: '', label: 'Tots' }, ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))];
+    const chips = [{ value: '', label: boardText('tickets.allStatuses', 'Tots') }, ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }))];
     statusChips.innerHTML = chips.map(({ value, label }) => `
       <button type="button" class="status-chip${value === ticketStatusQuery ? ' active' : ''}" data-status-chip="${value}">
         ${label} <span class="chip-count">${counts[value] || 0}</span>
@@ -102,7 +108,7 @@ function initBoardCore({ fetchUrl, headers, searchFields }) {
       if (t.priority) counts[t.priority] = (counts[t.priority] || 0) + 1;
     });
 
-    const chips = [{ value: '', label: 'Totes' }, ...Object.entries(PRIORITY_LABELS_CA).map(([value, label]) => ({ value, label }))];
+    const chips = [{ value: '', label: boardText('tickets.allPriorities', 'Totes') }, ...Object.entries(PRIORITY_LABELS_CA).map(([value, label]) => ({ value, label }))];
     priorityChips.innerHTML = chips.map(({ value, label }) => `
       <button type="button" class="priority-chip${value === ticketPriorityQuery ? ' active' : ''}" data-priority="${value}" data-priority-chip="${value}">
         ${label} <span class="chip-count">${counts[value] || 0}</span>
@@ -127,7 +133,7 @@ function initBoardCore({ fetchUrl, headers, searchFields }) {
     renderPriorityChips();
     renderZones(tickets);
     ticketsCount.textContent = allTickets.length
-      ? `${tickets.length} de ${allTickets.length} tiquet${allTickets.length === 1 ? '' : 's'}`
+      ? boardText('tickets.countWithTotal', `${tickets.length} de ${allTickets.length} tiquet${allTickets.length === 1 ? '' : 's'}`, { shown: tickets.length, total: allTickets.length, plural: allTickets.length === 1 ? '' : 's' })
       : '';
   };
 

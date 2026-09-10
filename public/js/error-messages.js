@@ -1,10 +1,10 @@
 const ERROR_MESSAGES = {
-  repoRequired: 'Cal triar un projecte.',
-  descriptionRequired: 'Cal explicar la incidència.',
-  emailInvalid: 'El correu no té un format vàlid.',
-  tooManyScreenshots: 'Com a màxim es poden adjuntar 3 captures.',
-  screenshotTooLarge: 'Cada captura ha de pesar com a màxim 5 MB.',
-  screenshotInvalidType: 'Només es poden adjuntar imatges (PNG, JPG, WEBP o GIF).',
-  submitFailed: 'Alguna cosa ha fallat. Torna-ho a provar.',
-  loginRateLimited: 'Has demanat massa enllaços d\'accés seguits. Espera uns minuts abans de tornar-ho a provar.'
+  get repoRequired() { return I18N.t('error.repoRequired'); },
+  get descriptionRequired() { return I18N.t('error.descriptionRequired'); },
+  get emailInvalid() { return I18N.t('error.emailInvalid'); },
+  get tooManyScreenshots() { return I18N.t('error.tooManyScreenshots'); },
+  get screenshotTooLarge() { return I18N.t('error.screenshotTooLarge'); },
+  get screenshotInvalidType() { return I18N.t('error.screenshotInvalidType'); },
+  get submitFailed() { return I18N.t('error.submitFailed'); },
+  get loginRateLimited() { return I18N.t('error.loginRateLimited'); }
 };

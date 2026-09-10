@@ -12,17 +12,27 @@
 <body>
 <main class="wrap">
   <header class="page-head" id="pageHead" hidden>
-    <div class="eyebrow"><span class="eyebrow-brand">UAUU</span> · Portal intern d'incidències</div>
-    <h1>Obre un tiquet</h1>
-    <p class="subtitle">Explica'ns el problema o la petició. En enviar el formulari es crea automàticament una incidència a l'equip tècnic.</p>
+    <div class="eyebrow">
+      <span class="eyebrow-brand">UAUU</span> · <span data-i18n="brand.eyebrow">Portal intern d'incidències</span>
+      <div class="lang-switch" role="group" aria-label="Idioma">
+        <button type="button" data-lang-btn="ca">CA</button>
+        <button type="button" data-lang-btn="es">ES</button>
+      </div>
+    </div>
+    <h1 data-i18n="form.title">Obre un tiquet</h1>
+    <p class="subtitle" data-i18n="form.subtitle">Explica'ns el problema o la petició. En enviar el formulari es crea automàticament una incidència a l'equip tècnic.</p>
     <p class="project-description" id="project-description"></p>
     <div class="header-links" id="headerLinks">
-      <a href="tickets.html" class="tickets-link">Veure tiquets oberts</a>
-      <a href="login.html" class="tickets-link tickets-link-session" id="headerLoginLink">Iniciar sessió</a>
+      <a href="tickets.html" class="tickets-link" data-i18n="nav.viewTickets">Veure tiquets oberts</a>
+      <a href="login.html" class="tickets-link tickets-link-session" id="headerLoginLink" data-i18n="nav.login">Iniciar sessió</a>
     </div>
   </header>
 
   <div class="auth-gate" id="authGate" hidden>
+    <div class="lang-switch lang-switch-authgate" role="group" aria-label="Idioma">
+      <button type="button" data-lang-btn="ca">CA</button>
+      <button type="button" data-lang-btn="es">ES</button>
+    </div>
     <p id="authGateMessage"></p>
     <a href="login.html" class="auth-gate-link" id="authGateLink">Iniciar sessió</a>
   </div>
@@ -32,77 +42,77 @@
       <form id="ticket-form" novalidate>
 
         <div class="honeypot" aria-hidden="true">
-          <label for="website">No emplenar aquest camp</label>
+          <label for="website" data-i18n="form.honeypotLabel">No emplenar aquest camp</label>
           <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
         </div>
 
         <fieldset>
-          <legend>Qui ho reporta</legend>
+          <legend data-i18n="form.reporterLegend">Qui ho reporta</legend>
           <div class="row cols-2">
             <div class="field">
-              <label class="field-label" for="reporterName">Nom</label>
-              <input type="text" id="reporterName" name="reporterName" placeholder="Nom i cognoms" autocomplete="name">
+              <label class="field-label" for="reporterName" data-i18n="form.name">Nom</label>
+              <input type="text" id="reporterName" name="reporterName" placeholder="Nom i cognoms" data-i18n-placeholder="form.namePlaceholder" autocomplete="name">
             </div>
             <div class="field">
-              <label class="field-label" for="department">Departament <span class="opt">(opcional)</span></label>
+              <label class="field-label" for="department"><span data-i18n="form.department">Departament</span> <span class="opt" data-i18n="form.optional">(opcional)</span></label>
               <select id="department" name="department">
-                <option value="">Selecciona...</option>
-                <option value="comercial">Comercial</option>
-                <option value="coordinacio">Coordinació</option>
-                <option value="cuina">Cuina</option>
-                <option value="administracio">Administració</option>
-                <option value="digital">Digital</option>
+                <option value="" data-i18n="form.selectPlaceholder">Selecciona...</option>
+                <option value="comercial" data-i18n="department.comercial">Comercial</option>
+                <option value="coordinacio" data-i18n="department.coordinacio">Coordinació</option>
+                <option value="cuina" data-i18n="department.cuina">Cuina</option>
+                <option value="administracio" data-i18n="department.administracio">Administració</option>
+                <option value="digital" data-i18n="department.digital">Digital</option>
               </select>
             </div>
           </div>
           <div class="field">
-            <label class="field-label" for="reporterEmail">Correu <span class="opt">(opcional, per rebre novetats)</span></label>
-            <input type="email" id="reporterEmail" name="reporterEmail" placeholder="nom@empresa.com" autocomplete="email" list="emailSuggest" aria-describedby="reporterEmail-error">
+            <label class="field-label" for="reporterEmail"><span data-i18n="form.email">Correu</span> <span class="opt" data-i18n="form.emailOptional">(opcional, per rebre novetats)</span></label>
+            <input type="email" id="reporterEmail" name="reporterEmail" placeholder="nom@empresa.com" data-i18n-placeholder="form.emailPlaceholder" autocomplete="email" list="emailSuggest" aria-describedby="reporterEmail-error">
             <datalist id="emailSuggest"></datalist>
             <p class="field-error" id="reporterEmail-error" role="alert"></p>
           </div>
         </fieldset>
 
         <fieldset>
-          <legend>Detall de la incidència</legend>
+          <legend data-i18n="form.detailLegend">Detall de la incidència</legend>
           <div class="field">
-            <label class="field-label" for="repoId">Projecte</label>
+            <label class="field-label" for="repoId" data-i18n="form.project">Projecte</label>
             <select id="repoId" name="repoId" required>
-              <option value="" disabled selected>Carregant projectes…</option>
+              <option value="" disabled selected data-i18n="form.loadingProjects">Carregant projectes…</option>
             </select>
             <p class="field-error" id="repoId-error" role="alert"></p>
           </div>
           <div class="row cols-2">
             <div class="field">
-              <label class="field-label" for="category">Categoria</label>
+              <label class="field-label" for="category" data-i18n="form.category">Categoria</label>
               <select id="category" name="category">
-                <option value="bug">Error / no funciona</option>
-                <option value="funcionalitat">Petició de funcionalitat</option>
-                <option value="acces">Accés i permisos</option>
-                <option value="altres">Altres</option>
+                <option value="bug" data-i18n="category.bug">Error / no funciona</option>
+                <option value="funcionalitat" data-i18n="category.funcionalitat">Petició de funcionalitat</option>
+                <option value="acces" data-i18n="category.acces">Accés i permisos</option>
+                <option value="altres" data-i18n="category.altres">Altres</option>
               </select>
             </div>
             <div class="field">
-              <label class="field-label" for="priority-range">Prioritat</label>
+              <label class="field-label" for="priority-range" data-i18n="form.priority">Prioritat</label>
               <div class="priority-slider" id="priority-slider" data-level="baixa">
-                <div class="priority-bubble" id="priority-bubble">Baixa</div>
-                <input type="range" id="priority-range" min="0" max="3" step="1" value="0" aria-label="Prioritat">
+                <div class="priority-bubble" id="priority-bubble" data-i18n="priority.baixa">Baixa</div>
+                <input type="range" id="priority-range" min="0" max="3" step="1" value="0" aria-label="Prioritat" data-i18n-aria-label="form.priority">
                 <div class="priority-ticks" id="priority-ticks">
-                  <span data-value="baixa">Baixa</span>
-                  <span data-value="mitjana">Mitjana</span>
-                  <span data-value="alta">Alta</span>
-                  <span data-value="critica">Crítica</span>
+                  <span data-value="baixa" data-i18n="priority.baixa">Baixa</span>
+                  <span data-value="mitjana" data-i18n="priority.mitjana">Mitjana</span>
+                  <span data-value="alta" data-i18n="priority.alta">Alta</span>
+                  <span data-value="critica" data-i18n="priority.critica">Crítica</span>
                 </div>
               </div>
             </div>
           </div>
           <div class="field">
-            <label class="field-label" for="description">Descripció</label>
-            <textarea id="description" name="description" placeholder="Què ha passat? Passos per reproduir-ho, missatges d'error, captures..." required aria-describedby="description-error"></textarea>
+            <label class="field-label" for="description" data-i18n="form.description">Descripció</label>
+            <textarea id="description" name="description" placeholder="Què ha passat? Passos per reproduir-ho, missatges d'error, captures..." data-i18n-placeholder="form.descriptionPlaceholder" required aria-describedby="description-error"></textarea>
             <p class="field-error" id="description-error" role="alert"></p>
           </div>
           <div class="field">
-            <label class="field-label" for="screenshots">Captures de pantalla <span class="opt">(opcional, màxim 3, 5 MB cada una)</span></label>
+            <label class="field-label" for="screenshots"><span data-i18n="form.screenshots">Captures de pantalla</span> <span class="opt" data-i18n="form.screenshotsOptional">(opcional, màxim 3, 5 MB cada una)</span></label>
             <input type="file" id="screenshots" name="screenshots" accept="image/png,image/jpeg,image/webp,image/gif" multiple aria-describedby="screenshots-error">
             <ul class="file-list" id="screenshots-list"></ul>
             <p class="field-error" id="screenshots-error" role="alert"></p>
@@ -110,7 +120,7 @@
         </fieldset>
 
         <button type="submit" class="submit" id="submit-btn">
-          <span id="submit-btn-text">Enviar tiquet</span>
+          <span id="submit-btn-text" data-i18n="form.submit">Enviar tiquet</span>
           <svg class="submit-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path d="M3 10h13M10 4l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
@@ -120,29 +130,29 @@
 
       <div class="confirm" id="confirm-view">
         <div class="confirm-check">✓</div>
-        <h2>Tiquet enviat</h2>
-        <p id="confirm-text">L'equip tècnic ja té la incidència.</p>
+        <h2 data-i18n="confirm.title">Tiquet enviat</h2>
+        <p id="confirm-text" data-i18n="confirm.defaultText">L'equip tècnic ja té la incidència.</p>
         <a href="#" target="_blank" rel="noopener" class="issue-link" id="issue-link"></a>
-        <button type="button" class="again" id="again-btn">Enviar un altre tiquet</button>
+        <button type="button" class="again" id="again-btn" data-i18n="confirm.again">Enviar un altre tiquet</button>
       </div>
     </div>
 
     <div class="ticket-stub">
       <div>
-        <div class="stub-label">Nº de tiquet</div>
+        <div class="stub-label" data-i18n="stub.number">Nº de tiquet</div>
         <div class="stub-number" id="stub-number">— — —</div>
-        <div class="stub-label">Descripció</div>
+        <div class="stub-label" data-i18n="stub.description">Descripció</div>
         <div class="stub-text" id="stub-title">—</div>
-        <div class="stub-label">Reportat per</div>
+        <div class="stub-label" data-i18n="stub.reporter">Reportat per</div>
         <div class="stub-text" id="stub-reporter">—</div>
-        <div class="stub-label">Categoria</div>
+        <div class="stub-label" data-i18n="stub.category">Categoria</div>
         <div class="stub-badge" id="stub-category">Error / no funciona</div>
       </div>
       <div>
-        <div class="stub-label">Prioritat</div>
+        <div class="stub-label" data-i18n="stub.priority">Prioritat</div>
         <div class="stub-badge stub-priority" id="stub-priority" data-level="baixa">
           <svg class="stub-priority-icon" id="stub-priority-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true"></svg>
-          <span id="stub-priority-text">Baixa</span>
+          <span id="stub-priority-text" data-i18n="priority.baixa">Baixa</span>
         </div>
       </div>
     </div>
@@ -154,14 +164,14 @@
        formulari) és el que s'utilitza. -->
   <div class="ticket-actions-mobile" id="ticket-actions-mobile">
     <button type="submit" form="ticket-form" class="submit" id="submit-btn-mobile">
-      <span id="submit-btn-text-mobile">Enviar tiquet</span>
+      <span id="submit-btn-text-mobile" data-i18n="form.submit">Enviar tiquet</span>
       <svg class="submit-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
         <path d="M3 10h13M10 4l6 6-6 6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
   </div>
 
-  <a href="admin.html" class="admin-link" id="adminLink" title="Administració" aria-label="Administració" hidden>
+  <a href="admin.html" class="admin-link" id="adminLink" title="Administració" aria-label="Administració" data-i18n-title="nav.admin" data-i18n-aria-label="nav.admin" hidden>
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path d="M10 3.3l5.3 1.9v4.3c0 3.5-2.2 6-5.3 7.2-3.1-1.2-5.3-3.7-5.3-7.2V5.2L10 3.3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
     </svg>
@@ -172,6 +182,7 @@
 <script src="/js/supabase-config.js"></script>
 <script src="js/supabase-client.js"></script>
 <script src="js/auth-session.js"></script>
+<script src="js/i18n.js" defer></script>
 <script src="js/error-messages.js" defer></script>
 <script src="js/custom-select.js" defer></script>
 <script src="js/ticket-form.js" defer></script>

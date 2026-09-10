@@ -77,6 +77,34 @@ header.page-head { margin-bottom: 36px; }
   border-radius: 5px;
 }
 
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  margin-left: auto;
+}
+.lang-switch button {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft, #58698c);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.lang-switch button:hover { background: rgba(22,35,63,0.08); color: var(--ink); }
+.lang-switch button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.lang-switch button.active { background: var(--brand); color: #fff; }
+.lang-switch-authgate { margin: 0 0 14px; }
+
 h1 {
   font-size: 32px;
   margin: 10px 0 8px;

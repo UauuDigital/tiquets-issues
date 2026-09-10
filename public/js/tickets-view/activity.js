@@ -19,36 +19,39 @@ function activityStatusBadge(key) {
 }
 
 function activityPriorityBadge(key) {
-  const label = key ? (PRIORITY_LABELS_CA[key] || key) : 'sense prioritat';
+  const label = key ? (PRIORITY_LABELS_CA[key] || key) : I18N.t('activity.noPriority');
   const color = key ? `var(--priority-${key})` : 'var(--ink-soft)';
   return `<span class="activity-value" style="--activity-value-color:${color}">${escapeHtml(label)}</span>`;
 }
 
 function activityText(entry) {
-  const label = entry.ticketNumber ? `Tiquet #${entry.ticketNumber}` : 'Un tiquet';
+  const label = entry.ticketNumber ? I18N.t('activity.ticketNumber', { number: entry.ticketNumber }) : I18N.t('activity.aTicket');
   // Un tiquet eliminat ja no es pot obrir: es mostra com a text pla, no com a enllaç.
   const ticketRef = entry.ticketId && entry.type !== 'deleted'
     ? `<button type="button" class="activity-ticket-link" data-ticket-id="${escapeHtml(entry.ticketId)}">${escapeHtml(label)}</button>`
     : `<strong>${escapeHtml(label)}</strong>`;
   if (entry.type === 'created') {
-    return `${ticketRef} creat${entry.reporterName ? ` per ${escapeHtml(entry.reporterName)}` : ''}`;
+    return I18N.t('activity.created', { ticket: ticketRef, reporter: entry.reporterName ? I18N.t('activity.createdBy', { name: escapeHtml(entry.reporterName) }) : '' });
   }
   if (entry.type === 'status') {
-    return `${ticketRef}: ${activityStatusBadge(entry.from || 'no_comencat')} → ${activityStatusBadge(entry.to)}`;
+    return I18N.t('activity.status', { ticket: ticketRef, from: activityStatusBadge(entry.from || 'no_comencat'), to: activityStatusBadge(entry.to) });
   }
   if (entry.type === 'priority') {
-    return `${ticketRef}: ${activityPriorityBadge(entry.from)} → ${activityPriorityBadge(entry.to)}`;
+    return I18N.t('activity.priority', { ticket: ticketRef, from: activityPriorityBadge(entry.from), to: activityPriorityBadge(entry.to) });
   }
   if (entry.type === 'deleted') {
-    return `${ticketRef} eliminat ${entry.by === 'auto' ? 'automàticament' : 'per l\'administrador'}`;
+    return I18N.t('activity.deleted', { ticket: ticketRef, by: entry.by === 'auto' ? I18N.t('activity.deletedAuto') : I18N.t('activity.deletedAdmin') });
   }
-  return `${ticketRef} actualitzat`;
+  return I18N.t('activity.updated', { ticket: ticketRef });
 }
 
+let lastActivityEntries = [];
+
 function renderActivity(entries) {
+  lastActivityEntries = entries;
   activityList.querySelectorAll('.activity-item').forEach((el) => el.remove());
   if (!entries.length) {
-    activityStatus.textContent = 'Encara no hi ha activitat.';
+    activityStatus.textContent = I18N.t('activity.empty');
     activityStatus.hidden = false;
     return;
   }
@@ -86,7 +89,7 @@ async function loadActivity() {
     if (!res.ok) throw new Error();
     renderActivity(await res.json());
   } catch (err) {
-    activityStatus.textContent = 'No s\'ha pogut carregar l\'activitat.';
+    activityStatus.textContent = I18N.t('activity.loadError');
     activityStatus.hidden = false;
   }
 }

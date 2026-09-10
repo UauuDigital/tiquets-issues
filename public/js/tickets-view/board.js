@@ -6,8 +6,8 @@ initBoardCore({
 function ticketCardHtml(t) {
   return `
     <div class="ticket-card-frame">
-    <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" aria-label="Obre el tiquet ${t.number ? '#' + t.number : ''}: ${escapeHtml(t.description || '')}" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
-      <div class="ticket-card-urgency" title="Urgència: ${t.urgencyScore} (dies oberts × pes de prioritat)">
+    <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" aria-label="${escapeHtml(I18N.t('tickets.openTicket', { ref: t.number ? '#' + t.number : '', description: t.description || '' }))}" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
+      <div class="ticket-card-urgency" title="${escapeHtml(I18N.t('tickets.urgencyHint', { score: t.urgencyScore }))}">
         ${urgencyIconHtml(t)}
         <span class="ticket-card-number">${t.number ? '#' + t.number : ''}</span>
       </div>
@@ -17,9 +17,9 @@ function ticketCardHtml(t) {
         </div>
         <div class="ticket-card-field"><span class="ticket-repo">${escapeHtml(t.repoLabel)}</span></div>
         <div class="ticket-card-field"><span class="priority-tag" data-priority="${t.priority || ''}">${escapeHtml(PRIORITY_LABELS_CA[t.priority] || t.priority || '—')}</span></div>
-        <div class="ticket-card-field"><span class="status-badge" data-status="${t.status || 'no_comencat'}">${escapeHtml(STATUS_LABELS[t.status] || 'No començat')}</span></div>
+        <div class="ticket-card-field"><span class="status-badge" data-status="${t.status || 'no_comencat'}">${escapeHtml(STATUS_LABELS[t.status] || STATUS_LABELS.no_comencat)}</span></div>
         <div class="ticket-card-foot">
-          <span>${escapeHtml(t.reporterName || 'Anònim')}</span>
+          <span>${escapeHtml(t.reporterName || I18N.t('stub.anonymous'))}</span>
           <span title="${escapeHtml(formatTicketDate(t.createdAt))}">${escapeHtml(formatRelativeTime(t.createdAt))}</span>
         </div>
       </div>
@@ -42,7 +42,7 @@ function renderZones(tickets) {
       <div class="urgency-zone-cards">
         ${byZone[z.key].length
           ? byZone[z.key].map(ticketCardHtml).join('')
-          : '<p class="urgency-zone-empty-msg">Cap tiquet en aquesta zona.</p>'}
+          : `<p class="urgency-zone-empty-msg">${I18N.t('tickets.zoneEmpty')}</p>`}
       </div>
     </section>
   `).join('');

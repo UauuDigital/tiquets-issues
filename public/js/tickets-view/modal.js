@@ -1,18 +1,18 @@
 function populateModal(t) {
   modalUrgency.innerHTML = urgencyIconHtml(t);
-  modalTitle.textContent = t.number ? `Tiquet núm. ${t.number}` : 'Tiquet';
+  modalTitle.textContent = t.number ? I18N.t('modal.ticketNumber', { number: t.number }) : I18N.t('modal.ticketGeneric');
   modalRepo.textContent = t.repoLabel;
-  modalDescription.textContent = t.description || t.title || '—';
-  modalStatus.textContent = STATUS_LABELS[t.status] || 'No començat';
+  modalDescription.textContent = t.description || t.title || I18N.t('modal.na');
+  modalStatus.textContent = STATUS_LABELS[t.status] || STATUS_LABELS.no_comencat;
   modalStatus.dataset.status = t.status || 'no_comencat';
-  modalPriority.textContent = PRIORITY_LABELS_CA[t.priority] || t.priority || '—';
+  modalPriority.textContent = PRIORITY_LABELS_CA[t.priority] || t.priority || I18N.t('modal.na');
   modalPriority.dataset.priority = t.priority || '';
-  modalCategory.textContent = CATEGORY_LABELS_CA[t.category] || '—';
-  modalDepartment.textContent = DEPARTMENT_LABELS_CA[t.department] || '—';
-  modalReporter.textContent = t.reporterName || 'Anònim';
+  modalCategory.textContent = CATEGORY_LABELS_CA[t.category] || I18N.t('modal.na');
+  modalDepartment.textContent = DEPARTMENT_LABELS_CA[t.department] || I18N.t('modal.na');
+  modalReporter.textContent = t.reporterName || I18N.t('stub.anonymous');
   modalDate.textContent = `${formatRelativeTime(t.createdAt)} (${formatTicketDate(t.createdAt)})`;
   modalUrgencyValue.innerHTML = urgencyBadgeHtml(t);
-  modalUrgencyValue.title = `Puntuació: ${t.urgencyScore}`;
+  modalUrgencyValue.title = I18N.t('modal.score', { score: t.urgencyScore });
 
   if (t.screenshotUrls && t.screenshotUrls.length) {
     modalScreenshotsSection.hidden = false;
@@ -50,7 +50,7 @@ function setupCommentClamp(commentEl) {
   const toggle = document.createElement('button');
   toggle.type = 'button';
   toggle.className = 'modal-comment-toggle';
-  toggle.textContent = 'Mostra el comentari sencer';
+  toggle.textContent = I18N.t('modal.commentToggle');
   toggle.addEventListener('click', () => openCommentModal(commentEl));
   commentEl.appendChild(toggle);
 }
@@ -73,14 +73,14 @@ commentModal.addEventListener('click', (e) => {
 async function loadModalComments(id) {
   modalComments.querySelectorAll('.modal-comment').forEach((el) => el.remove());
   modalCommentsStatus.hidden = false;
-  modalCommentsStatus.textContent = 'Carregant…';
+  modalCommentsStatus.textContent = I18N.t('modal.commentsLoading');
   try {
     const res = await fetch(`/api/tickets/${id}/comments`);
     if (!res.ok) throw new Error();
     const comments = await res.json();
     if (currentModalTicketId !== id) return;
     if (!comments.length) {
-      modalCommentsStatus.textContent = 'Encara no hi ha cap comentari.';
+      modalCommentsStatus.textContent = I18N.t('modal.commentsEmpty');
       return;
     }
     modalCommentsStatus.hidden = true;
@@ -92,7 +92,7 @@ async function loadModalComments(id) {
   } catch (err) {
     if (currentModalTicketId !== id) return;
     modalCommentsStatus.hidden = false;
-    modalCommentsStatus.textContent = 'No s\'han pogut carregar els comentaris.';
+    modalCommentsStatus.textContent = I18N.t('modal.commentsLoadError');
   }
 }
 
@@ -105,7 +105,7 @@ modalCommentForm.addEventListener('submit', async (e) => {
   if (!body || !authorName || !currentModalTicketId) return;
 
   modalCommentSubmit.disabled = true;
-  modalCommentSubmit.textContent = 'Publicant…';
+  modalCommentSubmit.textContent = I18N.t('modal.commentSubmitting');
   try {
     const res = await fetch(`/api/tickets/${currentModalTicketId}/comments`, {
       method: 'POST',
@@ -127,7 +127,7 @@ modalCommentForm.addEventListener('submit', async (e) => {
     modalCommentError.style.display = 'block';
   } finally {
     modalCommentSubmit.disabled = false;
-    modalCommentSubmit.textContent = 'Publicar comentari';
+    modalCommentSubmit.textContent = I18N.t('modal.commentSubmit');
   }
 });
 

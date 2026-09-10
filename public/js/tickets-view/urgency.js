@@ -38,13 +38,14 @@ function urgencyColor(score) {
 
 // Zones del tauler, de més a menys urgència. Els tiquets acabats o cancel·lats
 // tenen la seva pròpia zona (independent de la urgència), sempre al final.
+// label es reomple a rebuildUrgencyLabels() segons l'idioma actiu.
 const ZONES = [
-  { key: 'max', label: 'Urgència màxima', color: '#0a0a0a', match: (t) => t.status !== 'acabat' && t.status !== 'cancelat' && t.urgencyScore >= 100 },
-  { key: 'high', label: 'Urgència alta', color: '#dc2626', match: (t) => t.status !== 'acabat' && t.status !== 'cancelat' && t.urgencyScore >= 50 && t.urgencyScore < 100 },
-  { key: 'medium', label: 'Urgència mitjana', color: '#a16207', match: (t) => t.status !== 'acabat' && t.status !== 'cancelat' && t.urgencyScore >= 25 && t.urgencyScore < 50 },
-  { key: 'low', label: 'Urgència baixa', color: '#166534', match: (t) => t.status !== 'acabat' && t.status !== 'cancelat' && t.urgencyScore < 25 },
-  { key: 'acabat', label: 'Acabat', color: '#2563eb', match: (t) => t.status === 'acabat' },
-  { key: 'cancelat', label: 'Cancel·lat', color: '#6b7280', match: (t) => t.status === 'cancelat' }
+  { key: 'max', label: '', color: '#0a0a0a', match: (t) => t.status !== 'acabat' && t.status !== 'cancelat' && t.urgencyScore >= 100 },
+  { key: 'high', label: '', color: '#dc2626', match: (t) => t.status !== 'acabat' && t.status !== 'cancelat' && t.urgencyScore >= 50 && t.urgencyScore < 100 },
+  { key: 'medium', label: '', color: '#a16207', match: (t) => t.status !== 'acabat' && t.status !== 'cancelat' && t.urgencyScore >= 25 && t.urgencyScore < 50 },
+  { key: 'low', label: '', color: '#166534', match: (t) => t.status !== 'acabat' && t.status !== 'cancelat' && t.urgencyScore < 25 },
+  { key: 'acabat', label: '', color: '#2563eb', match: (t) => t.status === 'acabat' },
+  { key: 'cancelat', label: '', color: '#6b7280', match: (t) => t.status === 'cancelat' }
 ];
 
 function zoneForTicket(t) {
@@ -59,13 +60,20 @@ function urgencyLevelKey(score) {
   return 'max';
 }
 
-const URGENCY_LEVEL_LABELS_CA = {
-  none: 'Cap urgència',
-  low: 'Urgència baixa',
-  medium: 'Urgència mitjana',
-  high: 'Urgència alta',
-  max: 'Urgència màxima'
-};
+const URGENCY_LEVEL_LABELS_CA = {};
+
+function rebuildUrgencyLabels() {
+  Object.assign(URGENCY_LEVEL_LABELS_CA, {
+    none: I18N.t('urgency.none'), low: I18N.t('urgency.low'), medium: I18N.t('urgency.medium'), high: I18N.t('urgency.high'), max: I18N.t('urgency.max')
+  });
+  ZONES.find((z) => z.key === 'max').label = I18N.t('urgency.max');
+  ZONES.find((z) => z.key === 'high').label = I18N.t('urgency.high');
+  ZONES.find((z) => z.key === 'medium').label = I18N.t('urgency.medium');
+  ZONES.find((z) => z.key === 'low').label = I18N.t('urgency.low');
+  ZONES.find((z) => z.key === 'acabat').label = I18N.t('urgency.acabat');
+  ZONES.find((z) => z.key === 'cancelat').label = I18N.t('urgency.cancelat');
+}
+rebuildUrgencyLabels();
 
 const URGENCY_ICONS = {
   low: `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="7.3" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.6" fill="currentColor"/></svg>`,
@@ -94,7 +102,7 @@ function urgencyBadgeHtml(t) {
 
 function formatTicketDate(iso) {
   try {
-    return new Intl.DateTimeFormat('ca-ES', {
+    return new Intl.DateTimeFormat(I18N.getLocale(), {
       timeZone: 'Europe/Madrid',
       day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
     }).format(new Date(iso));
@@ -106,16 +114,16 @@ function formatTicketDate(iso) {
 function formatRelativeTime(iso) {
   const diffMs = Date.now() - new Date(iso).getTime();
   const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return 'ara mateix';
-  if (diffMin < 60) return `fa ${diffMin} min`;
+  if (diffMin < 1) return I18N.t('time.now');
+  if (diffMin < 60) return I18N.t('time.minutesAgo', { n: diffMin });
   const diffHours = Math.floor(diffMin / 60);
-  if (diffHours < 24) return `fa ${diffHours} h`;
+  if (diffHours < 24) return I18N.t('time.hoursAgo', { n: diffHours });
   const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return 'fa 1 dia';
-  if (diffDays < 30) return `fa ${diffDays} dies`;
+  if (diffDays === 1) return I18N.t('time.oneDayAgo');
+  if (diffDays < 30) return I18N.t('time.daysAgo', { n: diffDays });
   const diffMonths = Math.floor(diffDays / 30);
-  if (diffMonths === 1) return 'fa 1 mes';
-  if (diffMonths < 12) return `fa ${diffMonths} mesos`;
+  if (diffMonths === 1) return I18N.t('time.oneMonthAgo');
+  if (diffMonths < 12) return I18N.t('time.monthsAgo', { n: diffMonths });
   const diffYears = Math.floor(diffDays / 365);
-  return diffYears === 1 ? 'fa 1 any' : `fa ${diffYears} anys`;
+  return diffYears === 1 ? I18N.t('time.oneYearAgo') : I18N.t('time.yearsAgo', { n: diffYears });
 }

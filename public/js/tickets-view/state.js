@@ -60,18 +60,31 @@ function escapeHtml(str) {
   }[c]));
 }
 
-const PRIORITY_LABELS_CA = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', critica: 'Crítica' };
-const CATEGORY_LABELS_CA = { bug: 'Error / no funciona', funcionalitat: 'Petició de funcionalitat', acces: 'Accés i permisos', altres: 'Altres' };
-const DEPARTMENT_LABELS_CA = { comercial: 'Comercial', coordinacio: 'Coordinació', cuina: 'Cuina', administracio: 'Administració', digital: 'Digital' };
+// Es reomplen a rebuildLabelMaps() amb el text de l'idioma actiu; l'objecte
+// es manté sempre el mateix (Object.assign), perquè board-core.js/board.js/
+// modal.js/activity.js hi guarden una referència directa.
+const PRIORITY_LABELS_CA = {};
+const CATEGORY_LABELS_CA = {};
+const DEPARTMENT_LABELS_CA = {};
+const STATUS_LABELS = {};
 const PRIORITY_ORDER = { critica: 4, alta: 3, mitjana: 2, baixa: 1 };
 const STATUS_ORDER = { comencat: 3, en_espera: 2, no_comencat: 1, acabat: 0, cancelat: 0 };
-const STATUS_LABELS = {
-  no_comencat: 'No començat',
-  comencat: 'Començat',
-  en_espera: 'En espera',
-  acabat: 'Acabat',
-  cancelat: 'Cancel·lat'
-};
+
+function rebuildLabelMaps() {
+  Object.assign(PRIORITY_LABELS_CA, {
+    baixa: I18N.t('priority.baixa'), mitjana: I18N.t('priority.mitjana'), alta: I18N.t('priority.alta'), critica: I18N.t('priority.critica')
+  });
+  Object.assign(CATEGORY_LABELS_CA, {
+    bug: I18N.t('category.bug'), funcionalitat: I18N.t('category.funcionalitat'), acces: I18N.t('category.acces'), altres: I18N.t('category.altres')
+  });
+  Object.assign(DEPARTMENT_LABELS_CA, {
+    comercial: I18N.t('department.comercial'), coordinacio: I18N.t('department.coordinacio'), cuina: I18N.t('department.cuina'), administracio: I18N.t('department.administracio'), digital: I18N.t('department.digital')
+  });
+  Object.assign(STATUS_LABELS, {
+    no_comencat: I18N.t('status.no_comencat'), comencat: I18N.t('status.comencat'), en_espera: I18N.t('status.en_espera'), acabat: I18N.t('status.acabat'), cancelat: I18N.t('status.cancelat')
+  });
+}
+rebuildLabelMaps();
 
 const STATUS_COLORS = {
   no_comencat: '#4b5563',
