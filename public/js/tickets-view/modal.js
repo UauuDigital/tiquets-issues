@@ -8,7 +8,6 @@ function populateModal(t) {
   modalPriority.textContent = PRIORITY_LABELS_CA[t.priority] || t.priority || I18N.t('modal.na');
   modalPriority.dataset.priority = t.priority || '';
   modalCategory.textContent = CATEGORY_LABELS_CA[t.category] || I18N.t('modal.na');
-  modalDepartment.textContent = DEPARTMENT_LABELS_CA[t.department] || I18N.t('modal.na');
   modalReporter.textContent = t.reporterName || I18N.t('stub.anonymous');
   modalDate.textContent = `${formatRelativeTime(t.createdAt)} (${formatTicketDate(t.createdAt)})`;
   modalUrgencyValue.innerHTML = urgencyBadgeHtml(t);
@@ -80,7 +79,7 @@ async function loadModalComments(id) {
   modalCommentsStatus.hidden = false;
   modalCommentsStatus.textContent = I18N.t('modal.commentsLoading');
   try {
-    const res = await fetch(`/api/tickets/${id}/comments`);
+    const res = await fetch(`/api/tickets/${id}/comments`, { headers: authHeaders() });
     if (!res.ok) throw new Error();
     const comments = await res.json();
     if (currentModalTicketId !== id) return;
@@ -105,17 +104,15 @@ modalCommentForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   modalCommentError.style.display = 'none';
   const body = modalCommentInput.value.trim();
-  const authorName = modalCommentAuthor.value.trim();
-  const authorEmail = modalCommentAuthorEmail.value.trim();
-  if (!body || !authorName || !currentModalTicketId) return;
+  if (!body || !currentModalTicketId) return;
 
   modalCommentSubmit.disabled = true;
   modalCommentSubmit.textContent = I18N.t('modal.commentSubmitting');
   try {
     const res = await fetch(`/api/tickets/${currentModalTicketId}/comments`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body, authorName, authorEmail })
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ body })
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
@@ -125,8 +122,6 @@ modalCommentForm.addEventListener('submit', async (e) => {
     modalComments.appendChild(newCommentEl);
     setupCommentClamp(newCommentEl);
     modalCommentInput.value = '';
-    modalCommentAuthor.value = '';
-    modalCommentAuthorEmail.value = '';
   } catch (err) {
     modalCommentError.textContent = err.message;
     modalCommentError.style.display = 'block';
@@ -136,9 +131,17 @@ modalCommentForm.addEventListener('submit', async (e) => {
   }
 });
 
+function syncCommentAs() {
+  if (!modalCommentAs) return;
+  modalCommentAs.textContent = currentUsuari
+    ? I18N.t('modal.commentAs', { name: currentUsuari.nom, email: currentUsuari.email })
+    : '';
+}
+
 function openTicketModal(t) {
   currentModalTicketId = t.id;
   populateModal(t);
+  syncCommentAs();
   ticketModal.showModal();
   loadModalComments(t.id);
 }

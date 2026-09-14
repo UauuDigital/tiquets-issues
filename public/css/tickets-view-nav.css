@@ -48,6 +48,28 @@
 .lang-switch button:hover { background: rgba(22,35,63,0.08); color: var(--ink); }
 .lang-switch button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .lang-switch button.active { background: var(--brand); color: #fff; }
+.lang-switch-authgate { margin: 0 0 14px; }
+
+.auth-gate {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.auth-gate p { margin: 0 0 0.6rem; color: var(--ink-soft); font-size: 0.9rem; }
+.auth-gate-link {
+  display: inline-block;
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  background: var(--action);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.auth-gate-link:hover { background: var(--action-hover); }
 
 /* Camí de navegació: mateixa "píndola" amb separadors a totes dues
    mides. Cada pas mostra la icona (mòbil) o l'etiqueta de text

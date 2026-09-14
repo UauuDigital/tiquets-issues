@@ -74,6 +74,13 @@ async function syncAuthGate() {
   ticketBlock.hidden = false;
   if (pageHead) pageHead.hidden = false;
   if (headerAccountLink) headerAccountLink.hidden = false;
+  if (reporterNameInput) {
+    reporterNameInput.value = usuari.nom || '';
+    syncReporter();
+  }
+  if (reporterEmailInput) {
+    reporterEmailInput.value = usuari.email || '';
+  }
   if (headerLoginLink) {
     renderHeaderLoginLink();
     headerLoginLink.href = '#';
@@ -116,7 +123,6 @@ const stubReporter = document.getElementById('stub-reporter');
 const descriptionInput = document.getElementById('description');
 const reporterNameInput = document.getElementById('reporterName');
 const reporterEmailInput = document.getElementById('reporterEmail');
-const emailSuggestDatalist = document.getElementById('emailSuggest');
 
 const screenshotsInput = document.getElementById('screenshots');
 const screenshotsList = document.getElementById('screenshots-list');
@@ -206,7 +212,11 @@ function clearAllFieldErrors() {
 
 function validateEmailField() {
   const value = reporterEmailInput.value.trim();
-  if (value && !EMAIL_RE.test(value)) {
+  if (!value) {
+    setFieldError(reporterEmailInput, fieldErrors.reporterEmail, ERROR_MESSAGES.emailRequired);
+    return false;
+  }
+  if (!EMAIL_RE.test(value)) {
     setFieldError(reporterEmailInput, fieldErrors.reporterEmail, ERROR_MESSAGES.emailInvalid);
     return false;
   }
@@ -215,16 +225,6 @@ function validateEmailField() {
 }
 reporterEmailInput.addEventListener('blur', validateEmailField);
 
-const EMAIL_DOMAIN = '@uauu.cat';
-reporterEmailInput.addEventListener('input', () => {
-  const value = reporterEmailInput.value;
-  if (value && !value.includes('@')) {
-    emailSuggestDatalist.innerHTML = `<option value="${value}${EMAIL_DOMAIN}"></option>`;
-  } else {
-    emailSuggestDatalist.innerHTML = '';
-  }
-});
-
 const categorySelect = document.getElementById('category');
 const prioritySlider = document.getElementById('priority-slider');
 const priorityRange = document.getElementById('priority-range');
@@ -232,13 +232,11 @@ const priorityBubble = document.getElementById('priority-bubble');
 const priorityTicks = document.querySelectorAll('#priority-ticks span');
 const repoSelect = document.getElementById('repoId');
 const projectDescription = document.getElementById('project-description');
-const departmentSelect = document.getElementById('department');
 
 const PRIORITY_LEVELS = ['baixa', 'mitjana', 'alta', 'critica'];
 
 const repoCustomSelect = enhanceSelect(repoSelect);
 const categoryCustomSelect = enhanceSelect(categorySelect);
-const departmentCustomSelect = enhanceSelect(departmentSelect);
 repoCustomSelect.describeWith('repoId-error');
 
 let repoDescriptions = {};
@@ -359,7 +357,6 @@ syncPriority();
 
 document.addEventListener('i18n:change', () => {
   categoryCustomSelect.refresh();
-  departmentCustomSelect.refresh();
   repoCustomSelect.refresh();
   syncStub();
   syncPriority();
@@ -413,7 +410,6 @@ form.addEventListener('submit', async (e) => {
   formData.append('priority', PRIORITY_LEVELS[Number(priorityRange.value)] || 'baixa');
   formData.append('reporterName', form.reporterName.value);
   formData.append('reporterEmail', form.reporterEmail.value);
-  formData.append('department', form.department.value);
   formData.append('website', form.website.value); // honeypot
   Array.from(screenshotsInput.files).forEach((file) => formData.append('screenshots', file));
 
@@ -456,6 +452,10 @@ form.addEventListener('submit', async (e) => {
 
 againBtn.addEventListener('click', () => {
   form.reset();
+  if (currentUsuari && currentUsuari !== 'not-approved') {
+    reporterNameInput.value = currentUsuari.nom || '';
+    reporterEmailInput.value = currentUsuari.email || '';
+  }
   loadNextTicketNumber();
   syncStub();
   syncPriority();
@@ -467,7 +467,6 @@ againBtn.addEventListener('click', () => {
   screenshotsStatus.hidden = false;
   formError.textContent = '';
   formError.classList.remove('error');
-  departmentCustomSelect.refresh();
   categoryCustomSelect.refresh();
   repoCustomSelect.refresh();
   syncProjectDescription();

@@ -43,7 +43,6 @@ const modalDescription = document.getElementById('modalDescription');
 const modalStatusWrap = document.getElementById('modalStatusWrap');
 const modalPriority = document.getElementById('modalPriority');
 const modalCategory = document.getElementById('modalCategory');
-const modalDepartment = document.getElementById('modalDepartment');
 const modalReporter = document.getElementById('modalReporter');
 const modalEmail = document.getElementById('modalEmail');
 const modalDate = document.getElementById('modalDate');
@@ -83,7 +82,6 @@ function escapeHtml(str) {
 
 const PRIORITY_LABELS_CA = { baixa: 'Baixa', mitjana: 'Mitjana', alta: 'Alta', critica: 'Crítica' };
 const CATEGORY_LABELS_CA = { bug: 'Error / no funciona', funcionalitat: 'Petició de funcionalitat', acces: 'Accés i permisos', altres: 'Altres' };
-const DEPARTMENT_LABELS_CA = { comercial: 'Comercial', coordinacio: 'Coordinació', cuina: 'Cuina', administracio: 'Administració', digital: 'Digital' };
 const PRIORITY_ORDER = { critica: 4, alta: 3, mitjana: 2, baixa: 1 };
 const STATUS_ORDER = { comencat: 3, en_espera: 2, no_comencat: 1, acabat: 0, cancelat: 0 };
 

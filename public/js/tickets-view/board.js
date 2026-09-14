@@ -1,5 +1,6 @@
 initBoardCore({
   fetchUrl: '/api/tickets',
+  headers: authHeaders,
   searchFields: (t) => [t.title, t.repoLabel, t.reporterName, t.number ? `#${t.number}` : '']
 });
 

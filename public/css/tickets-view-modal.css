@@ -267,11 +267,7 @@
 .modal-comment-form { margin-top: 0.75rem; }
 .modal-comment-form textarea { resize: vertical; min-height: 4.5rem; }
 .modal-comment-form button { width: 100%; }
-.modal-comment-form-row { display: flex; gap: 0.5rem; }
-.modal-comment-form-row input { flex: 1; min-width: 0; }
-@media (max-width: 480px) {
-  .modal-comment-form-row { flex-direction: column; gap: 0; }
-}
+.modal-comment-as { margin: 0 0 0.5rem; font-size: 0.82rem; color: var(--ink-soft); }
 
 .modal-meta {
   display: grid;

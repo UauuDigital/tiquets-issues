@@ -85,7 +85,7 @@ activityBackdrop.addEventListener('click', closeActivityCard);
 
 async function loadActivity() {
   try {
-    const res = await fetch('/api/activity');
+    const res = await fetch('/api/activity', { headers: authHeaders() });
     if (!res.ok) throw new Error();
     renderActivity(await res.json());
   } catch (err) {

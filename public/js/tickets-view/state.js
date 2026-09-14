@@ -1,3 +1,16 @@
+const authGate = document.getElementById('authGate');
+const authGateMessage = document.getElementById('authGateMessage');
+const authGateLink = document.getElementById('authGateLink');
+const pageHead = document.getElementById('pageHead');
+const ticketsLayout = document.getElementById('ticketsLayout');
+
+let userAccessToken = null;
+let currentUsuari = null;
+
+function authHeaders() {
+  return userAccessToken ? { 'Authorization': `Bearer ${userAccessToken}` } : {};
+}
+
 const zonesBoard = document.getElementById('zonesBoard');
 const ticketsError = document.getElementById('ticketsError');
 const ticketsEmptyMsg = document.getElementById('ticketsEmptyMsg');
@@ -32,7 +45,6 @@ const modalDescription = document.getElementById('modalDescription');
 const modalStatus = document.getElementById('modalStatus');
 const modalPriority = document.getElementById('modalPriority');
 const modalCategory = document.getElementById('modalCategory');
-const modalDepartment = document.getElementById('modalDepartment');
 const modalReporter = document.getElementById('modalReporter');
 const modalDate = document.getElementById('modalDate');
 const modalUrgencyValue = document.getElementById('modalUrgencyValue');
@@ -41,8 +53,7 @@ const modalScreenshots = document.getElementById('modalScreenshots');
 const modalComments = document.getElementById('modalComments');
 const modalCommentsStatus = document.getElementById('modalCommentsStatus');
 const modalCommentForm = document.getElementById('modalCommentForm');
-const modalCommentAuthor = document.getElementById('modalCommentAuthor');
-const modalCommentAuthorEmail = document.getElementById('modalCommentAuthorEmail');
+const modalCommentAs = document.getElementById('modalCommentAs');
 const modalCommentInput = document.getElementById('modalCommentInput');
 const modalCommentError = document.getElementById('modalCommentError');
 const modalCommentSubmit = document.getElementById('modalCommentSubmit');
@@ -73,7 +84,6 @@ function escapeHtml(str) {
 // modal.js/activity.js hi guarden una referència directa.
 const PRIORITY_LABELS_CA = {};
 const CATEGORY_LABELS_CA = {};
-const DEPARTMENT_LABELS_CA = {};
 const STATUS_LABELS = {};
 const PRIORITY_ORDER = { critica: 4, alta: 3, mitjana: 2, baixa: 1 };
 const STATUS_ORDER = { comencat: 3, en_espera: 2, no_comencat: 1, acabat: 0, cancelat: 0 };
@@ -84,9 +94,6 @@ function rebuildLabelMaps() {
   });
   Object.assign(CATEGORY_LABELS_CA, {
     bug: I18N.t('category.bug'), funcionalitat: I18N.t('category.funcionalitat'), acces: I18N.t('category.acces'), altres: I18N.t('category.altres')
-  });
-  Object.assign(DEPARTMENT_LABELS_CA, {
-    comercial: I18N.t('department.comercial'), coordinacio: I18N.t('department.coordinacio'), cuina: I18N.t('department.cuina'), administracio: I18N.t('department.administracio'), digital: I18N.t('department.digital')
   });
   Object.assign(STATUS_LABELS, {
     no_comencat: I18N.t('status.no_comencat'), comencat: I18N.t('status.comencat'), en_espera: I18N.t('status.en_espera'), acabat: I18N.t('status.acabat'), cancelat: I18N.t('status.cancelat')

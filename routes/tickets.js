@@ -8,7 +8,7 @@ const ticketsStore = require('../tickets.store');
 const activityStore = require('../activity.store');
 const { formatDateCa } = require('../lib/date');
 const { notifyByEmail } = require('../lib/mailer');
-const { CATEGORY_LABELS, PRIORITY_LABELS, DEPARTMENT_LABELS, PRIORITY_TEXT } = require('../lib/labels');
+const { CATEGORY_LABELS, PRIORITY_LABELS, PRIORITY_TEXT } = require('../lib/labels');
 const { publicCommentAuthorLine, extractPublicCommentAuthor, stripPublicCommentAuthor } = require('../lib/comments');
 const { GITHUB_TOKEN, ghPublicHeaders, parseGithubIssueUrl, uploadScreenshotToGithub } = require('../lib/github-api');
 const requireApprovedUser = require('../middleware/require-approved-user');
@@ -53,28 +53,28 @@ router.get('/api/repos', (_req, res) => {
   res.json(reposStore.list().map(({ id, label, description }) => ({ id, label, description: description || '' })));
 });
 
-// Llista pública (sense token) de tots els tiquets, perquè qualsevol
-// usuari del portal en tingui una visió ràpida sense accedir a l'admin.
-// No s'hi inclou el correu de qui reporta (reporterEmail), per privacitat.
-router.get('/api/tickets', (_req, res) => {
+// Llista de tots els tiquets, per a qualsevol usuari del portal amb sessió
+// aprovada (sense accedir a l'admin). No s'hi inclou el correu de qui
+// reporta (reporterEmail), per privacitat.
+router.get('/api/tickets', requireApprovedUser, (_req, res) => {
   res.json(ticketsStore.list().map(({
-    id, number, url, title, description, repoLabel, priority, status, category, department, reporterName, screenshotUrls, createdAt
+    id, number, url, title, description, repoLabel, priority, status, category, reporterName, screenshotUrls, createdAt
   }) => ({
-    id, number, url, title, description, repoLabel, priority, status: status || 'no_comencat', category, department, reporterName, screenshotUrls: screenshotUrls || [], createdAt
+    id, number, url, title, description, repoLabel, priority, status: status || 'no_comencat', category, reporterName, screenshotUrls: screenshotUrls || [], createdAt
   })));
 });
 
 // Últims esdeveniments (creació de tiquets, canvis d'estat i prioritat),
-// visibles a qualsevol usuari del portal (sense token), per a la columna
-// d'activitat recent de tickets.html.
-router.get('/api/activity', (_req, res) => {
+// visibles a qualsevol usuari del portal amb sessió aprovada, per a la
+// columna d'activitat recent de tickets.html.
+router.get('/api/activity', requireApprovedUser, (_req, res) => {
   // Els comentaris només es mostren a l'historial de l'admin, no al públic.
   res.json(activityStore.list().filter((e) => e.type !== 'comment').slice(0, 40));
 });
 
-// Comentaris d'un tiquet, visibles a qualsevol usuari del portal (sense token).
-// Fa servir GITHUB_TOKEN (no l'admin) perquè és una lectura pública.
-router.get('/api/tickets/:id/comments', async (req, res) => {
+// Comentaris d'un tiquet, visibles a qualsevol usuari del portal amb sessió
+// aprovada. Fa servir GITHUB_TOKEN (no l'admin) perquè és una lectura del bot.
+router.get('/api/tickets/:id/comments', requireApprovedUser, async (req, res) => {
   const ticket = ticketsStore.list().find((t) => t.id === req.params.id);
   if (!ticket) return res.status(404).json({ error: 'Tiquet no trobat.' });
 
@@ -106,11 +106,13 @@ router.get('/api/tickets/:id/comments', async (req, res) => {
   }
 });
 
-// Deixa un comentari des del portal públic (sense token). Com que es publica
+// Deixa un comentari com a usuari amb sessió aprovada. Com que es publica
 // amb el compte del bot, el nom de qui l'escriu es desa dins el propi text
-// del comentari perquè es pugui mostrar igualment a la llista.
-router.post('/api/tickets/:id/comments', commentLimiter, async (req, res) => {
-  const { body, authorName, authorEmail } = req.body || {};
+// del comentari perquè es pugui mostrar igualment a la llista. El nom i el
+// correu es prenen sempre de tiquets.usuaris (no del client) perquè l'usuari
+// no els pugui suplantar.
+router.post('/api/tickets/:id/comments', commentLimiter, requireApprovedUser, async (req, res) => {
+  const { body } = req.body || {};
   if (!body || !body.trim()) {
     return res.status(400).json({ error: 'Cal escriure un comentari.' });
   }
@@ -126,8 +128,8 @@ router.post('/api/tickets/:id/comments', commentLimiter, async (req, res) => {
     return res.status(500).json({ error: 'El servidor no té configurat GITHUB_TOKEN (revisa .env).' });
   }
 
-  const cleanAuthor = (authorName || '').trim().slice(0, 80) || 'Anònim';
-  const cleanEmail = (authorEmail || '').trim().slice(0, 120);
+  const cleanAuthor = (req.usuari.nom || '').trim().slice(0, 80) || 'Anònim';
+  const cleanEmail = (req.usuari.email || '').trim().slice(0, 120);
   const taggedBody = `${publicCommentAuthorLine(cleanAuthor, cleanEmail)}\n\n${body.trim()}`;
 
   try {
@@ -181,12 +183,15 @@ router.post('/api/tickets', ticketLimiter, requireApprovedUser, screenshotUpload
     description,
     category,
     priority,
-    reporterName,
-    reporterEmail,
-    department,
     repoId,
     website // camp honeypot, ha d'arribar buit
   } = req.body || {};
+
+  // El nom i el correu de qui reporta es prenen sempre de tiquets.usuaris
+  // (no del client, encara que el formulari els mostri) perquè l'usuari no
+  // pugui suplantar-ne un altre.
+  const reporterName = req.usuari.nom || '';
+  const reporterEmail = req.usuari.email || '';
 
   // Honeypot anti-bots: si el camp ocult té contingut, fingim èxit i no fem res.
   if (website) {
@@ -233,7 +238,6 @@ router.post('/api/tickets', ticketLimiter, requireApprovedUser, screenshotUpload
   const issueBody = [
     `**Projecte:** ${targetRepo.label}`,
     `**Reportat per:** ${reporterName?.trim() || 'Anònim'}${reporterEmail?.trim() ? ` (${reporterEmail.trim()})` : ''}`,
-    department?.trim() ? `**Departament:** ${DEPARTMENT_LABELS[department.trim()] || department.trim()}` : null,
     `**Prioritat:** ${PRIORITY_TEXT[priority] || 'no especificada'}`,
     `**Enviat des del portal de tiquets:** ${formatDateCa(new Date())}`,
     '',
@@ -278,7 +282,6 @@ router.post('/api/tickets', ticketLimiter, requireApprovedUser, screenshotUpload
       repoLabel: targetRepo.label,
       priority: priority || null,
       category: category || null,
-      department: department?.trim() || null,
       reporterName: reporterName?.trim() || null,
       reporterEmail: reporterEmail?.trim() || null,
       screenshotUrls,

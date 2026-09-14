@@ -14,7 +14,7 @@ async function requireApprovedUser(req, res, next) {
 
   const { data: usuari, error } = await tiquets(supabaseAdmin)
     .from('usuaris')
-    .select('actiu')
+    .select('nom, email, actiu')
     .eq('id', user.id)
     .maybeSingle();
 
@@ -23,10 +23,11 @@ async function requireApprovedUser(req, res, next) {
     return res.status(500).json({ error: 'No s\'ha pogut comprovar el teu accés.' });
   }
   if (!usuari || !usuari.actiu) {
-    return res.status(403).json({ error: 'El teu compte encara no té accés aprovat per crear tiquets.' });
+    return res.status(403).json({ error: 'El teu compte encara no té accés aprovat.' });
   }
 
   req.userId = user.id;
+  req.usuari = usuari;
   next();
 }
 

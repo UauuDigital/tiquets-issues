@@ -8,7 +8,6 @@ function populateModal(t) {
   modalPriority.innerHTML = prioritySelectHtml(t);
   modalPriority.querySelector('.priority-select').addEventListener('change', (e) => updateTicketPriority(e.target));
   modalCategory.textContent = CATEGORY_LABELS_CA[t.category] || '—';
-  modalDepartment.textContent = DEPARTMENT_LABELS_CA[t.department] || '—';
   modalReporter.textContent = t.reporterName || 'Anònim';
   modalEmail.innerHTML = t.reporterEmail ? `<a href="mailto:${escapeHtml(t.reporterEmail)}">${escapeHtml(t.reporterEmail)}</a>` : '—';
   modalDate.textContent = `${formatRelativeTime(t.createdAt)} (${formatTicketDate(t.createdAt)})`;

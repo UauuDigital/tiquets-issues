@@ -53,27 +53,13 @@
 
         <fieldset>
           <legend data-i18n="form.reporterLegend">Qui ho reporta</legend>
-          <div class="row cols-2">
-            <div class="field">
-              <label class="field-label" for="reporterName" data-i18n="form.name">Nom</label>
-              <input type="text" id="reporterName" name="reporterName" placeholder="Nom i cognoms" data-i18n-placeholder="form.namePlaceholder" autocomplete="name">
-            </div>
-            <div class="field">
-              <label class="field-label" for="department"><span data-i18n="form.department">Departament</span> <span class="opt" data-i18n="form.optional">(opcional)</span></label>
-              <select id="department" name="department">
-                <option value="" data-i18n="form.selectPlaceholder">Selecciona...</option>
-                <option value="comercial" data-i18n="department.comercial">Comercial</option>
-                <option value="coordinacio" data-i18n="department.coordinacio">Coordinació</option>
-                <option value="cuina" data-i18n="department.cuina">Cuina</option>
-                <option value="administracio" data-i18n="department.administracio">Administració</option>
-                <option value="digital" data-i18n="department.digital">Digital</option>
-              </select>
-            </div>
+          <div class="field">
+            <label class="field-label" for="reporterName" data-i18n="form.name">Nom</label>
+            <input type="text" id="reporterName" name="reporterName" autocomplete="name" readonly>
           </div>
           <div class="field">
-            <label class="field-label" for="reporterEmail"><span data-i18n="form.email">Correu</span> <span class="opt" data-i18n="form.emailOptional">(opcional, per rebre novetats)</span></label>
-            <input type="email" id="reporterEmail" name="reporterEmail" placeholder="nom@empresa.com" data-i18n-placeholder="form.emailPlaceholder" autocomplete="email" list="emailSuggest" aria-describedby="reporterEmail-error">
-            <datalist id="emailSuggest"></datalist>
+            <label class="field-label" for="reporterEmail" data-i18n="form.email">Correu</label>
+            <input type="email" id="reporterEmail" name="reporterEmail" autocomplete="email" aria-describedby="reporterEmail-error" readonly>
             <p class="field-error" id="reporterEmail-error" role="alert"></p>
           </div>
         </fieldset>

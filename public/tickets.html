@@ -16,7 +16,7 @@
 </head>
 <body>
 <main class="wrap tickets-page">
-  <header class="page-head">
+  <header class="page-head" id="pageHead" hidden>
     <div class="eyebrow">
       <span class="eyebrow-brand">UAUU</span>
       <nav class="crumb-trail" aria-label="Camí de navegació">
@@ -39,12 +39,21 @@
     <p class="subtitle" data-i18n="tickets.subtitle">Totes les incidències i peticions creades des del portal, per tenir-ne una visió ràpida sense duplicar-les.</p>
   </header>
 
-  <button type="button" class="activity-toggle" id="activityToggle">
+  <div class="auth-gate" id="authGate" hidden>
+    <div class="lang-switch lang-switch-authgate" role="group" aria-label="Idioma">
+      <button type="button" data-lang-btn="ca">CA</button>
+      <button type="button" data-lang-btn="es">ES</button>
+    </div>
+    <p id="authGateMessage"></p>
+    <a href="login.html" class="auth-gate-link" id="authGateLink">Iniciar sessió</a>
+  </div>
+
+  <button type="button" class="activity-toggle" id="activityToggle" hidden>
     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 5.5V10l3 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="1.5"/></svg>
     <span data-i18n="tickets.activityToggle">Activitat recent</span>
   </button>
 
-  <div class="tickets-layout">
+  <div class="tickets-layout" id="ticketsLayout" hidden>
   <div class="card tickets-card">
     <div class="tickets-card-head">
       <h2 data-i18n="tickets.inProgress">Tiquets en curs</h2>
@@ -126,10 +135,6 @@
       <dd id="modalCategory"></dd>
     </div>
     <div>
-      <dt data-i18n="modal.department">Departament</dt>
-      <dd id="modalDepartment"></dd>
-    </div>
-    <div>
       <dt data-i18n="modal.reporter">Reportat per</dt>
       <dd id="modalReporter"></dd>
     </div>
@@ -158,10 +163,7 @@
       <p class="modal-comments-status" id="modalCommentsStatus" data-i18n="modal.commentsLoading">Carregant…</p>
     </div>
     <form class="modal-comment-form" id="modalCommentForm">
-      <div class="modal-comment-form-row">
-        <input type="text" id="modalCommentAuthor" placeholder="El teu nom" data-i18n-placeholder="modal.commentAuthorPlaceholder" maxlength="80" required aria-label="El teu nom" data-i18n-aria-label="modal.commentAuthorPlaceholder">
-        <input type="email" id="modalCommentAuthorEmail" placeholder="El teu correu (opcional)" data-i18n-placeholder="modal.commentAuthorEmailPlaceholder" maxlength="120" aria-label="El teu correu (opcional)" data-i18n-aria-label="modal.commentAuthorEmailPlaceholder">
-      </div>
+      <p class="modal-comment-as" id="modalCommentAs"></p>
       <textarea id="modalCommentInput" placeholder="Escriu un comentari..." data-i18n-placeholder="modal.commentBodyPlaceholder" rows="2" required></textarea>
       <p class="error" id="modalCommentError" role="alert" aria-live="polite"></p>
       <button type="submit" id="modalCommentSubmit" data-i18n="modal.commentSubmit">Publicar comentari</button>
