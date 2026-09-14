@@ -3,7 +3,7 @@ const solicitudsError = document.getElementById('solicitudsError');
 const solicitudsEmptyMsg = document.getElementById('solicitudsEmptyMsg');
 
 function authHeaders() {
-  return { 'x-admin-token': localStorage.getItem('adminToken') || '', 'Content-Type': 'application/json' };
+  return { 'Authorization': `Bearer ${window.adminAccessToken || ''}`, 'Content-Type': 'application/json' };
 }
 
 function escapeHtml(str) {

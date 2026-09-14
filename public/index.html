@@ -118,7 +118,11 @@
           </div>
           <div class="field">
             <label class="field-label" for="screenshots"><span data-i18n="form.screenshots">Captures de pantalla</span> <span class="opt" data-i18n="form.screenshotsOptional">(opcional, màxim 3, 5 MB cada una)</span></label>
-            <input type="file" id="screenshots" name="screenshots" accept="image/png,image/jpeg,image/webp,image/gif" multiple aria-describedby="screenshots-error">
+            <div class="file-input-wrap">
+              <input type="file" id="screenshots" name="screenshots" accept="image/png,image/jpeg,image/webp,image/gif" multiple aria-describedby="screenshots-error" class="file-input-native">
+              <button type="button" class="file-input-btn" id="screenshots-btn" data-i18n="form.chooseFiles">Tria els fitxers</button>
+              <span class="file-input-status" id="screenshots-status" data-i18n="form.noFilesChosen">Cap fitxer triat</span>
+            </div>
             <ul class="file-list" id="screenshots-list"></ul>
             <p class="field-error" id="screenshots-error" role="alert"></p>
           </div>

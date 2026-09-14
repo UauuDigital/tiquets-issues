@@ -45,19 +45,6 @@ loginForm.addEventListener('submit', async (e) => {
   submitBtn.disabled = true;
   submitBtn.textContent = 'Enviant…';
   try {
-    if (email.toLowerCase() === 'digital@uauu.cat') {
-      const token = loginForm.password.value;
-      const verifyRes = await fetch('/api/admin/verify', { headers: { 'x-admin-token': token } });
-      if (!verifyRes.ok) {
-        formError.textContent = ERROR_MESSAGES.loginFailed;
-        formError.style.display = 'block';
-        return;
-      }
-      localStorage.setItem('adminToken', token);
-      window.location.href = 'admin.html';
-      return;
-    }
-
     const checkRes = await fetch('/api/auth/check-email', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

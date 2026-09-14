@@ -24,13 +24,12 @@ const router = express.Router();
 
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
 
-// Verifica si el token d'administració desat al navegador encara és vàlid,
-// per poder mostrar una pantalla d'inici de sessió abans de carregar l'admin.
+// Verifica si la sessió activa (Bearer) té accés d'administració.
 router.get('/api/admin/verify', requireAdmin, (_req, res) => {
   res.json({ ok: true });
 });
 
-// --- Gestió (CRUD) de repositoris connectats, protegida per ADMIN_TOKEN ---
+// --- Gestió (CRUD) de repositoris connectats, protegida per requireAdmin ---
 router.get('/api/admin/repos', requireAdmin, (_req, res) => {
   res.json(reposStore.list());
 });

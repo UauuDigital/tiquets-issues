@@ -66,7 +66,7 @@ const ICON_LINK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path
 const ICON_TRASH = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 6h12M8 6V4.5h4V6M8.5 9v5M11.5 9v5M5.5 6l.6 9a1 1 0 001 .9h5.8a1 1 0 001-.9l.6-9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 function authHeaders() {
-  return { 'x-admin-token': localStorage.getItem('adminToken') || '', 'Content-Type': 'application/json' };
+  return { 'Authorization': `Bearer ${window.adminAccessToken || ''}`, 'Content-Type': 'application/json' };
 }
 
 function escapeHtml(str) {

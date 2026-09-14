@@ -12,7 +12,8 @@ let cachedAccessToken = null;
 // La icona nomes es mostra si l'email de la sessio activa es a
 // window.ADMIN_EMAILS (exposat per /js/supabase-config.js a partir de
 // ADMIN_NOTIFY_EMAILS). Nomes es un ajut de navegacio: l'accés real a
-// /admin.html el protegeix ADMIN_TOKEN, no aquesta comprovació.
+// /admin.html el protegeix require-admin.js (sessio de Supabase +
+// digital@uauu.cat), no aquesta comprovació.
 function syncAdminLink(usuari) {
   if (!adminLink) return;
   const adminEmails = window.ADMIN_EMAILS || [];
@@ -119,6 +120,8 @@ const emailSuggestDatalist = document.getElementById('emailSuggest');
 
 const screenshotsInput = document.getElementById('screenshots');
 const screenshotsList = document.getElementById('screenshots-list');
+const screenshotsBtn = document.getElementById('screenshots-btn');
+const screenshotsStatus = document.getElementById('screenshots-status');
 
 const fieldErrors = {
   repoId: document.getElementById('repoId-error'),
@@ -132,9 +135,11 @@ const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024;
 const ALLOWED_SCREENSHOT_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
 function renderScreenshotsList() {
-  screenshotsList.innerHTML = Array.from(screenshotsInput.files)
+  const files = Array.from(screenshotsInput.files);
+  screenshotsList.innerHTML = files
     .map((file) => `<li>${file.name}</li>`)
     .join('');
+  screenshotsStatus.hidden = files.length > 0;
 }
 
 function validateScreenshots() {
@@ -158,6 +163,7 @@ screenshotsInput.addEventListener('change', () => {
   renderScreenshotsList();
   validateScreenshots();
 });
+screenshotsBtn.addEventListener('click', () => screenshotsInput.click());
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -433,6 +439,7 @@ againBtn.addEventListener('click', () => {
   syncReporter();
   clearAllFieldErrors();
   screenshotsList.innerHTML = '';
+  screenshotsStatus.hidden = false;
   formError.textContent = '';
   formError.classList.remove('error');
   departmentCustomSelect.refresh();

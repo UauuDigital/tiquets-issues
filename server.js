@@ -23,12 +23,6 @@ if (!process.env.GITHUB_ADMIN_TOKEN) {
     'Canviar estat/prioritat o eliminar tiquets des de /tickets-admin.html estarà desactivat.'
   );
 }
-if (!process.env.ADMIN_TOKEN) {
-  console.warn(
-    "AVIS: falta la variable d'entorn ADMIN_TOKEN. " +
-    "La gestió de repositoris (/admin.html) estarà desactivada fins que la configuris."
-  );
-}
 if (reposStore.list().length === 0) {
   console.warn('AVIS: no hi ha cap repositori configurat. Afegeix-ne des de /admin.html.');
 }
@@ -51,7 +45,8 @@ app.get('/js/supabase-config.js', (_req, res) => {
     `window.SUPABASE_URL = ${JSON.stringify(process.env.SUPABASE_URL || '')};\n` +
     `window.SUPABASE_ANON_KEY = ${JSON.stringify(process.env.SUPABASE_ANON_KEY || '')};\n` +
     // Nomes per mostrar/amagar la icona d'administracio al portal; no es
-    // cap control de seguretat real (aixo el fa ADMIN_TOKEN al backend).
+    // cap control de seguretat real (aixo ho fa require-admin.js al backend,
+    // comprovant que la sessio de Supabase sigui digital@uauu.cat).
     `window.ADMIN_EMAILS = ${JSON.stringify(adminEmails)};\n`
   );
 });

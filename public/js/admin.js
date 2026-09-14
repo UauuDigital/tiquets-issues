@@ -26,7 +26,7 @@ const ICON_CHECK = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><pat
 const ICON_EXTERNAL = `<svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M8.5 5.5H5.5a1 1 0 00-1 1v8a1 1 0 001 1h8a1 1 0 001-1v-3M11.5 4.5H15.5V8.5M15 5L9.5 10.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 function authHeaders() {
-  return { 'x-admin-token': localStorage.getItem('adminToken') || '', 'Content-Type': 'application/json' };
+  return { 'Authorization': `Bearer ${window.adminAccessToken || ''}`, 'Content-Type': 'application/json' };
 }
 
 async function loadRepos() {
