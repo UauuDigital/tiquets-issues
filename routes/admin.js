@@ -24,6 +24,7 @@ const { sendRejectedEmail, sendSetPasswordEmail } = require('../lib/resend');
 const router = express.Router();
 
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || '').replace(/\/$/, '');
+const ADMIN_EMAIL = 'digital@uauu.cat';
 
 // Verifica si la sessió activa (Bearer) té accés d'administració.
 router.get('/api/admin/verify', requireAdmin, (_req, res) => {
@@ -418,6 +419,16 @@ router.patch('/api/admin/usuaris/:id', requireAdmin, async (req, res) => {
   if (typeof actiu !== 'boolean') {
     return res.status(400).json({ error: 'Cal indicar actiu (true/false).' });
   }
+
+  const { data: usuariActual } = await tiquets(supabaseAdmin)
+    .from('usuaris')
+    .select('email')
+    .eq('id', req.params.id)
+    .maybeSingle();
+  if (usuariActual && usuariActual.email?.toLowerCase() === ADMIN_EMAIL && !actiu) {
+    return res.status(400).json({ error: 'No es pot revocar l\'accés del compte d\'administració.' });
+  }
+
   const { data, error } = await tiquets(supabaseAdmin)
     .from('usuaris')
     .update({ actiu })
@@ -441,11 +452,14 @@ router.delete('/api/admin/usuaris/:id', requireAdmin, async (req, res) => {
   }
   const { data: usuari } = await tiquets(supabaseAdmin)
     .from('usuaris')
-    .select('id, actiu')
+    .select('id, actiu, email')
     .eq('id', req.params.id)
     .maybeSingle();
 
   if (!usuari) return res.status(404).json({ error: 'Usuari no trobat.' });
+  if (usuari.email?.toLowerCase() === ADMIN_EMAIL) {
+    return res.status(400).json({ error: 'No es pot eliminar el compte d\'administració.' });
+  }
   if (usuari.actiu) {
     return res.status(400).json({ error: 'Cal revocar l\'accés abans d\'eliminar l\'usuari.' });
   }

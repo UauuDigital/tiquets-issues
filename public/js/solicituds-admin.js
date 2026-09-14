@@ -70,18 +70,23 @@ const usuarisList = document.getElementById('usuarisList');
 const usuarisError = document.getElementById('usuarisError');
 const usuarisEmptyMsg = document.getElementById('usuarisEmptyMsg');
 
+const ADMIN_EMAIL = 'digital@uauu.cat';
+
 function usuariCardHtml(u) {
+  const esAdmin = (u.email || '').toLowerCase() === ADMIN_EMAIL;
   return `
     <div class="card solicitud-card" data-id="${u.id}">
       <div class="solicitud-info">
         <p class="solicitud-name"><strong>${escapeHtml(u.nom || '(sense nom)')}</strong> — ${escapeHtml(u.email)}</p>
-        <p class="solicitud-message">${u.actiu ? 'Accés actiu' : 'Accés revocat'}</p>
+        <p class="solicitud-message">${esAdmin ? 'Compte d\'administració' : (u.actiu ? 'Accés actiu' : 'Accés revocat')}</p>
       </div>
       <div class="solicitud-actions">
-        ${u.actiu
-          ? `<button type="button" class="secondary" data-revoke="${u.id}">Revocar accés</button>`
-          : `<button type="button" data-restore="${u.id}">Restaurar accés</button>
-             <button type="button" class="secondary" data-delete="${u.id}">Eliminar usuari</button>`}
+        ${esAdmin
+          ? ''
+          : (u.actiu
+            ? `<button type="button" class="secondary" data-revoke="${u.id}">Revocar accés</button>`
+            : `<button type="button" data-restore="${u.id}">Restaurar accés</button>
+               <button type="button" class="secondary" data-delete="${u.id}">Eliminar usuari</button>`)}
       </div>
     </div>
   `;
