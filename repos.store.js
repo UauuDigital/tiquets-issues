@@ -13,6 +13,21 @@ function seedFromLegacyConfig() {
   }
 }
 
+// Assigna numberPrefix als repositoris que no en tinguin (creats abans
+// d'introduir aquest camp), perquè el formulari els pugui mostrar número
+// sense haver-ho de fer manualment a cada entorn (p. ex. producció, que té
+// el seu propi repos.json no versionat).
+function migrateMissingNumberPrefixes(repos) {
+  let changed = false;
+  for (const r of repos) {
+    if (!r.numberPrefix) {
+      r.numberPrefix = nextNumberPrefix(repos);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 function load() {
   if (!fs.existsSync(DATA_FILE)) {
     const seed = seedFromLegacyConfig();
@@ -21,7 +36,11 @@ function load() {
   }
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    return JSON.parse(raw);
+    const repos = JSON.parse(raw);
+    if (migrateMissingNumberPrefixes(repos)) {
+      save(repos);
+    }
+    return repos;
   } catch (err) {
     console.error('Error llegint repos.json:', err);
     return [];
