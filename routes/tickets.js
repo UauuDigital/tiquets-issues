@@ -218,10 +218,15 @@ router.post('/api/tickets', ticketLimiter, requireApprovedUser, screenshotUpload
   if (CATEGORY_LABELS[category]) labels.push(CATEGORY_LABELS[category]);
   if (PRIORITY_LABELS[priority]) labels.push(PRIORITY_LABELS[priority]);
 
+  // Es pugen d'una en una (no amb Promise.all): pujades concurrents a la
+  // Contents API de GitHub competeixen pel mateix cap de branca i sovint
+  // provoquen un conflicte 409 a totes menys una, fent que desaparegui
+  // silenciosament més d'una captura.
   const files = req.files || [];
-  const uploadResults = await Promise.all(
-    files.map((file) => uploadScreenshotToGithub(targetRepo.owner, targetRepo.repo, file))
-  );
+  const uploadResults = [];
+  for (const file of files) {
+    uploadResults.push(await uploadScreenshotToGithub(targetRepo.owner, targetRepo.repo, file));
+  }
   const screenshotUrls = uploadResults.filter(Boolean);
   const failedUploads = files.length - screenshotUrls.length;
 

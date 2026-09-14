@@ -22,8 +22,11 @@ function populateModal(t) {
   if (t.screenshotUrls && t.screenshotUrls.length) {
     modalScreenshotsSection.hidden = false;
     modalScreenshots.innerHTML = t.screenshotUrls.map((url) => `
-      <a href="${url}" target="_blank" rel="noopener"><img src="${url}" alt="Captura de pantalla" loading="lazy"></a>
+      <button type="button" class="modal-screenshot-thumb"><img src="${url}" alt="Captura de pantalla" loading="lazy"></button>
     `).join('');
+    modalScreenshots.querySelectorAll('.modal-screenshot-thumb').forEach((btn, index) => {
+      btn.addEventListener('click', () => openImageLightbox(t.screenshotUrls, index));
+    });
   } else {
     modalScreenshotsSection.hidden = true;
     modalScreenshots.innerHTML = '';

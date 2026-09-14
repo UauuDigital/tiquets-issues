@@ -148,6 +148,10 @@
     <div class="modal-screenshots" id="modalScreenshots"></div>
   </div>
 
+  <div class="modal-actions" id="modalActions" hidden>
+    <a href="#" target="_blank" rel="noopener" class="modal-github-link" id="modalGithubLink" data-i18n="modal.openGithub">Obrir la incidència a GitHub ↗</a>
+  </div>
+
   <div class="modal-section">
     <h3 data-i18n="modal.comments">Comentaris</h3>
     <div class="modal-comments" id="modalComments">
@@ -174,10 +178,23 @@
   <div class="comment-modal-body" id="commentModalBody"></div>
 </dialog>
 
+<dialog id="imageLightbox" class="image-lightbox">
+  <button type="button" class="modal-close" id="imageLightboxClose" aria-label="Tancar" data-i18n-aria-label="tickets.close">&times;</button>
+  <a href="#" target="_blank" rel="noopener" id="imageLightboxOpenNew" class="image-lightbox-open-new" aria-label="Obre la imatge en una altra pàgina" data-i18n-aria-label="modal.openImageNewTab">↗</a>
+  <button type="button" class="image-lightbox-arrow image-lightbox-prev" id="imageLightboxPrev" aria-label="Captura anterior" data-i18n-aria-label="modal.prevImage">‹</button>
+  <button type="button" class="image-lightbox-arrow image-lightbox-next" id="imageLightboxNext" aria-label="Captura següent" data-i18n-aria-label="modal.nextImage">›</button>
+  <img id="imageLightboxImg" src="" alt="Captura de pantalla">
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="/js/supabase-config.js"></script>
+<script src="js/supabase-client.js"></script>
+<script src="js/auth-session.js"></script>
 <script src="js/i18n.js" defer></script>
 <script src="js/tickets-view/state.js" defer></script>
 <script src="js/tickets-view/urgency.js" defer></script>
 <script src="js/tickets-shared/board-core.js" defer></script>
+<script src="js/tickets-shared/image-lightbox.js" defer></script>
 <script src="js/tickets-view/board.js" defer></script>
 <script src="js/tickets-view/modal.js" defer></script>
 <script src="js/tickets-view/activity.js" defer></script>
