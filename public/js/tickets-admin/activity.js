@@ -27,11 +27,11 @@ function activityPriorityBadge(key) {
 }
 
 function activityText(entry) {
-  const label = entry.ticketNumber ? `Tiquet #${entry.ticketNumber}` : 'Un tiquet';
+  const label = entry.ticketNumber ? `Tiquet #${ticketNumberHtml(entry.ticketNumber)}` : 'Un tiquet';
   // Un tiquet eliminat ja no es pot obrir: es mostra com a text pla, no com a enllaç.
   const ticketRef = entry.ticketId && entry.type !== 'deleted'
-    ? `<button type="button" class="activity-ticket-link" data-ticket-id="${escapeHtml(entry.ticketId)}">${escapeHtml(label)}</button>`
-    : `<strong>${escapeHtml(label)}</strong>`;
+    ? `<button type="button" class="activity-ticket-link" data-ticket-id="${escapeHtml(entry.ticketId)}">${label}</button>`
+    : `<strong>${label}</strong>`;
   if (entry.type === 'created') {
     return `${ticketRef} creat${entry.reporterName ? ` per ${escapeHtml(entry.reporterName)}` : ''}`;
   }

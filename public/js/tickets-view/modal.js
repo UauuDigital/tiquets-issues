@@ -1,6 +1,6 @@
 function populateModal(t) {
   modalUrgency.innerHTML = urgencyIconHtml(t);
-  modalTitle.textContent = t.number ? I18N.t('modal.ticketNumber', { number: t.number }) : I18N.t('modal.ticketGeneric');
+  modalTitle.innerHTML = t.number ? I18N.t('modal.ticketNumber', { number: ticketNumberHtml(t.number) }) : I18N.t('modal.ticketGeneric');
   modalRepo.textContent = t.repoLabel;
   modalDescription.textContent = t.description || t.title || I18N.t('modal.na');
   modalStatus.textContent = STATUS_LABELS[t.status] || STATUS_LABELS.no_comencat;

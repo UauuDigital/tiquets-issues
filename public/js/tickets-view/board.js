@@ -10,7 +10,7 @@ function ticketCardHtml(t) {
     <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" aria-label="${escapeHtml(I18N.t('tickets.openTicket', { ref: t.number ? '#' + t.number : '', description: t.description || '' }))}" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
       <div class="ticket-card-urgency" title="${escapeHtml(I18N.t('tickets.urgencyHint', { score: t.urgencyScore }))}">
         ${urgencyIconHtml(t)}
-        <span class="ticket-card-number">${t.number ? '#' + t.number : ''}</span>
+        <span class="ticket-card-number">${t.number ? '#' + ticketNumberHtml(t.number) : ''}</span>
       </div>
       <div class="ticket-card-main">
         <div class="ticket-card-top">

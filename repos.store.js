@@ -45,6 +45,14 @@ function list() {
   return load();
 }
 
+function nextNumberPrefix(repos) {
+  const used = repos
+    .map((r) => parseInt(r.numberPrefix, 10))
+    .filter((n) => Number.isInteger(n));
+  const next = used.length ? Math.max(...used) + 1 : 1;
+  return String(next);
+}
+
 function create({ label, owner, repo, description, projectUrl }) {
   const repos = load();
   const baseId = slugify(`${owner}-${repo}`) || slugify(label);
@@ -53,17 +61,33 @@ function create({ label, owner, repo, description, projectUrl }) {
   while (repos.some((r) => r.id === id)) {
     id = `${baseId}-${n++}`;
   }
-  const entry = { id, label, owner, repo, description: description || '', projectUrl: projectUrl || '' };
+  const entry = {
+    id,
+    label,
+    owner,
+    repo,
+    description: description || '',
+    projectUrl: projectUrl || '',
+    numberPrefix: nextNumberPrefix(repos)
+  };
   repos.push(entry);
   save(repos);
   return entry;
 }
 
-function update(id, { label, owner, repo, description, projectUrl }) {
+function update(id, { label, owner, repo, description, projectUrl, numberPrefix }) {
   const repos = load();
   const idx = repos.findIndex((r) => r.id === id);
   if (idx === -1) return null;
-  repos[idx] = { ...repos[idx], label, owner, repo, description: description || '', projectUrl: projectUrl || '' };
+  repos[idx] = {
+    ...repos[idx],
+    label,
+    owner,
+    repo,
+    description: description || '',
+    projectUrl: projectUrl || '',
+    numberPrefix: numberPrefix || repos[idx].numberPrefix
+  };
   save(repos);
   return repos[idx];
 }

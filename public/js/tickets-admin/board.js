@@ -34,7 +34,7 @@ function ticketCardHtml(t) {
     <article class="ticket-card" data-id="${t.id}" role="button" tabindex="0" aria-label="Obre el tiquet ${t.number ? '#' + t.number : ''}: ${escapeHtml(t.description || '')}" style="--card-color:${urgencyColor(t.urgencyScore)};--status-color:${STATUS_COLORS[t.status || 'no_comencat']}">
       <div class="ticket-card-urgency" title="Urgència: ${t.urgencyScore} (dies oberts × pes de prioritat)">
         ${urgencyIconHtml(t)}
-        <span class="ticket-card-number">${t.number ? '#' + t.number : ''}</span>
+        <span class="ticket-card-number">${t.number ? '#' + ticketNumberHtml(t.number) : ''}</span>
       </div>
       <div class="ticket-card-main">
         <div class="ticket-card-top">

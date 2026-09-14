@@ -25,11 +25,11 @@ function activityPriorityBadge(key) {
 }
 
 function activityText(entry) {
-  const label = entry.ticketNumber ? I18N.t('activity.ticketNumber', { number: entry.ticketNumber }) : I18N.t('activity.aTicket');
+  const label = entry.ticketNumber ? I18N.t('activity.ticketNumber', { number: ticketNumberHtml(entry.ticketNumber) }) : I18N.t('activity.aTicket');
   // Un tiquet eliminat ja no es pot obrir: es mostra com a text pla, no com a enllaç.
   const ticketRef = entry.ticketId && entry.type !== 'deleted'
-    ? `<button type="button" class="activity-ticket-link" data-ticket-id="${escapeHtml(entry.ticketId)}">${escapeHtml(label)}</button>`
-    : `<strong>${escapeHtml(label)}</strong>`;
+    ? `<button type="button" class="activity-ticket-link" data-ticket-id="${escapeHtml(entry.ticketId)}">${label}</button>`
+    : `<strong>${label}</strong>`;
   if (entry.type === 'created') {
     return I18N.t('activity.created', { ticket: ticketRef, reporter: entry.reporterName ? I18N.t('activity.createdBy', { name: escapeHtml(entry.reporterName) }) : '' });
   }

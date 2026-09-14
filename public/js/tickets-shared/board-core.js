@@ -13,6 +13,14 @@ function boardText(key, fallback, vars) {
   return typeof I18N !== 'undefined' ? I18N.t(key, vars) : fallback;
 }
 
+// El primer dígit del número d'un tiquet identifica sempre el repositori
+// (veure repos.json → numberPrefix); el destaquem en negreta perquè es
+// distingeixi d'un cop d'ull del número real de la issue de GitHub.
+function ticketNumberHtml(number) {
+  const str = String(number);
+  return `<b>${str.charAt(0)}</b><span style="font-weight:400">${str.slice(1)}</span>`;
+}
+
 function initBoardCore({ fetchUrl, headers, searchFields }) {
   window.loadTickets = async function loadTickets() {
     ticketsError.style.display = 'none';

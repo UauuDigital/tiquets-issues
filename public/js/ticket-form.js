@@ -276,23 +276,33 @@ async function loadRepos() {
   } finally {
     repoCustomSelect.refresh();
     syncProjectDescription();
+    loadNextTicketNumber();
   }
 }
 loadRepos();
 
+// El primer dígit del número identifica sempre el repositori (numberPrefix
+// a repos.json); es destaca en negreta perquè es distingeixi del número
+// real de la issue de GitHub.
+function ticketNumberHtml(number) {
+  const str = String(number);
+  return `<b>${str.charAt(0)}</b><span style="font-weight:400">${str.slice(1)}</span>`;
+}
+
 async function loadNextTicketNumber() {
+  if (!repoSelect.value) return;
   try {
-    const res = await fetch('/api/tickets/next-number');
+    const res = await fetch(`/api/tickets/next-number?repoId=${encodeURIComponent(repoSelect.value)}`);
     const data = await res.json();
     if (data.next) {
-      stubNumber.textContent = '#' + data.next;
+      stubNumber.innerHTML = '#' + ticketNumberHtml(data.next);
       stubNumber.title = I18N.t('stub.numberHint');
     }
   } catch (err) {
     // Si falla, es queda el placeholder per defecte ("— — —").
   }
 }
-loadNextTicketNumber();
+repoSelect.addEventListener('change', loadNextTicketNumber);
 
 function priorityText(level) { return I18N.t(`priority.${level}`); }
 const PRIORITY_ICONS = {
@@ -426,7 +436,7 @@ form.addEventListener('submit', async (e) => {
     }
 
     if (data.number) {
-      stubNumber.textContent = '#' + data.number;
+      stubNumber.innerHTML = '#' + ticketNumberHtml(data.number);
       confirmText.textContent = I18N.t('confirm.textWithNumber', { number: data.number });
       issueLink.href = data.url;
       issueLink.textContent = I18N.t('confirm.viewIssue');

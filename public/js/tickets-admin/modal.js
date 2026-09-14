@@ -1,6 +1,6 @@
 function populateModal(t) {
   modalUrgency.innerHTML = urgencyIconHtml(t);
-  modalTitle.textContent = t.number ? `Tiquet núm. ${t.number}` : 'Tiquet';
+  modalTitle.innerHTML = t.number ? `Tiquet núm. ${ticketNumberHtml(t.number)}` : 'Tiquet';
   modalRepo.textContent = t.repoLabel;
   modalDescription.textContent = t.description || t.title || '—';
   modalStatusWrap.innerHTML = statusSelectHtml(t);

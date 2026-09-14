@@ -172,9 +172,27 @@ router.post('/api/tickets/:id/comments', commentLimiter, requireApprovedUser, as
 
 // Número orientatiu que tindria el següent tiquet, perquè el formulari el
 // pugui mostrar mentre s'omple (el número real l'assigna GitHub en crear-lo).
-router.get('/api/tickets/next-number', (_req, res) => {
-  const numbers = ticketsStore.list().map((t) => t.number).filter((n) => typeof n === 'number');
-  const next = numbers.length ? Math.max(...numbers) + 1 : 1;
+// El número final és "prefix del repositori" + "número real de la issue",
+// per evitar que tiquets de repositoris diferents comparteixin número.
+router.get('/api/tickets/next-number', (req, res) => {
+  const { repoId } = req.query;
+  if (!repoId) {
+    return res.json({ next: null });
+  }
+  const targetRepo = reposStore.list().find((r) => r.id === repoId);
+  if (!targetRepo || !targetRepo.numberPrefix) {
+    return res.json({ next: null });
+  }
+  const prefix = String(targetRepo.numberPrefix);
+  const rawNumbers = ticketsStore
+    .list()
+    .filter((t) => t.repoId === repoId || (!t.repoId && t.repoLabel === targetRepo.label))
+    .map((t) => String(t.number))
+    .filter((s) => s.startsWith(prefix))
+    .map((s) => parseInt(s.slice(prefix.length), 10))
+    .filter((n) => Number.isInteger(n));
+  const nextRaw = rawNumbers.length ? Math.max(...rawNumbers) + 1 : 1;
+  const next = Number(`${prefix}${nextRaw}`);
   res.json({ next });
 });
 
@@ -271,14 +289,18 @@ router.post('/api/tickets', ticketLimiter, requireApprovedUser, screenshotUpload
     }
 
     const issue = await ghResponse.json();
-    notifyByEmail({ title: title.trim(), url: issue.html_url, number: issue.number, repoLabel: targetRepo.label });
+    const displayNumber = targetRepo.numberPrefix
+      ? Number(`${targetRepo.numberPrefix}${issue.number}`)
+      : issue.number;
+    notifyByEmail({ title: title.trim(), url: issue.html_url, number: displayNumber, repoLabel: targetRepo.label });
     const newTicketId = crypto.randomUUID();
     ticketsStore.add({
       id: newTicketId,
-      number: issue.number,
+      number: displayNumber,
       url: issue.html_url,
       title: title.trim(),
       description: description.trim(),
+      repoId: targetRepo.id,
       repoLabel: targetRepo.label,
       priority: priority || null,
       category: category || null,
@@ -291,13 +313,13 @@ router.post('/api/tickets', ticketLimiter, requireApprovedUser, screenshotUpload
     activityStore.add({
       id: crypto.randomUUID(),
       ticketId: newTicketId,
-      ticketNumber: issue.number,
+      ticketNumber: displayNumber,
       ticketTitle: title.trim(),
       type: 'created',
       reporterName: reporterName?.trim() || null,
       at: new Date().toISOString()
     });
-    return res.status(201).json({ ok: true, number: issue.number, url: issue.html_url });
+    return res.status(201).json({ ok: true, number: displayNumber, url: issue.html_url });
   } catch (err) {
     console.error('Error inesperat:', err);
     return res.status(500).json({ error: 'Error intern del servidor.' });
