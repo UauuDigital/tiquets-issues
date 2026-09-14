@@ -14,6 +14,7 @@ const {
   parseGithubIssueUrl,
   syncTicketToGithub,
   deleteGithubIssue,
+  deleteScreenshotFromGithub,
   verifyGithubRepo,
   normalizeProjectUrl
 } = require('../lib/github-api');
@@ -155,6 +156,9 @@ router.delete('/api/admin/tickets/:id', requireAdmin, async (req, res) => {
 
   const ok = ticketsStore.remove(req.params.id);
   if (!ok) return res.status(404).json({ error: 'Tiquet no trobat.' });
+  for (const url of ticket.screenshotUrls || []) {
+    await deleteScreenshotFromGithub(url);
+  }
   activityStore.add({
     id: crypto.randomUUID(),
     ticketId: ticket.id,

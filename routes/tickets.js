@@ -225,7 +225,7 @@ router.post('/api/tickets', ticketLimiter, requireApprovedUser, screenshotUpload
   const files = req.files || [];
   const uploadResults = [];
   for (const file of files) {
-    uploadResults.push(await uploadScreenshotToGithub(targetRepo.owner, targetRepo.repo, file));
+    uploadResults.push(await uploadScreenshotToGithub(file));
   }
   const screenshotUrls = uploadResults.filter(Boolean);
   const failedUploads = files.length - screenshotUrls.length;
