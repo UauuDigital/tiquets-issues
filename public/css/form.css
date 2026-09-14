@@ -118,9 +118,35 @@ input:focus, select:focus, textarea:focus {
   gap: 4px;
 }
 .file-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   font-size: 12.5px;
   color: var(--ink-soft);
   font-family: var(--mono);
+}
+.file-list-remove {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.file-list-remove:hover {
+  background: #fdeaea;
+  color: #c0392b;
 }
 
 input[aria-invalid="true"],

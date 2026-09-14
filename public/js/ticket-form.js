@@ -134,16 +134,38 @@ const MAX_SCREENSHOTS = 3;
 const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024;
 const ALLOWED_SCREENSHOT_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
-function renderScreenshotsList() {
-  const files = Array.from(screenshotsInput.files);
-  screenshotsList.innerHTML = files
-    .map((file) => `<li>${file.name}</li>`)
-    .join('');
-  screenshotsStatus.hidden = files.length > 0;
+let selectedScreenshots = [];
+
+function syncScreenshotsInput() {
+  const dataTransfer = new DataTransfer();
+  selectedScreenshots.forEach((file) => dataTransfer.items.add(file));
+  screenshotsInput.files = dataTransfer.files;
 }
 
+function removeScreenshot(index) {
+  selectedScreenshots.splice(index, 1);
+  syncScreenshotsInput();
+  renderScreenshotsList();
+  validateScreenshots();
+}
+
+function renderScreenshotsList() {
+  screenshotsList.innerHTML = selectedScreenshots
+    .map(
+      (file, index) => `<li><span>${file.name}</span><button type="button" class="file-list-remove" data-index="${index}" aria-label="${I18N.t('form.removeFile')}">×</button></li>`
+    )
+    .join('');
+  screenshotsStatus.hidden = selectedScreenshots.length > 0;
+}
+
+screenshotsList.addEventListener('click', (event) => {
+  const btn = event.target.closest('.file-list-remove');
+  if (!btn) return;
+  removeScreenshot(Number(btn.dataset.index));
+});
+
 function validateScreenshots() {
-  const files = Array.from(screenshotsInput.files);
+  const files = selectedScreenshots;
   if (files.length > MAX_SCREENSHOTS) {
     fieldErrors.screenshots.textContent = ERROR_MESSAGES.tooManyScreenshots;
     return false;
@@ -160,6 +182,8 @@ function validateScreenshots() {
   return true;
 }
 screenshotsInput.addEventListener('change', () => {
+  selectedScreenshots = selectedScreenshots.concat(Array.from(screenshotsInput.files));
+  syncScreenshotsInput();
   renderScreenshotsList();
   validateScreenshots();
 });
@@ -438,6 +462,7 @@ againBtn.addEventListener('click', () => {
   syncDescriptionStub();
   syncReporter();
   clearAllFieldErrors();
+  selectedScreenshots = [];
   screenshotsList.innerHTML = '';
   screenshotsStatus.hidden = false;
   formError.textContent = '';
