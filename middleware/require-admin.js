@@ -21,3 +21,4 @@ async function requireAdmin(req, res, next) {
 }
 
 module.exports = requireAdmin;
+module.exports.ADMIN_EMAIL = ADMIN_EMAIL;
