@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const helmet = require('helmet');
 const path = require('path');
 
 const reposStore = require('./repos.store');
@@ -27,6 +28,11 @@ if (reposStore.list().length === 0) {
   console.warn('AVIS: no hi ha cap repositori configurat. Afegeix-ne des de /admin.html.');
 }
 
+// CSP desactivada: el frontend fa fetch directe a Supabase (domini extern)
+// des del navegador, i una CSP per defecte ("self") ho bloquejaria. La resta
+// de capçaleres de seguretat d'helmet (X-Content-Type-Options, frameguard...)
+// s'apliquen igualment.
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 

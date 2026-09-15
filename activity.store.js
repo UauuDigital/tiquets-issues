@@ -2,6 +2,7 @@
 // tiquets: creacions i canvis d'estat/prioritat fets des de l'admin.
 const fs = require('fs');
 const path = require('path');
+const { saveJsonAtomic } = require('./lib/json-store');
 
 const DATA_FILE = path.join(__dirname, 'activity.json');
 const MAX_ENTRIES = 200;
@@ -18,7 +19,7 @@ function load() {
 }
 
 function save(entries) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(entries, null, 2) + '\n', 'utf8');
+  saveJsonAtomic(DATA_FILE, entries);
 }
 
 function list() {

@@ -2,6 +2,7 @@
 // Permet fer CRUD en calent des de l'API d'administració sense reiniciar el servidor.
 const fs = require('fs');
 const path = require('path');
+const { saveJsonAtomic } = require('./lib/json-store');
 
 const DATA_FILE = path.join(__dirname, 'repos.json');
 
@@ -48,7 +49,7 @@ function load() {
 }
 
 function save(repos) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(repos, null, 2) + '\n', 'utf8');
+  saveJsonAtomic(DATA_FILE, repos);
 }
 
 function slugify(text) {

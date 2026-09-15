@@ -3,6 +3,7 @@
 // una entrada cada cop que es crea una incidència a GitHub amb èxit.
 const fs = require('fs');
 const path = require('path');
+const { saveJsonAtomic } = require('./lib/json-store');
 
 const DATA_FILE = path.join(__dirname, 'tickets.json');
 const MAX_ENTRIES = 300;
@@ -19,7 +20,7 @@ function load() {
 }
 
 function save(tickets) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(tickets, null, 2) + '\n', 'utf8');
+  saveJsonAtomic(DATA_FILE, tickets);
 }
 
 function list() {
