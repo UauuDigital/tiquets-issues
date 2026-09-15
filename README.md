@@ -1,9 +1,11 @@
 # Portal de tiquets → GitHub Issues
 
-Pàgina web perquè qualsevol treballador (sense compte de GitHub) pugui obrir un
-tiquet, i que es converteixi automàticament en un **issue** al repositori que
-tu triïs. Inclou també un tauler d'administració per gestionar l'estat i la
-prioritat dels tiquets, i una pàgina per connectar/gestionar els repositoris.
+Pàgina web perquè qualsevol treballador de UAUU (sense compte de GitHub) pugui
+obrir un tiquet, i que es converteixi automàticament en un **issue** al
+repositori que un administrador triï. Inclou un tauler d'administració per
+gestionar l'estat i la prioritat dels tiquets, una pàgina per
+connectar/gestionar els repositoris, i un sistema d'accés controlat per
+usuaris (registre amb aprovació manual).
 
 ```
 Formulari (public/index.html) → POST /api/tickets → routes/tickets.js → API de GitHub → nou issue
@@ -17,6 +19,10 @@ El token de GitHub només viu al servidor; mai s'envia al navegador.
 - Un compte de GitHub per crear els tiquets (recomanat: un compte dedicat,
   vegeu la secció de notificacions més avall) i, opcionalment, un altre
   compte propietari dels repositoris per gestionar-los des de l'admin
+- Un projecte de Supabase (Auth + base de dades a l'esquema `tiquets`) per a
+  l'accés d'usuaris
+- Un compte a Resend (resend.com), amb un domini verificat, per als correus
+  del sistema d'accés (verificació de registre, avisos, contrasenya)
 
 ## Instal·lació (primer cop)
 
@@ -43,7 +49,23 @@ dels estrictament necessaris.
 
 Els repositoris disponibles (nom visible + owner/repo de GitHub) NO es
 configuren per variables d'entorn: es gestionen en calent des de
-`/admin.html` (protegit per `ADMIN_TOKEN`) i es desen a `repos.json`.
+`/admin.html` i es desen a `repos.json`.
+
+### Accés d'administració
+
+No hi ha cap token secret compartit per a l'administració. L'administrador
+és un usuari normal del portal —el compte real de Supabase Auth
+`digital@uauu.cat`— que inicia sessió des de `/login.html` amb correu i
+contrasenya, igual que qualsevol altre usuari. Un cop amb sessió activa amb
+aquest correu exacte, `public/js/admin-auth.js` desbloqueja `/admin.html`,
+`/tickets-admin.html` i `/solicituds-admin.html`, i el backend
+(`middleware/require-admin.js`) verifica cada petició a `/api/admin/*`
+comprovant el token de sessió de Supabase i que el correu de l'usuari sigui
+`digital@uauu.cat` (constant al mateix fitxer).
+
+Per crear aquest compte per primer cop (si encara no existeix a Supabase
+Auth), es pot fer des del propi flux de `registre.html` + aprovació manual,
+o directament des del panell de Supabase.
 
 ## Execució (dia a dia)
 
@@ -51,35 +73,52 @@ configuren per variables d'entorn: es gestionen en calent des de
 npm start
 ```
 
-- Formulari públic: [http://localhost:3000](http://localhost:3000)
+- Formulari públic (requereix haver iniciat sessió): [http://localhost:3000](http://localhost:3000)
+- Login: `http://localhost:3000/login.html`
+- Sol·licitud d'accés per a usuaris nous: `http://localhost:3000/registre.html`
 - Llistat públic de tiquets: `http://localhost:3000/tickets.html`
-- Gestió de tiquets (requereix `GITHUB_ADMIN_TOKEN` + `ADMIN_TOKEN`): `http://localhost:3000/tickets-admin.html`
-- Gestió de repositoris (requereix `ADMIN_TOKEN`): `http://localhost:3000/admin.html`
+- Gestió de tiquets (només `digital@uauu.cat`): `http://localhost:3000/tickets-admin.html`
+- Gestió de repositoris (només `digital@uauu.cat`): `http://localhost:3000/admin.html`
+- Aprovació de sol·licituds d'accés (només `digital@uauu.cat`): `http://localhost:3000/solicituds-admin.html`
 
 Cada tiquet enviat crea un issue nou al repositori triat, amb etiquetes de
 categoria i prioritat.
 
 ## Variables d'entorn
 
+Veure `.env.example` per a la llista completa i actualitzada, amb el detall
+de cada variable. Resum de les principals:
+
 | Variable | Descripció |
 |---|---|
 | `GITHUB_TOKEN` | Token del compte que crea les issues i comentaris públics. Ha de ser un compte **diferent** del que fa Watch als repositoris (vegeu "Notificacions" més avall). Permís mínim: `Issues: Read and write` al repo de tiquets. |
 | `GITHUB_ADMIN_TOKEN` | Token del compte **propietari real** dels repositoris, usat només des de `/tickets-admin.html` per canviar estat/prioritat i eliminar tiquets (GitHub només permet eliminar issues des del propietari, no des d'un col·laborador). |
-| `ADMIN_TOKEN` | Cadena secreta pròpia (no és un token de GitHub) que protegeix `/admin.html`, `/tickets-admin.html` i les rutes `/api/admin/*`. Sense això, la gestió queda desactivada. |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Accés al projecte de Supabase (Auth + esquema `tiquets`), compartit amb l'app "compras". |
+| `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `ADMIN_NOTIFY_EMAILS` | Enviament dels correus del sistema d'accés (verificació, avisos, contrasenya) via Resend. |
+| `PUBLIC_BASE_URL` | URL pública del portal, usada per construir els enllaços dels correus. |
 | `PORT` | Port on escolta el servidor. Opcional, per defecte `3000`. |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `NOTIFY_EMAIL` | Opcionals: si s'omplen totes cinc, cada tiquet nou envia també un correu. Actualment **no s'utilitzen** en producció (vegeu "Notificacions" més avall); es deixen documentades per si es reactiven en el futur. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `NOTIFY_EMAIL` | Opcionals: via SMTP alternativa i independent per avisar per correu d'un tiquet nou. Actualment **no s'utilitzen** en producció (vegeu "Notificacions" més avall); es deixen documentades per si es reactiven en el futur. |
 
 ## Notificacions de tiquets nous
 
-No s'envia cap correu des del portal en producció (SMTP i Resend es van
-provar i descartar; vegeu `CLAUDE.md`). La solució adoptada són les
-**notificacions natives de GitHub**: GitHub mai notifica al mateix compte
-que crea la issue, així que `GITHUB_TOKEN` ha de ser d'un compte diferent
-del que fa Watch (→ All Activity) als repositoris connectats.
+No s'envia cap correu des del portal per avisar d'un tiquet nou (es va
+provar SMTP i Resend per a aquest cas concret i es va descartar; vegeu
+`CLAUDE.md`). La solució adoptada són les **notificacions natives de
+GitHub**: GitHub mai notifica al mateix compte que crea la issue, així que
+`GITHUB_TOKEN` ha de ser d'un compte diferent del que fa Watch (→ All
+Activity) als repositoris connectats.
+
+Resend sí que s'utilitza, però només per als correus del sistema d'accés
+d'usuaris (verificació de registre, avís de sol·licituds pendents, rebuig,
+creació/recuperació de contrasenya).
 
 ## Deploy
 
-Qualsevol servei que executi Node.js funciona:
+Actualment es desplega a Servatica (panell "Setup Node.js App"), amb un
+`.env` propi al servidor de producció que cal actualitzar (i reiniciar
+l'app) manualment des del panell si canvia alguna variable.
+
+Qualsevol altre servei que executi Node.js també funcionaria:
 
 - **Render / Railway / Fly.io**: connecta el repositori, defineix les
   variables d'entorn al panell del servei, i el desplegament és automàtic.
@@ -91,42 +130,21 @@ treballadors: només visiten la teva URL.
 
 ## Notes de seguretat
 
-- El formulari públic no porta login, així que ja inclou un **honeypot**
-  anti-bots i un **límit de 10 tiquets per IP cada 15 minuts** (20
-  comentaris per IP cada 15 minuts). Si hi ha abús, considera afegir un
-  CAPTCHA o posar-lo darrere de la xarxa interna / VPN de l'empresa.
+- L'accés al formulari i a la resta del portal requereix sessió (Supabase
+  Auth), amb aprovació manual de cada sol·licitud d'accés per part de
+  l'administrador. El formulari públic de registre inclou un **honeypot**
+  anti-bots i límits de freqüència per IP.
+- L'administració (`/admin.html`, `/tickets-admin.html`,
+  `/solicituds-admin.html` i les rutes `/api/admin/*`) està lligada a un únic
+  compte de Supabase Auth (`digital@uauu.cat`), verificat a cada petició pel
+  backend — no hi ha cap token compartit.
 - `GITHUB_TOKEN` només ha de tenir accés al(s) repositori(s) de tiquets,
   mai a tota l'organització.
-- No es guarda cap dada en una base de dades: els tiquets viuen com a
-  issues de GitHub; `tickets.json`, `repos.json` i `activity.json` només en
-  són una còpia local (no versionada) per a l'admin.
+- No es guarda cap dada de tiquets en una base de dades: viuen com a issues
+  de GitHub; `tickets.json`, `repos.json` i `activity.json` només en són una
+  còpia local (no versionada) per a l'admin. Les dades d'usuaris i
+  sol·licituds d'accés sí que viuen a Supabase (esquema `tiquets`).
 
 ## Estructura del projecte
 
-```
-tiquets-issues/
-├── public/
-│   ├── css/              # variables.css + un fitxer per component (importats des de main.css/admin.css/tickets.css)
-│   ├── js/
-│   │   ├── ticket-form.js, error-messages.js, custom-select.js, admin-auth.js
-│   │   ├── tickets-admin/  # mòduls del tauler d'administració (state, urgency, board, modal, activity, main)
-│   │   └── tickets-view/   # mòduls del llistat públic de tiquets (mateixa divisió)
-│   ├── assets/            # favicon.ico (corporatiu)
-│   ├── index.html         # Formulari públic de tiquets
-│   ├── tickets.html        # Llistat públic de tiquets
-│   ├── tickets-admin.html  # Gestió de tiquets (estat, prioritat, comentaris)
-│   └── admin.html          # Gestió de repositoris connectats
-├── routes/
-│   ├── tickets.js          # Rutes públiques (/api/tickets, /api/activity, /api/repos)
-│   └── admin.js             # Rutes protegides per ADMIN_TOKEN (/api/admin/*)
-├── lib/
-│   ├── github-api.js, labels.js, comments.js, date.js, mailer.js, auto-delete.js
-├── middleware/
-│   └── require-admin.js
-├── server.js               # Punt d'entrada: setup d'Express i muntatge dels routers
-├── repos.config.js, repos.json, repos.store.js
-├── tickets.json, tickets.store.js
-├── activity.json, activity.store.js
-├── .env / .env.example
-└── package.json
-```
+Vegeu `CLAUDE.md` per a l'estructura completa i detallada de carpetes.

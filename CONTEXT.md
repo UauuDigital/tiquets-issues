@@ -20,8 +20,8 @@ Desenvolupament/producció activa. Últim commit (`a0bbcd4`, branca `main`): doc
 - `GET /api/tickets`, `GET /api/tickets/next-number`, `GET /api/tickets/:id/comments`, `POST /api/tickets/:id/comments` — llistat i comentaris públics de tiquets
 - `GET /api/repos`, `GET /api/activity` — llistat públic de repositoris connectats i activitat
 - `POST /api/auth/solicituds`, `GET /api/auth/verificar-email` — sol·licitud i verificació d'accés d'usuari
-- `/api/admin/*` (routes/admin.js) — gestió completa (tiquets, repos, usuaris, sol·licituds, activitat); protegit per capçalera `x-admin-token` (`ADMIN_TOKEN`), verificat via `GET /api/admin/verify`
-- Autenticació d'usuaris del portal (no de l'API): Supabase Auth (magic link/OTP)
+- `/api/admin/*` (routes/admin.js) — gestió completa (tiquets, repos, usuaris, sol·licituds, activitat); protegit per `middleware/require-admin.js`: exigeix `Authorization: Bearer <access_token>` de Supabase Auth i que el correu de l'usuari sigui exactament `digital@uauu.cat` (no hi ha cap token compartit)
+- Autenticació d'usuaris del portal (no de l'API): Supabase Auth (correu + contrasenya, `signInWithPassword`); l'administració és el mateix mecanisme, restringit a l'únic compte `digital@uauu.cat`
 - No s'exposen fitxers CSV ni exports per a altres sistemes
 
 **Dependències EXTERNES que aquest projecte CONSUMEIX**
@@ -39,7 +39,10 @@ Projecte Supabase compartit amb l'app "compras" (mateix compte/projecte, esquema
 - `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `ADMIN_NOTIFY_EMAILS`
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `NOTIFY_EMAIL` (opcional, actualment buides)
 - `PUBLIC_BASE_URL`
-- `ADMIN_TOKEN` (secret propi, no apunta a servei extern, però controla integració amb el tauler admin)
+
+No hi ha cap `ADMIN_TOKEN` ni token compartit: l'accés d'administració és el
+compte de Supabase Auth `digital@uauu.cat` (constant a
+`middleware/require-admin.js`), no una variable d'entorn.
 
 **Pendents/TODOs coneguts relacionats amb integració**
 - `CLAUDE.md` documenta que es podria afegir `sendTicketNotificationEmail` a `lib/resend.js` per notificar tiquets nous per correu (via Resend), com a alternativa/complement a les notificacions natives de GitHub. Es va implementar puntualment el 2026-09-08 però es va revertir; caldria tornar a afegir `RESEND_FROM_EMAIL` a l'entorn de Servatica si es reactiva.

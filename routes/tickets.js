@@ -81,7 +81,8 @@ router.get('/api/tickets/:id/comments', requireApprovedUser, async (req, res) =>
   const ghIssue = parseGithubIssueUrl(ticket.url);
   if (!ghIssue) return res.json([]);
   if (!GITHUB_TOKEN) {
-    return res.status(500).json({ error: 'El servidor no té configurat GITHUB_TOKEN (revisa .env).' });
+    console.error('GITHUB_TOKEN no configurat: no es poden llegir els comentaris de GitHub.');
+    return res.status(500).json({ error: 'No s\'han pogut carregar els comentaris ara mateix. Torna-ho a provar més tard.' });
   }
 
   try {
@@ -125,7 +126,8 @@ router.post('/api/tickets/:id/comments', commentLimiter, requireApprovedUser, as
     return res.status(502).json({ error: 'Aquest tiquet no està enllaçat amb cap incidència de GitHub.' });
   }
   if (!GITHUB_TOKEN) {
-    return res.status(500).json({ error: 'El servidor no té configurat GITHUB_TOKEN (revisa .env).' });
+    console.error('GITHUB_TOKEN no configurat: no es pot publicar el comentari a GitHub.');
+    return res.status(500).json({ error: 'No s\'ha pogut publicar el comentari ara mateix. Torna-ho a provar més tard.' });
   }
 
   const cleanAuthor = (req.usuari.nom || '').trim().slice(0, 80) || 'Anònim';
