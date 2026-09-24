@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const path = require('path');
+const cache = require('./lib/cache-headers');
 
 const reposStore = require('./repos.store');
 const { startAutoDelete } = require('./lib/auto-delete');
@@ -34,7 +35,11 @@ if (reposStore.list().length === 0) {
 // s'apliquen igualment.
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// Caché: l'API no es guarda mai; html/js/css es revaliden sempre (304 si no
+// han canviat); imatges i fonts, 7 dies. Vegeu lib/cache-headers.js.
+app.use('/api', cache.noStore);
+app.get('/version.json', cache.versionHandler(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), cache.staticOptions()));
 
 app.use(ticketsRouter);
 app.use(adminRouter);
@@ -47,6 +52,7 @@ app.get('/js/supabase-config.js', (_req, res) => {
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
+  res.set('Cache-Control', 'no-cache, must-revalidate');
   res.type('application/javascript').send(
     `window.SUPABASE_URL = ${JSON.stringify(process.env.SUPABASE_URL || '')};\n` +
     `window.SUPABASE_ANON_KEY = ${JSON.stringify(process.env.SUPABASE_ANON_KEY || '')};\n` +
